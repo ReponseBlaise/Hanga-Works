@@ -1,0 +1,138 @@
+%% Mermaid ER diagram generated from prisma/schema.prisma
+%% Open with any Mermaid renderer (Mermaid Live Editor, VS Code Mermaid preview)
+
+erDiagram
+  USER {
+    int id PK
+    string name
+    string email UNIQUE
+    string phone
+    string role
+    string status
+    string bio
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  ORGANIZATION {
+    int id PK
+    string name
+    string type
+    string website
+    datetime createdAt
+  }
+
+  SKILL {
+    int id PK
+    string name UNIQUE
+    string tag
+  }
+
+  USER_SKILL {
+    int id PK
+    int level
+    bool verified
+    datetime createdAt
+  }
+
+  COURSE {
+    int id PK
+    string title
+    string slug UNIQUE
+    string description
+    bool published
+    datetime createdAt
+  }
+
+  COURSE_MODULE {
+    int id PK
+    string title
+    string content
+    int order
+  }
+
+  ENROLLMENT {
+    int id PK
+    int progress
+    string status
+    datetime startedAt
+    datetime completedAt
+  }
+
+  CERTIFICATION {
+    int id PK
+    string code UNIQUE
+    datetime issuedAt
+    datetime expiresAt
+  }
+
+  JOB {
+    int id PK
+    string title
+    string slug UNIQUE
+    string description
+    string location
+    string jobType
+    int salaryMin
+    int salaryMax
+    datetime postedAt
+  }
+
+  JOB_SKILL {
+    int id PK
+  }
+
+  COURSE_SKILL {
+    int id PK
+  }
+
+  APPLICATION {
+    int id PK
+    string status
+    datetime appliedAt
+    datetime updatedAt
+  }
+
+  NOTIFICATION {
+    int id PK
+    string type
+    json payload
+    bool read
+    datetime createdAt
+  }
+
+  AUDITLOG {
+    int id PK
+    string action
+    json meta
+    datetime createdAt
+  }
+
+  %% Relations
+  USER ||--o{ USER_SKILL : has
+  SKILL ||--o{ USER_SKILL : used_in
+
+  USER ||--o{ ENROLLMENT : enrolls
+  COURSE ||--o{ ENROLLMENT : has_students
+
+  USER ||--o{ CERTIFICATION : has
+  COURSE ||--o{ CERTIFICATION : issues
+  ORGANIZATION ||--o{ CERTIFICATION : issues
+
+  ORGANIZATION ||--o{ COURSE : offers
+  COURSE ||--o{ COURSE_MODULE : contains
+
+  JOB ||--o{ JOB_SKILL : requires
+  SKILL ||--o{ JOB_SKILL : used_in_job
+
+  COURSE ||--o{ COURSE_SKILL : covers
+  SKILL ||--o{ COURSE_SKILL : in_course
+
+  USER ||--o{ APPLICATION : applies
+  JOB ||--o{ APPLICATION : receives
+
+  ORGANIZATION ||--o{ USER : employs_or_hosts
+  ORGANIZATION ||--o{ JOB : posts
+
+  USER ||--o{ NOTIFICATION : receives
+  USER ||--o{ AUDITLOG : actor_logs
