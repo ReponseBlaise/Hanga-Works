@@ -204,7 +204,7 @@ Integration branch. All feature branches merge here first. Deployed to staging e
 
 feature/TASK-name
 
-One branch per task. E.g. feature/auth-jwt, feature/lms-courses. Opened as PR to develop.
+One branch per task. E.g. feature/auth-jwt, feature/lms-courses. Opened as PR to develop. Feature branches may pull or rebase from develop to stay current.
 
 hotfix/name
 

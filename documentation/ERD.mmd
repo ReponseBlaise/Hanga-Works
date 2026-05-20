@@ -1,0 +1,135 @@
+erDiagram
+  USER {
+    int id
+    string name
+    string email
+    string phone
+    string role
+    string status
+    string bio
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  ORGANIZATION {
+    int id
+    string name
+    string type
+    string website
+    datetime createdAt
+  }
+
+  SKILL {
+    int id
+    string name
+    string tag
+  }
+
+  USER_SKILL {
+    int id
+    int level
+    boolean verified
+    datetime createdAt
+  }
+
+  COURSE {
+    int id
+    string title
+    string slug
+    string description
+    boolean published
+    datetime createdAt
+  }
+
+  COURSE_MODULE {
+    int id
+    string title
+    string content
+    int order
+  }
+
+  ENROLLMENT {
+    int id
+    int progress
+    string status
+    datetime startedAt
+    datetime completedAt
+  }
+
+  CERTIFICATION {
+    int id
+    string code
+    datetime issuedAt
+    datetime expiresAt
+  }
+
+  JOB {
+    int id
+    string title
+    string slug
+    string description
+    string location
+    string jobType
+    int salaryMin
+    int salaryMax
+    datetime postedAt
+  }
+
+  JOB_SKILL {
+    int id
+  }
+
+  COURSE_SKILL {
+    int id
+  }
+
+  APPLICATION {
+    int id
+    string status
+    datetime appliedAt
+    datetime updatedAt
+  }
+
+  NOTIFICATION {
+    int id
+    string type
+    string payload
+    boolean read
+    datetime createdAt
+  }
+
+  AUDITLOG {
+    int id
+    string action
+    string meta
+    datetime createdAt
+  }
+
+  %% Relations
+  USER ||--o{ USER_SKILL : has
+  SKILL ||--o{ USER_SKILL : used_in
+
+  USER ||--o{ ENROLLMENT : enrolls
+  COURSE ||--o{ ENROLLMENT : has_students
+
+  USER ||--o{ CERTIFICATION : has
+  COURSE ||--o{ CERTIFICATION : issues
+  ORGANIZATION ||--o{ CERTIFICATION : issues
+
+  ORGANIZATION ||--o{ COURSE : offers
+  COURSE ||--o{ COURSE_MODULE : contains
+
+  JOB ||--o{ JOB_SKILL : requires
+  SKILL ||--o{ JOB_SKILL : used_in_job
+
+  COURSE ||--o{ COURSE_SKILL : covers
+  SKILL ||--o{ COURSE_SKILL : in_course
+
+  USER ||--o{ APPLICATION : applies
+  JOB ||--o{ APPLICATION : receives
+
+  ORGANIZATION ||--o{ USER : employs_or_hosts
+  ORGANIZATION ||--o{ JOB : posts
+
+  USER ||--o{ NOTIFICATION : receives
+  USER ||--o{ AUDITLOG : actor_logs
