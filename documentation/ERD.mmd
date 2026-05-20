@@ -1,11 +1,8 @@
-%% Mermaid ER diagram generated from prisma/schema.prisma
-%% Open with any Mermaid renderer (Mermaid Live Editor, VS Code Mermaid preview)
-
 erDiagram
   USER {
-    int id PK
+    int id
     string name
-    string email UNIQUE
+    string email
     string phone
     string role
     string status
@@ -15,7 +12,7 @@ erDiagram
   }
 
   ORGANIZATION {
-    int id PK
+    int id
     string name
     string type
     string website
@@ -23,36 +20,36 @@ erDiagram
   }
 
   SKILL {
-    int id PK
-    string name UNIQUE
+    int id
+    string name
     string tag
   }
 
   USER_SKILL {
-    int id PK
+    int id
     int level
-    bool verified
+    boolean verified
     datetime createdAt
   }
 
   COURSE {
-    int id PK
+    int id
     string title
-    string slug UNIQUE
+    string slug
     string description
-    bool published
+    boolean published
     datetime createdAt
   }
 
   COURSE_MODULE {
-    int id PK
+    int id
     string title
     string content
     int order
   }
 
   ENROLLMENT {
-    int id PK
+    int id
     int progress
     string status
     datetime startedAt
@@ -60,16 +57,16 @@ erDiagram
   }
 
   CERTIFICATION {
-    int id PK
-    string code UNIQUE
+    int id
+    string code
     datetime issuedAt
     datetime expiresAt
   }
 
   JOB {
-    int id PK
+    int id
     string title
-    string slug UNIQUE
+    string slug
     string description
     string location
     string jobType
@@ -79,32 +76,32 @@ erDiagram
   }
 
   JOB_SKILL {
-    int id PK
+    int id
   }
 
   COURSE_SKILL {
-    int id PK
+    int id
   }
 
   APPLICATION {
-    int id PK
+    int id
     string status
     datetime appliedAt
     datetime updatedAt
   }
 
   NOTIFICATION {
-    int id PK
+    int id
     string type
-    json payload
-    bool read
+    string payload
+    boolean read
     datetime createdAt
   }
 
   AUDITLOG {
-    int id PK
+    int id
     string action
-    json meta
+    string meta
     datetime createdAt
   }
 
