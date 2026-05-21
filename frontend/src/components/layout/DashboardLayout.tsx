@@ -7,10 +7,18 @@ type DashboardLayoutProps = {
 };
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
+	return (
+		<div className="dashboard-shell">
+			<DashboardFrame>{children}</DashboardFrame>
+		</div>
+	);
+}
+
+function DashboardFrame({ children }: DashboardLayoutProps) {
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
 	return (
-		<div className="dashboard-shell">
+		<>
 			<div className={`sidebar-backdrop ${isSidebarOpen ? 'is-visible' : ''}`.trim()} onClick={() => setIsSidebarOpen(false)} aria-hidden="true" />
 			<Sidebar
 				isOpen={isSidebarOpen}
@@ -29,9 +37,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 			/>
 
 			<div className="dashboard-main">
-				<Topbar onMenuToggle={() => setIsSidebarOpen(true)} userName="Amina Kato" role="Career growth analyst" unreadCount={4} />
+				<Topbar
+					userName="Amina Kato"
+					role="Career growth analyst"
+					unreadCount={4}
+					onMenuToggle={() => setIsSidebarOpen(true)}
+				/>
 				<main className="dashboard-content">{children}</main>
 			</div>
-		</div>
+		</>
 	);
 }
