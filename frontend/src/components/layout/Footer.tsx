@@ -39,6 +39,7 @@ export default function Footer() {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
             <img src="/hanga-works-logo.svg" alt="Hanga Works Logo" style={{ height: '28px', width: 'auto' }} />
+            <span style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text)' }}>Hanga Works</span>
           </div>
           <p style={{ fontSize: '0.82rem', color: 'var(--text-soft)', lineHeight: 1.6, margin: '0 0 16px', maxWidth: '200px' }}>
             HANGA WORKS is the home of the skills employment and workforce intelligence platform.
