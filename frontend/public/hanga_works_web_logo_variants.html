@@ -1,0 +1,229 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap');
+
+  :root {
+    --blue: #4F6EF7;
+    --orange: #F7934F;
+    --dark: #1a1a2e;
+    --muted: #6b7280;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body { font-family: 'DM Sans', sans-serif; background: transparent; }
+
+  .section-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--color-text-tertiary);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+
+  .preview-block {
+    padding: 28px 32px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 48px;
+    flex-wrap: wrap;
+  }
+
+  .preview-block.light {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+  }
+
+  .preview-block.dark {
+    background: #0f0f1a;
+    border: 1px solid #2a2a3e;
+  }
+
+  .preview-block.colored {
+    background: var(--blue);
+    border: none;
+  }
+
+  /* ── SVG logo styles ── */
+  .logo-wrap svg { display: block; }
+
+  /* light version */
+  .logo-wrap.light .hw-name { fill: #1a1a2e; }
+  .logo-wrap.light .hw-tag  { fill: #9ca3af; }
+
+  /* dark version */
+  .logo-wrap.dark .hw-name  { fill: #f0f0f8; }
+  .logo-wrap.dark .hw-tag   { fill: #9ca3af; }
+  .logo-wrap.dark .hw-ring  { stroke: #6f8bfa; }
+  .logo-wrap.dark .hw-bar-1,.logo-wrap.dark .hw-head-1 { fill: #6f8bfa; }
+  .logo-wrap.dark .hw-bar-2,.logo-wrap.dark .hw-head-2 { fill: #6f8bfa; }
+  .logo-wrap.dark .hw-bar-3,.logo-wrap.dark .hw-head-3 { fill: #6f8bfa; }
+
+  /* reversed (on color bg) */
+  .logo-wrap.reversed .hw-name  { fill: #ffffff; }
+  .logo-wrap.reversed .hw-tag   { fill: rgba(255,255,255,0.65); }
+  .logo-wrap.reversed .hw-works { fill: #fff; opacity: 0.85; }
+  .logo-wrap.reversed .hw-ring  { stroke: #fff; }
+  .logo-wrap.reversed .hw-bar-1,.logo-wrap.reversed .hw-head-1 { fill: rgba(255,255,255,0.45); }
+  .logo-wrap.reversed .hw-bar-2,.logo-wrap.reversed .hw-head-2 { fill: rgba(255,255,255,0.7); }
+  .logo-wrap.reversed .hw-bar-3,.logo-wrap.reversed .hw-head-3 { fill: #ffffff; }
+  .logo-wrap.reversed .hw-arc   { stroke: #ffd0a8; }
+  .logo-wrap.reversed .hw-spark { fill: #ffd0a8; }
+
+  .size-label {
+    font-size: 10px;
+    color: var(--color-text-tertiary);
+    margin-top: 6px;
+    text-align: center;
+  }
+
+  .size-group { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+
+  .divider-line {
+    width: 1px;
+    height: 48px;
+    background: #e5e7eb;
+    flex-shrink: 0;
+  }
+
+  .dark .divider-line { background: #2a2a3e; }
+  .colored .divider-line { background: rgba(255,255,255,0.25); }
+
+  .favicon-box {
+    width: 32px; height: 32px;
+    background: var(--blue);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .favicon-box svg { display: block; }
+
+  .usage-grid {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .badge {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .badge.light { background: #eef1ff; color: var(--blue); }
+  .badge.dark  { background: #222240; color: #8fa8ff; }
+  .badge.colored { background: rgba(255,255,255,0.2); color: #fff; }
+</style>
+
+<!-- reusable SVG inline snippet -->
+<template id="logo-svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 64" role="img" aria-label="Hanga Works">
+  <title>Hanga Works</title>
+  <path class="hw-ring"   d="M 10 48 A 24 24 0 1 1 50 48" fill="none" stroke="#4F6EF7" stroke-width="2.2" stroke-linecap="round"/>
+  <rect class="hw-bar-1"  x="16" y="38" width="7" height="12" rx="2" fill="#4F6EF7" opacity=".45"/>
+  <rect class="hw-bar-2"  x="27" y="28" width="7" height="22" rx="2" fill="#4F6EF7" opacity=".72"/>
+  <rect class="hw-bar-3"  x="38" y="18" width="7" height="32" rx="2" fill="#4F6EF7"/>
+  <circle class="hw-head-1" cx="19.5" cy="33" r="4" fill="#4F6EF7" opacity=".45"/>
+  <circle class="hw-head-2" cx="30.5" cy="23" r="4" fill="#4F6EF7" opacity=".72"/>
+  <circle class="hw-head-3" cx="41.5" cy="13" r="4" fill="#4F6EF7"/>
+  <path class="hw-arc"   d="M 19.5 29 Q 30.5 19 41.5 9" fill="none" stroke="#F7934F" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="3 2.5"/>
+  <path class="hw-spark"  d="M 46 7 L 47.4 3.2 L 48.8 7 L 52.6 8.4 L 48.8 9.8 L 47.4 13.6 L 46 9.8 L 42.2 8.4 Z" fill="#F7934F"/>
+  <text class="hw-name"  x="62" y="36" font-family="'DM Sans',sans-serif" font-size="22" font-weight="600" fill="#1a1a2e" letter-spacing="-0.5">Hanga<tspan class="hw-works" fill="#4F6EF7">Works</tspan></text>
+  <text class="hw-tag"   x="63" y="51" font-family="'DM Sans',sans-serif" font-size="7.5" font-weight="400" fill="#9ca3af" letter-spacing="2.2">HIRE · TRAIN · GROW</text>
+</svg>
+</template>
+
+<div style="padding: 24px 0;">
+
+  <p class="section-label">Light background</p>
+  <div class="preview-block light">
+    <div class="logo-wrap light" id="ll" style="width:240px;"></div>
+    <div class="divider-line"></div>
+    <div class="size-group">
+      <div class="logo-wrap light" id="lm" style="width:180px;"></div>
+      <p class="size-label">180px</p>
+    </div>
+    <div class="size-group">
+      <div class="logo-wrap light" id="ls" style="width:120px;"></div>
+      <p class="size-label">120px</p>
+    </div>
+    <div class="divider-line"></div>
+    <div class="favicon-box">
+      <svg viewBox="0 0 56 64" width="20" height="23" xmlns="http://www.w3.org/2000/svg">
+        <path d="M 10 48 A 24 24 0 1 1 50 48" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+        <rect x="16" y="38" width="7" height="12" rx="2" fill="rgba(255,255,255,.45)"/>
+        <rect x="27" y="28" width="7" height="22" rx="2" fill="rgba(255,255,255,.72)"/>
+        <rect x="38" y="18" width="7" height="32" rx="2" fill="#fff"/>
+        <circle cx="19.5" cy="33" r="4" fill="rgba(255,255,255,.45)"/>
+        <circle cx="30.5" cy="23" r="4" fill="rgba(255,255,255,.72)"/>
+        <circle cx="41.5" cy="13" r="4" fill="#fff"/>
+        <path d="M 46 7 L 47.4 3.2 L 48.8 7 L 52.6 8.4 L 48.8 9.8 L 47.4 13.6 L 46 9.8 L 42.2 8.4 Z" fill="#ffd0a8"/>
+      </svg>
+    </div>
+    <p class="size-label" style="margin-top:0">favicon</p>
+  </div>
+
+  <p class="section-label" style="margin-top:20px">Dark background</p>
+  <div class="preview-block dark">
+    <div class="logo-wrap dark" id="dl" style="width:240px;"></div>
+    <div class="divider-line"></div>
+    <div class="logo-wrap dark" id="dm" style="width:180px;"></div>
+  </div>
+
+  <p class="section-label" style="margin-top:20px">Colored / brand background</p>
+  <div class="preview-block colored">
+    <div class="logo-wrap reversed" id="cl" style="width:240px;"></div>
+    <div class="divider-line"></div>
+    <div class="logo-wrap reversed" id="cm" style="width:160px;"></div>
+  </div>
+
+</div>
+
+<script>
+  const tpl = document.getElementById('logo-svg').content;
+
+  ['ll','lm','ls','dl','dm','cl','cm'].forEach(id => {
+    const wrap = document.getElementById(id);
+    const clone = tpl.cloneNode(true);
+    const svg = clone.querySelector('svg');
+    const w = parseInt(wrap.style.width);
+    svg.setAttribute('width', w);
+    svg.setAttribute('height', Math.round(w * 64/240));
+    wrap.appendChild(clone);
+  });
+
+  // Apply dark class overrides
+  document.querySelectorAll('.logo-wrap.dark').forEach(wrap => {
+    wrap.querySelector('.hw-name').setAttribute('fill','#f0f0f8');
+    ['.hw-ring'].forEach(sel => {
+      const el = wrap.querySelector(sel);
+      if(el) el.setAttribute('stroke','#6f8bfa');
+    });
+    ['.hw-bar-1','.hw-head-1','.hw-bar-2','.hw-head-2','.hw-bar-3','.hw-head-3'].forEach(sel => {
+      const el = wrap.querySelector(sel);
+      if(el) el.setAttribute('fill','#6f8bfa');
+    });
+  });
+
+  // Apply reversed overrides
+  document.querySelectorAll('.logo-wrap.reversed').forEach(wrap => {
+    wrap.querySelector('.hw-name').setAttribute('fill','#fff');
+    wrap.querySelector('.hw-works').setAttribute('fill','rgba(255,255,255,0.85)');
+    wrap.querySelector('.hw-tag').setAttribute('fill','rgba(255,255,255,0.6)');
+    wrap.querySelector('.hw-ring').setAttribute('stroke','#fff');
+    wrap.querySelector('.hw-arc').setAttribute('stroke','#ffd0a8');
+    wrap.querySelector('.hw-spark').setAttribute('fill','#ffd0a8');
+    [['hw-bar-1','rgba(255,255,255,0.45)'],['hw-head-1','rgba(255,255,255,0.45)'],
+     ['hw-bar-2','rgba(255,255,255,0.7)'],['hw-head-2','rgba(255,255,255,0.7)'],
+     ['hw-bar-3','#fff'],['hw-head-3','#fff']].forEach(([cls,fill]) => {
+      const el = wrap.querySelector('.'+cls);
+      if(el) { el.setAttribute('fill',fill); el.removeAttribute('opacity'); }
+    });
+  });
+</script>
