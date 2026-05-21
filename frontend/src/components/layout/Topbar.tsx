@@ -12,7 +12,48 @@ const navLinks = [
 ];
 
 export function Topbar({ userName, role, unreadCount, onMenuToggle }: { userName?: string; role?: string; unreadCount?: number; onMenuToggle?: () => void }) {
-  return null; // used by DashboardLayout — dashboard topbar handled separately
+  const initials = (userName ?? 'User')
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('');
+
+  return (
+    <header className="topbar--dashboard">
+      <button
+        type="button"
+        className="topbar__menu"
+        onClick={onMenuToggle}
+        aria-label="Open navigation"
+      >
+        <span />
+        <span />
+        <span />
+      </button>
+
+      <div className="topbar__copy">
+        <p className="topbar__eyebrow">Dashboard overview</p>
+        <h1>Welcome back, {userName ?? 'Guest'}</h1>
+        <p>{role ?? 'Monitor your progress, applications, and learning in one place.'}</p>
+      </div>
+
+      <div className="topbar__actions">
+        <div className="topbar__badge" aria-label={`${unreadCount ?? 0} unread notifications`}>
+          <span className="topbar__badge-count">{unreadCount ?? 0}</span>
+          <span className="topbar__badge-label">Alerts</span>
+        </div>
+
+        <div className="topbar__user">
+          <div className="avatar avatar-md" aria-hidden="true">{initials || 'U'}</div>
+          <div>
+            <strong>{userName ?? 'User'}</strong>
+            <span>{role ?? 'Dashboard user'}</span>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
 }
 
 export default function Navbar() {
@@ -21,12 +62,13 @@ export default function Navbar() {
   return (
     <nav style={{
       width: '100%',
-      background: 'var(--text)',
-      borderBottom: 'none',
+      background: 'rgba(255, 255, 255, 0.78)',
+      borderBottom: '1px solid var(--border)',
       position: 'sticky',
       top: 0,
       zIndex: 100,
-      boxShadow: '0 2px 16px rgba(13,47,103,0.18)',
+      boxShadow: '0 10px 30px rgba(13, 47, 103, 0.08)',
+      backdropFilter: 'blur(18px)',
     }}>
       <div style={{
         maxWidth: '1180px',
@@ -40,7 +82,7 @@ export default function Navbar() {
       }}>
         {/* Logo */}
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', flexShrink: 0 }}>
-          <img src="/hanga-works-logo.svg" alt="Hanga Works Logo" style={{ height: '32px', width: 'auto', filter: 'brightness(0) invert(1)' }} />
+          <img src="/hanga-works-logo.svg" alt="Hanga Works Logo" style={{ height: '32px', width: 'auto' }} />
         </Link>
 
         {/* Nav links */}
@@ -55,10 +97,10 @@ export default function Navbar() {
                 padding: '6px 12px',
                 fontSize: '0.88rem',
                 fontWeight: 500,
-                color: hovered === link.label ? '#a8c0ff' : 'rgba(255,255,255,0.82)',
+                  color: hovered === link.label ? 'var(--accent)' : 'var(--text-soft)',
                 textDecoration: 'none',
                 borderRadius: '8px',
-                transition: 'color 150ms',
+                  transition: 'color 150ms, background-color 150ms',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '3px',
@@ -79,12 +121,13 @@ export default function Navbar() {
           <Link to="/register" style={{
             fontSize: '0.88rem',
             fontWeight: 600,
-            color: '#fff',
+            color: 'var(--text)',
             textDecoration: 'none',
             padding: '6px 14px',
             borderRadius: '10px',
-            border: '1px solid rgba(255,255,255,0.5)',
-            transition: 'background 150ms',
+            border: '1px solid var(--border)',
+            background: 'rgba(255,255,255,0.82)',
+            transition: 'background 150ms, border-color 150ms',
           }}>
             Register
           </Link>
@@ -96,7 +139,7 @@ export default function Navbar() {
             padding: '7px 18px',
             borderRadius: '10px',
             background: 'linear-gradient(135deg, var(--accent), var(--accent-strong))',
-            boxShadow: '0 4px 14px rgba(63,102,244,0.3)',
+            boxShadow: '0 4px 14px rgba(37, 71, 202, 0.22)',
           }}>
             Sign In
           </Link>
