@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
+import Footer from './Footer';
 import { Topbar } from './Topbar';
 
 type DashboardLayoutProps = {
@@ -8,8 +9,11 @@ type DashboardLayoutProps = {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
 	return (
-		<div className="dashboard-shell">
-			<DashboardFrame>{children}</DashboardFrame>
+		<div className="dashboard-page">
+			<div className="dashboard-shell">
+				<DashboardFrame>{children}</DashboardFrame>
+			</div>
+			<Footer />
 		</div>
 	);
 }
