@@ -30,7 +30,7 @@ export function Button(props: NativeButtonProps | AnchorButtonProps) {
 		);
 	}
 
-	const { variant = 'primary', className = '', children, ...buttonProps } = props;
+	const { variant = 'primary', className = '', children, ...buttonProps } = props as NativeButtonProps;
 	return (
 		<button className={getButtonClassName(variant, className)} {...buttonProps}>
 			{children}
