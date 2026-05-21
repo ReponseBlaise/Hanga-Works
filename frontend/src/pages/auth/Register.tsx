@@ -1,0 +1,125 @@
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+
+const ROLES = [
+  { value: 'job_seeker', label: 'Job Seeker' },
+  { value: 'employer', label: 'Employer' },
+  { value: 'trainer', label: 'Trainer' },
+];
+
+export default function Register() {
+  const [form, setForm] = useState({
+    name: '', email: '', username: '', password: '', confirmPassword: '', role: '', agreed: false,
+  });
+
+  const focus = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) =>
+    (e.target.style.borderColor = 'var(--accent)');
+  const blur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) =>
+    (e.target.style.borderColor = 'var(--border)');
+
+  return (
+    <div style={{
+      width: '100%',
+      maxWidth: '460px',
+      background: 'var(--bg-elevated)',
+      borderRadius: 'var(--radius-xl)',
+      boxShadow: 'var(--shadow)',
+      border: '1px solid var(--border)',
+      padding: '40px',
+    }}>
+      <p style={{ margin: '0 0 4px', fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--accent)' }}>
+        Register
+      </p>
+      <h1 style={{ margin: '0 0 4px', fontSize: '1.7rem', fontWeight: 800, color: 'var(--text)' }}>
+        Start for free Today
+      </h1>
+      <p style={{ margin: '0 0 24px', fontSize: '0.85rem', color: 'var(--text-soft)' }}>
+        Access to all features. No credit card required.
+      </p>
+
+      <form onSubmit={e => e.preventDefault()} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <Field label="Full Name *">
+          <input type="text" placeholder="Enter full name" required
+            value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
+            style={inputStyle} onFocus={focus} onBlur={blur} />
+        </Field>
+
+        <Field label="Email *">
+          <input type="email" placeholder="example@gmail.com" required
+            value={form.email} onChange={e => setForm({ ...form, email: e.target.value })}
+            style={inputStyle} onFocus={focus} onBlur={blur} />
+        </Field>
+
+        <Field label="Username *">
+          <input type="text" placeholder="username" required
+            value={form.username} onChange={e => setForm({ ...form, username: e.target.value })}
+            style={inputStyle} onFocus={focus} onBlur={blur} />
+        </Field>
+
+        <Field label="Role *">
+          <select required value={form.role}
+            onChange={e => setForm({ ...form, role: e.target.value })}
+            style={{ ...inputStyle, appearance: 'none' } as React.CSSProperties}
+            onFocus={focus} onBlur={blur}>
+            <option value="" disabled>Select your role</option>
+            {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+          </select>
+        </Field>
+
+        <Field label="Password *">
+          <input type="password" placeholder="••••••••" required
+            value={form.password} onChange={e => setForm({ ...form, password: e.target.value })}
+            style={inputStyle} onFocus={focus} onBlur={blur} />
+        </Field>
+
+        <Field label="Re-Password *">
+          <input type="password" placeholder="••••••••" required
+            value={form.confirmPassword} onChange={e => setForm({ ...form, confirmPassword: e.target.value })}
+            style={inputStyle} onFocus={focus} onBlur={blur} />
+        </Field>
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--text-soft)', cursor: 'pointer' }}>
+            <input type="checkbox" required checked={form.agreed}
+              onChange={e => setForm({ ...form, agreed: e.target.checked })}
+              style={{ accentColor: 'var(--accent)', width: '15px', height: '15px' }} />
+            Agree our terms and policy
+          </label>
+          <Link to="/terms" style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--accent)' }}>
+            Learn more
+          </Link>
+        </div>
+
+        <button type="submit" style={btnStyle}>Submit &amp; Register</button>
+      </form>
+
+      <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '0.88rem', color: 'var(--text-soft)' }}>
+        Already have an account?{' '}
+        <Link to="/login" style={{ fontWeight: 700, color: 'var(--accent)' }}>Sign in</Link>
+      </p>
+    </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+      <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text)' }}>{label}</label>
+      {children}
+    </div>
+  );
+}
+
+const inputStyle: React.CSSProperties = {
+  width: '100%', padding: '11px 16px', borderRadius: '14px',
+  border: '1px solid var(--border)', background: 'var(--bg)',
+  color: 'var(--text)', fontSize: '0.9rem', outline: 'none',
+  transition: 'border-color 180ms', boxSizing: 'border-box',
+};
+
+const btnStyle: React.CSSProperties = {
+  width: '100%', padding: '13px', borderRadius: '14px', border: 'none',
+  background: 'linear-gradient(135deg, var(--accent), var(--accent-strong))',
+  color: '#fff', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer',
+  boxShadow: '0 12px 28px rgba(63,102,244,0.28)', marginTop: '4px',
+};
