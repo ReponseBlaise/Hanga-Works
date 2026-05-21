@@ -3,6 +3,7 @@ import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { EnrollmentStatus } from '@prisma/client';
 import { ProgressService } from '../progress.service';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { CertificationsService } from '../../../certifications/certifications.service';
 
 const LEARNER_ID = 'user-uuid-1';
 const ENROLLMENT_ID = 'enrollment-uuid-1';
@@ -32,6 +33,10 @@ const mockPrisma = {
   },
 };
 
+const mockCertifications: Partial<CertificationsService> = {
+  issue: jest.fn().mockResolvedValue(undefined),
+};
+
 describe('ProgressService', () => {
   let service: ProgressService;
 
@@ -40,6 +45,7 @@ describe('ProgressService', () => {
       providers: [
         ProgressService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: CertificationsService, useValue: mockCertifications },
       ],
     }).compile();
 
