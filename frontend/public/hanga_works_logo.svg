@@ -1,0 +1,38 @@
+<svg width="100%" viewBox="0 0 680 340" role="img" xmlns="http://www.w3.org/2000/svg" style="">
+  <title style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">Hanga Works logo</title>
+  <desc style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">Logo for Hanga Works featuring an abstract mark of interlocking people/growth shapes and bold wordmark with tagline</desc>
+
+  <defs>
+    
+  </defs>
+
+  <!-- ── ICON MARK (centred at cx=120, cy=170) ── -->
+  <!-- Outer arc ring -->
+  <path d="M 70 210 A 60 60 0 1 1 170 210" fill="none" stroke="#4F6EF7" stroke-width="5" stroke-linecap="round" style="fill:none;stroke:rgb(79, 110, 247);color:rgb(255, 255, 255);stroke-width:5px;stroke-linecap:round;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- Three rising bars representing growth & skills -->
+  <rect x="88" y="185" width="16" height="30" rx="4" fill="#4F6EF7" opacity="0.55" style="fill:rgb(79, 110, 247);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.55;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <rect x="112" y="162" width="16" height="53" rx="4" fill="#4F6EF7" opacity="0.78" style="fill:rgb(79, 110, 247);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.78;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <rect x="136" y="142" width="16" height="73" rx="4" fill="#4F6EF7" style="fill:rgb(79, 110, 247);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- Head circles on each bar — people -->
+  <circle cx="96" cy="178" r="8" fill="#4F6EF7" opacity="0.55" style="fill:rgb(79, 110, 247);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.55;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <circle cx="120" cy="154" r="8" fill="#4F6EF7" opacity="0.78" style="fill:rgb(79, 110, 247);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.78;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <circle cx="144" cy="134" r="8" fill="#4F6EF7" style="fill:rgb(79, 110, 247);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- Connecting arc between people (network / hiring) -->
+  <path d="M 96 170 Q 120 148 144 126" fill="none" stroke="#F7934F" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="4 3" style="fill:none;stroke:rgb(247, 147, 79);color:rgb(255, 255, 255);stroke-width:2.5px;stroke-dasharray:4px, 3px;stroke-linecap:round;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- Spark / star at top-right of icon -->
+  <path d="M 152 112 L 155 104 L 158 112 L 166 115 L 158 118 L 155 126 L 152 118 L 144 115 Z" fill="#F7934F" style="fill:rgb(247, 147, 79);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- ── WORDMARK ── -->
+  <text x="198" y="190" style="fill:rgb(250, 249, 245);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, sans-serif;font-size:52px;font-weight:500;text-anchor:start;dominant-baseline:auto">Hanga<tspan fill="#4F6EF7" style="fill:rgb(79, 110, 247);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, sans-serif;font-size:52px;font-weight:500;text-anchor:start;dominant-baseline:auto">Works</tspan></text>
+
+  <!-- ── DIVIDER ── -->
+  <line x1="198" y1="205" x2="560" y2="205" stroke="var(--color-border-tertiary)" stroke-width="0.8" style="fill:rgb(0, 0, 0);stroke:rgba(222, 220, 209, 0.15);color:rgb(255, 255, 255);stroke-width:0.8px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- ── TAGLINE ── -->
+  <text x="198" y="228" style="fill:rgb(194, 192, 182);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, sans-serif;font-size:15px;font-weight:400;text-anchor:start;dominant-baseline:auto">HIRE · TRAIN · GROW</text>
+
+</svg>
