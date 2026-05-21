@@ -5,6 +5,7 @@ import { RedisService } from './redis/redis.service';
 import { CoursesModule } from './lms/courses/courses.module';
 import { EnrollmentModule } from './lms/enrollment/enrollment.module';
 import { ProgressModule } from './lms/progress/progress.module';
+import { JobsModule } from './jobs/jobs.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { ProgressModule } from './lms/progress/progress.module';
     CoursesModule,
     EnrollmentModule,
     ProgressModule,
+    JobsModule,
   ],
   providers: [PrismaService, RedisService],
 })
