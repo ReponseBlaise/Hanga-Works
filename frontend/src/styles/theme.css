@@ -604,187 +604,182 @@ a {
   .dashboard-grid > section:nth-child(5) {
     animation-delay: 200ms;
   }
-  margin-top: 3px;
-  font-size: 0.96rem;
-    .dashboard-shell {
-      grid-template-columns: 1fr;
-  .topbar,
-  .hero {
-    .sidebar {
-      position: fixed;
-      left: 16px;
-      top: 16px;
-      bottom: 16px;
-      width: min(320px, calc(100vw - 32px));
-      height: auto;
-      border-radius: 28px;
-      transform: translateX(calc(-100% - 24px));
-      transition: transform 220ms ease;
-      box-shadow: var(--shadow-strong);
-  .topbar {
-    display: grid;
-    .sidebar-open {
-      transform: translateX(0);
 
-  .topnav {
-    .sidebar__close {
-      display: inline-grid;
-      place-items: center;
-      width: 42px;
-      height: 42px;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      background: rgba(255, 255, 255, 0.92);
-      color: var(--text);
+@media (max-width: 980px) {
+  .dashboard-shell {
+    grid-template-columns: 1fr;
+  }
 
-  .hero-copy h2 {
-    .sidebar__close span {
-      position: relative;
-      width: 16px;
-      height: 16px;
-    }
+  .sidebar {
+    position: fixed;
+    left: 16px;
+    top: 16px;
+    bottom: 16px;
+    width: min(320px, calc(100vw - 32px));
+    height: auto;
+    border-radius: 28px;
+    transform: translateX(calc(-100% - 24px));
+    transition: transform 220ms ease;
+    box-shadow: var(--shadow-strong);
+  }
 
-    .sidebar__close span::before,
-    .sidebar__close span::after {
-      content: '';
-      position: absolute;
-      inset: 50% auto auto 50%;
-      width: 16px;
-      height: 2px;
-      border-radius: 999px;
-      background: currentColor;
-      transform-origin: center;
-    }
+  .sidebar-open {
+    transform: translateX(0);
+  }
 
-    .sidebar__close span::before {
-      transform: translate(-50%, -50%) rotate(45deg);
-    }
+  .sidebar__close {
+    display: inline-grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--text);
+  }
 
-    .sidebar__close span::after {
-      transform: translate(-50%, -50%) rotate(-45deg);
-    }
+  .sidebar__close span {
+    position: relative;
+    width: 16px;
+    height: 16px;
+  }
 
-    .sidebar-backdrop {
-      display: block;
-      position: fixed;
-      inset: 0;
-      background: rgba(13, 47, 103, 0.28);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 220ms ease;
-      z-index: 9;
-    }
+  .sidebar__close span::before,
+  .sidebar__close span::after {
+    content: '';
+    position: absolute;
+    inset: 50% auto auto 50%;
+    width: 16px;
+    height: 2px;
+    border-radius: 999px;
+    background: currentColor;
+    transform-origin: center;
+  }
 
-    .sidebar-backdrop.is-visible {
-      opacity: 1;
-      pointer-events: auto;
-    }
+  .sidebar__close span::before {
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
 
-    .dashboard-main {
-      padding: 16px;
-    }
+  .sidebar__close span::after {
+    transform: translate(-50%, -50%) rotate(-45deg);
+  }
 
-    .topbar--dashboard {
-      padding: 18px;
-    }
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(13, 47, 103, 0.28);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 220ms ease;
+    z-index: 9;
+  }
 
-    .topbar__menu {
-      display: inline-grid;
-      place-items: center;
-      width: 48px;
-      height: 48px;
-      padding: 0;
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      background: rgba(255, 255, 255, 0.95);
-    }
+  .sidebar-backdrop.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
 
-    .topbar__menu span {
-      display: block;
-      width: 18px;
-      height: 2px;
-      border-radius: 999px;
-      background: var(--text);
-    }
+  .dashboard-main {
+    padding: 16px;
+  }
 
-    .topbar__menu span + span {
-      margin-top: 4px;
-    }
+  .topbar--dashboard {
+    padding: 18px;
+  }
 
-    .topbar__actions {
-      gap: 10px;
-    }
+  .topbar__menu {
+    display: inline-grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.95);
+  }
 
-    .topbar__user {
-      display: none;
-    }
+  .topbar__menu span {
+    display: block;
+    width: 18px;
+    height: 2px;
+    border-radius: 999px;
+    background: var(--text);
+  }
 
-    .dashboard-hero,
-    .progress-grid,
-    .dashboard-section--split {
-      grid-template-columns: 1fr;
+  .topbar__menu span + span {
+    margin-top: 4px;
+  }
 
-  .palette {
-    .dashboard-hero {
-      gap: 18px;
+  .topbar__actions {
+    gap: 10px;
+  }
+
+  .topbar__user {
+    display: none;
+  }
+
+  .dashboard-hero,
+  .progress-grid,
+  .dashboard-section--split {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-hero {
+    gap: 18px;
+  }
+
+  .section-head {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .button,
+  .section-head__action {
+    width: 100%;
+  }
+
+  .job-card__top,
+  .course-card__top {
+    flex-direction: column;
+  }
+}
 
 @media (max-width: 640px) {
-    .section-head {
-      align-items: start;
-      flex-direction: column;
-    padding-top: 18px;
-  }
-    .button,
-    .section-head__action {
-      width: 100%;
-    font-size: clamp(2.6rem, 16vw, 3.8rem);
-  }
-    .job-card__top,
-    .course-card__top {
-      flex-direction: column;
-    aspect-ratio: 0.92 / 1;
+  .dashboard-main {
+    padding: 12px;
   }
 
-  @media (max-width: 640px) {
-    .dashboard-main {
-      padding: 12px;
-    }
-
-    .topbar--dashboard,
-    .card,
-    .info-card,
-    .sidebar__panel {
-      border-radius: 24px;
-    }
-
-    .topbar--dashboard {
-      gap: 14px;
-      padding: 16px;
-    }
-
-    .topbar__copy h1 {
-      font-size: 1.4rem;
-    }
-
-    .dashboard-hero__copy .card-title {
-      font-size: 1.22rem;
-    }
-
-    .progress-grid {
-      gap: 14px;
-    }
-
-    .job-card__actions,
-    .course-card__actions {
-      flex-direction: column;
-    }
-
-    .button {
-      width: 100%;
-    }
+  .topbar--dashboard,
+  .card,
+  .info-card,
+  .sidebar__panel {
+    border-radius: 24px;
   }
 
-  .palette {
-    grid-template-columns: 1fr;
+  .topbar--dashboard {
+    gap: 14px;
+    padding: 16px;
+  }
+
+  .topbar__copy h1 {
+    font-size: 1.4rem;
+  }
+
+  .dashboard-hero__copy .card-title {
+    font-size: 1.22rem;
+  }
+
+  .progress-grid {
+    gap: 14px;
+  }
+
+  .job-card__actions,
+  .course-card__actions {
+    flex-direction: column;
+  }
+
+  .button {
+    width: 100%;
   }
 }
