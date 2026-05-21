@@ -16,7 +16,7 @@ function App() {
         <Route path="*" element={<Navigate to="/register" replace />} />
       </Routes>
     </BrowserRouter>
-  );
+  ); 
 }
 
 export default App;
