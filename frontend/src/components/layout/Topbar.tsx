@@ -1,6 +1,15 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { publicNavItems } from '../../constants/routes';
+import { Link } from 'react-router-dom';
+
+const navLinks = [
+  { label: 'Home', href: '/' },
+  { label: 'Find a Job', href: '/jobs' },
+  { label: 'Recruiters', href: '/recruiters' },
+  { label: 'Candidates', href: '/candidates' },
+  { label: 'Pages', href: '#' },
+  { label: 'Blog', href: '/blog' },
+  { label: 'Contact', href: '/contact' },
+];
 
 export function Topbar({ userName, role, unreadCount, onMenuToggle }: { userName?: string; role?: string; unreadCount?: number; onMenuToggle?: () => void }) {
 	const initials = (userName ?? 'User')
@@ -48,13 +57,7 @@ export function Topbar({ userName, role, unreadCount, onMenuToggle }: { userName
 }
 
 export default function Navbar() {
-	const location = useLocation();
-	const [hovered, setHovered] = useState<string | null>(null);
-
-	function isNavActive(href: string) {
-		if (href === '/') return location.pathname === '/';
-		return location.pathname === href || location.pathname.startsWith(`${href}/`);
-	}
+  const [hovered, setHovered] = useState<string | null>(null);
 
 	return (
 		<nav
@@ -66,39 +69,66 @@ export default function Navbar() {
 					<img src="/hanga-works-logo.svg" alt="Hanga Works" />
 				</Link>
 
-				<div className="public-navbar__links">
-					{publicNavItems.map((link) => {
-						const active = isNavActive(link.href);
-						return (
-							<Link
-								key={link.label}
-								to={link.href}
-								className={`public-navbar__link ${active ? 'is-active' : ''}`.trim()}
-								aria-current={active ? 'page' : undefined}
-								onMouseEnter={() => setHovered(link.label)}
-								onMouseLeave={() => setHovered(null)}
-								style={{
-									color: active || hovered === link.label ? 'var(--accent)' : 'var(--text-soft)',
-								}}
-							>
-								{link.label}
-							</Link>
-						);
-					})}
-				</div>
+        {/* Nav links */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flex: 1, justifyContent: 'center', flexWrap: 'wrap' }}>
+          {navLinks.map(link => (
+            <Link
+              key={link.label}
+              to={link.href}
+              onMouseEnter={() => setHovered(link.label)}
+              onMouseLeave={() => setHovered(null)}
+              style={{
+                padding: '6px 12px',
+                fontSize: '0.88rem',
+                fontWeight: 500,
+                  color: hovered === link.label ? 'var(--accent)' : 'var(--text-soft)',
+                textDecoration: 'none',
+                borderRadius: '8px',
+                  transition: 'color 150ms, background-color 150ms',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '3px',
+              }}
+            >
+              {link.label}
+              {['Find a Job', 'Recruiters', 'Candidates', 'Pages', 'Blog'].includes(link.label) && (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              )}
+            </Link>
+          ))}
+        </div>
 
-				<div className="public-navbar__auth">
-					<Link to="/register" className="public-navbar__register">
-						Register
-					</Link>
-					<Link to="/login" className="public-navbar__signin">
-						Sign In
-					</Link>
-					<Link to="/dashboard" className="public-navbar__dashboard">
-						Dashboard
-					</Link>
-				</div>
-			</div>
-		</nav>
-	);
+        {/* Auth buttons */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+          <Link to="/register" style={{
+            fontSize: '0.88rem',
+            fontWeight: 600,
+            color: 'var(--text)',
+            textDecoration: 'none',
+            padding: '6px 14px',
+            borderRadius: '10px',
+            border: '1px solid var(--border)',
+            background: 'rgba(255,255,255,0.82)',
+            transition: 'background 150ms, border-color 150ms',
+          }}>
+            Register
+          </Link>
+          <Link to="/login" style={{
+            fontSize: '0.88rem',
+            fontWeight: 700,
+            color: '#fff',
+            textDecoration: 'none',
+            padding: '7px 18px',
+            borderRadius: '10px',
+            background: 'linear-gradient(135deg, var(--accent), var(--accent-strong))',
+            boxShadow: '0 4px 14px rgba(37, 71, 202, 0.22)',
+          }}>
+            Sign In
+          </Link>
+        </div>
+      </div>
+    </nav>
+  );
 }
