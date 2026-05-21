@@ -1,0 +1,203 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  LEARNER
+  EMPLOYER
+  ADMIN
+}
+
+enum ApplicationStatus {
+  APPLIED
+  REVIEWING
+  SHORTLISTED
+  HIRED
+  REJECTED
+}
+
+model User {
+  id             String              @id @default(uuid())
+  name           String
+  email          String              @unique
+  password       String
+  role           Role                @default(LEARNER)
+  profilePhoto   String?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  enrollments    Enrollment[]
+  applications   Application[]
+  jobs           Job[]
+  certificates   Certificate[]
+  mentorProfile  MentorProfile?
+  menteeSessions MentorshipSession[]
+  reviewsWritten MentorReview[]
+  notifications  Notification[]
+}
+
+model Course {
+  id           String        @id @default(uuid())
+  title        String
+  description  String
+  thumbnail    String?
+  level        String
+  duration     String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  modules      Module[]
+  enrollments  Enrollment[]
+  certificates Certificate[]
+}
+
+model Module {
+  id       String   @id @default(uuid())
+  courseId String
+  course   Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title    String
+  order    Int
+  lessons  Lesson[]
+}
+
+model Lesson {
+  id             String           @id @default(uuid())
+  moduleId       String
+  module         Module           @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  title          String
+  content        String?
+  videoUrl       String?
+  duration       String?
+  order          Int
+  lessonProgress LessonProgress[]
+}
+
+model Enrollment {
+  id             String           @id @default(uuid())
+  userId         String
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId       String
+  course         Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  progress       Float            @default(0.0)
+  completed      Boolean          @default(false)
+  enrolledAt     DateTime         @default(now())
+  completedAt    DateTime?
+  lessonProgress LessonProgress[]
+
+  @@unique([userId, courseId])
+}
+
+model LessonProgress {
+  id           String     @id @default(uuid())
+  enrollmentId String
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  lessonId     String
+  lesson       Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  completed    Boolean    @default(true)
+  completedAt  DateTime   @default(now())
+
+  @@unique([enrollmentId, lessonId])
+}
+
+model Job {
+  id           String        @id @default(uuid())
+  title        String
+  description  String
+  requirements String
+  location     String
+  salary       String?
+  experience   String?
+  employerId   String
+  employer     User          @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  applications Application[]
+}
+
+model Application {
+  id        String            @id @default(uuid())
+  jobId     String
+  job       Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status    ApplicationStatus @default(APPLIED)
+  appliedAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@unique([jobId, userId])
+}
+
+model Certificate {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  pdfUrl      String?
+  verifyToken String   @unique @default(uuid())
+  issuedAt    DateTime @default(now())
+
+  @@unique([userId, courseId])
+}
+
+enum SessionStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+model MentorProfile {
+  id           String              @id @default(uuid())
+  userId       String              @unique
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bio          String
+  expertise    String
+  experience   String
+  availability String?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  sessions     MentorshipSession[]
+  reviews      MentorReview[]
+}
+
+model MentorshipSession {
+  id          String        @id @default(uuid())
+  mentorId    String
+  mentor      MentorProfile @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  menteeId    String
+  mentee      User          @relation(fields: [menteeId], references: [id], onDelete: Cascade)
+  status      SessionStatus @default(PENDING)
+  scheduledAt DateTime
+  duration    Int
+  notes       String?
+  goals       String?
+  videoLink   String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model MentorReview {
+  id        String        @id @default(uuid())
+  mentorId  String
+  mentor    MentorProfile @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  menteeId  String
+  mentee    User          @relation(fields: [menteeId], references: [id], onDelete: Cascade)
+  rating    Int
+  comment   String?
+  createdAt DateTime      @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
