@@ -5,6 +5,7 @@ import { ProgressController } from './progress.controller';
 import { ProgressService } from './progress.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { JwtStrategy } from '../../auth/strategies/jwt.strategy';
+import { CertificationsModule } from '../../certifications/certifications.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { JwtStrategy } from '../../auth/strategies/jwt.strategy';
       secret: process.env.JWT_SECRET ?? 'changeme',
       signOptions: { expiresIn: '1d' },
     }),
+    CertificationsModule,
   ],
   controllers: [ProgressController],
   providers: [ProgressService, PrismaService, JwtStrategy],
