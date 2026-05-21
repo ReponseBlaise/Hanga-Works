@@ -25,6 +25,7 @@ const featuredJobs = [
     salary: '$500/hour',
     tags: ['Adobe XD', 'Figma', 'Photoshop'],
     badge: 'Hot',
+    image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=900&q=80',
   },
   {
     company: 'Adobe Illustrator',
@@ -35,6 +36,7 @@ const featuredJobs = [
     salary: '$800/hour',
     tags: ['React', 'Node.js'],
     badge: 'New',
+    image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80',
   },
   {
     company: 'Bing Search',
@@ -45,6 +47,7 @@ const featuredJobs = [
     salary: '$250/hour',
     tags: ['Python', 'AWS', 'Photoshop'],
     badge: 'Hot',
+    image: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=900&q=80',
   },
   {
     company: 'Dailymotion',
@@ -55,6 +58,7 @@ const featuredJobs = [
     salary: '$250/hour',
     tags: ['Typescript', 'Java'],
     badge: 'Hot',
+    image: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=80',
   },
   {
     company: 'LinkedIn',
@@ -65,6 +69,7 @@ const featuredJobs = [
     salary: '$640/hour',
     tags: ['React Native', 'Expo'],
     badge: 'New',
+    image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=900&q=80',
   },
   {
     company: 'Quora JSC',
@@ -75,16 +80,17 @@ const featuredJobs = [
     salary: '$750/hour',
     tags: ['DevOps', 'Azure'],
     badge: 'New',
+    image: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=900&q=80',
   },
 ];
 
 const locationCards = [
-  { city: 'Paris, France', vacancy: '5 Vacancy', companies: '120 companies' },
-  { city: 'London, England', vacancy: '7 Vacancy', companies: '68 companies' },
-  { city: 'New York, USA', vacancy: '9 Vacancy', companies: '80 companies' },
-  { city: 'Amsterdam, Holland', vacancy: '16 Vacancy', companies: '86 companies' },
-  { city: 'Copenhagen, Denmark', vacancy: '39 Vacancy', companies: '186 companies' },
-  { city: 'Berlin, Germany', vacancy: '15 Vacancy', companies: '632 companies' },
+  { city: 'Paris, France', vacancy: '5 Vacancy', companies: '120 companies', image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1200&q=80' },
+  { city: 'London, England', vacancy: '7 Vacancy', companies: '68 companies', image: 'https://images.unsplash.com/photo-1467269204594-9661b134dd2b?auto=format&fit=crop&w=1200&q=80' },
+  { city: 'New York, USA', vacancy: '9 Vacancy', companies: '80 companies', image: 'https://images.unsplash.com/photo-1485871981521-5b1fd3805eee?auto=format&fit=crop&w=1200&q=80' },
+  { city: 'Amsterdam, Holland', vacancy: '16 Vacancy', companies: '86 companies', image: 'https://images.unsplash.com/photo-1498469624253-2b7d3f1f0b1f?auto=format&fit=crop&w=1200&q=80' },
+  { city: 'Copenhagen, Denmark', vacancy: '39 Vacancy', companies: '186 companies', image: 'https://images.unsplash.com/photo-1520440229-6469a2f00cbd?auto=format&fit=crop&w=1200&q=80' },
+  { city: 'Berlin, Germany', vacancy: '15 Vacancy', companies: '632 companies', image: 'https://images.unsplash.com/photo-1467269204594-9661b134dd2b?auto=format&fit=crop&w=1200&q=80' },
 ];
 
 const blogCards = [
@@ -95,6 +101,7 @@ const blogCards = [
     author: 'Sarah Harding',
     date: '06 September',
     read: '8 mins read',
+    image: 'https://images.unsplash.com/photo-1515169067868-5387ec356754?auto=format&fit=crop&w=1200&q=80',
   },
   {
     tag: 'Events',
@@ -103,6 +110,7 @@ const blogCards = [
     author: 'Steven Jobs',
     date: '06 September',
     read: '6 mins read',
+    image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80',
   },
   {
     tag: 'News',
@@ -111,6 +119,7 @@ const blogCards = [
     author: 'William Kend',
     date: '06 September',
     read: '9 mins read',
+    image: 'https://images.unsplash.com/photo-1551836022-deb4988cc6c1?auto=format&fit=crop&w=1200&q=80',
   },
 ];
 
@@ -119,8 +128,18 @@ function HeroVisualCard({ title, subtitle }: { title: string; subtitle: string }
     <Card className="hero-visual-card">
       <div className="hero-visual-card__badge">{title}</div>
       <div className="hero-visual-card__art">
-        <span className="hero-visual-card__art-block hero-visual-card__art-block--large" />
-        <span className="hero-visual-card__art-block hero-visual-card__art-block--small" />
+        <img
+          src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1200&q=80"
+          alt="Team collaboration"
+          className="hero-visual-card__image hero-visual-card__image--large"
+          loading="lazy"
+        />
+        <img
+          src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80"
+          alt="Employer hiring meeting"
+          className="hero-visual-card__image hero-visual-card__image--small"
+          loading="lazy"
+        />
       </div>
       <p>{subtitle}</p>
     </Card>
@@ -231,7 +250,7 @@ export default function Home() {
                 <div className="landing-job-card__badge">{job.badge}</div>
                 <div className="landing-job-card__header">
                   <div className="landing-job-card__company">
-                    <div className="landing-job-card__logo">{job.company.slice(0, 2)}</div>
+                    <img src={job.image} alt={job.company} className="landing-job-card__logo-image" loading="lazy" />
                     <div>
                       <CardTitle>{job.company}</CardTitle>
                       <CardMeta>{job.location}</CardMeta>
@@ -267,9 +286,9 @@ export default function Home() {
           </div>
 
           <div className="landing-location-grid">
-            {locationCards.map((location, index) => (
+            {locationCards.map((location) => (
               <Card key={location.city} className="landing-location-card">
-                <div className={`landing-location-card__image landing-location-card__image--${index % 6}`} />
+                <img src={location.image} alt={location.city} className="landing-location-card__image" loading="lazy" />
                 <div className="landing-location-card__body">
                   <CardTitle>{location.city}</CardTitle>
                   <CardMeta>{location.vacancy}</CardMeta>
@@ -291,7 +310,7 @@ export default function Home() {
           <div className="landing-blog-grid">
             {blogCards.map((post) => (
               <Card key={post.title} className="landing-blog-card">
-                <div className="landing-blog-card__image" />
+                <img src={post.image} alt={post.title} className="landing-blog-card__image" loading="lazy" />
                 <span className="landing-blog-card__tag">{post.tag}</span>
                 <CardTitle>{post.title}</CardTitle>
                 <CardMeta>{post.excerpt}</CardMeta>

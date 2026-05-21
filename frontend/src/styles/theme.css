@@ -924,56 +924,37 @@ select {
   position: relative;
   min-height: 180px;
   border-radius: 28px;
-  background:
-    linear-gradient(135deg, rgba(37, 71, 202, 0.16), rgba(255, 255, 255, 0.1)),
-    linear-gradient(180deg, #edf4ff 0%, #dfe8fb 100%);
   overflow: hidden;
 }
 
-.hero-visual-card__art::before,
-.hero-visual-card__art::after {
-  content: '';
+.hero-visual-card__image {
   position: absolute;
-  inset: auto auto 0 0;
-  border-radius: 50%;
-  background: rgba(13, 47, 103, 0.08);
-}
-
-.hero-visual-card__art::before {
-  width: 120px;
-  height: 120px;
-  transform: translate(-35%, 35%);
-}
-
-.hero-visual-card__art::after {
-  right: 16px;
-  bottom: 14px;
-  width: 98px;
-  height: 98px;
-  left: auto;
-  transform: none;
-}
-
-.hero-visual-card__art-block {
-  position: absolute;
+  object-fit: cover;
   border-radius: 24px;
   border: 4px solid rgba(64, 97, 242, 0.85);
   box-shadow: 0 16px 30px rgba(13, 47, 103, 0.18);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(232, 239, 255, 0.82));
 }
 
-.hero-visual-card__art-block--large {
+.hero-visual-card__image--large {
   left: 18px;
   top: 22px;
   width: 66%;
   height: 66%;
 }
 
-.hero-visual-card__art-block--small {
+.hero-visual-card__image--small {
   right: 10px;
   bottom: 10px;
   width: 52%;
   height: 48%;
+}
+
+.landing-job-card__logo-image {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  object-fit: cover;
+  flex: none;
 }
 
 .hero-visual-card p {
@@ -1182,33 +1163,10 @@ select {
 }
 
 .landing-location-card__image {
-  min-height: 180px;
-  background-size: cover;
-  background-position: center;
-}
-
-.landing-location-card__image--0 {
-  background-image: linear-gradient(135deg, rgba(63, 102, 244, 0.25), rgba(13, 47, 103, 0.2)), linear-gradient(180deg, #59aaf6, #f7d27f);
-}
-
-.landing-location-card__image--1 {
-  background-image: linear-gradient(135deg, rgba(63, 102, 244, 0.25), rgba(13, 47, 103, 0.2)), linear-gradient(180deg, #6bb5f5, #d5e8fb);
-}
-
-.landing-location-card__image--2 {
-  background-image: linear-gradient(135deg, rgba(63, 102, 244, 0.25), rgba(13, 47, 103, 0.2)), linear-gradient(180deg, #6dbcf2, #cadcf9);
-}
-
-.landing-location-card__image--3 {
-  background-image: linear-gradient(135deg, rgba(63, 102, 244, 0.25), rgba(13, 47, 103, 0.2)), linear-gradient(180deg, #7cc7f3, #d9e9fc);
-}
-
-.landing-location-card__image--4 {
-  background-image: linear-gradient(135deg, rgba(63, 102, 244, 0.25), rgba(13, 47, 103, 0.2)), linear-gradient(180deg, #91cdf6, #d4e4fb);
-}
-
-.landing-location-card__image--5 {
-  background-image: linear-gradient(135deg, rgba(63, 102, 244, 0.25), rgba(13, 47, 103, 0.2)), linear-gradient(180deg, #4f9de8, #dbe5f9);
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  display: block;
 }
 
 .landing-location-card__body {
@@ -1229,11 +1187,10 @@ select {
 }
 
 .landing-blog-card__image {
-  min-height: 220px;
-  background:
-    radial-gradient(circle at 28% 28%, rgba(255, 255, 255, 0.72), transparent 24%),
-    linear-gradient(135deg, rgba(63, 102, 244, 0.2), rgba(13, 47, 103, 0.18)),
-    linear-gradient(180deg, #e9f1ff, #dce7fb);
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  display: block;
 }
 
 .landing-blog-card__tag {
@@ -1411,6 +1368,11 @@ select {
 
   .landing-hero h1 {
     max-width: none;
+  }
+
+  .hero-visual-card__image--large,
+  .hero-visual-card__image--small {
+    width: calc(100% - 24px);
   }
 
   .landing-stakeholder-grid,
@@ -1610,6 +1572,11 @@ select {
     align-items: stretch;
   }
 
+  .landing-job-card__logo-image {
+    width: 36px;
+    height: 36px;
+  }
+
   .landing-job-card__header,
   .landing-job-card__footer,
   .landing-blog-card__footer {
@@ -1623,6 +1590,11 @@ select {
   .landing-blog-card__footer {
     margin-left: 14px;
     margin-right: 14px;
+  }
+
+  .landing-location-card__image,
+  .landing-blog-card__image {
+    height: 200px;
   }
 
   .landing-panel,
