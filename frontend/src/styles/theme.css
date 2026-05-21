@@ -2,14 +2,16 @@
   color-scheme: light;
   --bg: #edf3ff;
   --bg-deep: #dfe8fb;
+  --bg-elevated: rgba(255, 255, 255, 0.86);
   --surface: rgba(255, 255, 255, 0.8);
   --surface-strong: #ffffff;
   --surface-muted: #f5f8fe;
   --text: #0d2f67;
   --text-soft: #5f6f82;
   --text-faint: #7d8aa0;
-  --accent: #3f66f4;
+  --accent:  #2547ca;
   --accent-strong: #2547ca;
+  --accent-soft: rgba(37, 71, 202, 0.12);
   --accent-wash: rgba(63, 102, 244, 0.12);
   --border: #dbe4f3;
   --shadow: 0 24px 60px rgba(13, 47, 103, 0.12);
@@ -68,8 +70,14 @@ select {
   margin: 0 auto;
   display: grid;
   grid-template-columns: 300px minmax(0, 1fr);
-  min-height: 100vh;
+  flex: 1;
   position: relative;
+}
+
+.dashboard-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar {
@@ -240,6 +248,35 @@ select {
 
 .topbar__copy p {
   margin: 6px 0 0;
+}
+
+.topbar__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid rgba(37, 71, 202, 0.16);
+}
+
+.topbar__badge-count {
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.topbar__badge-label {
+  font-size: 0.82rem;
+  font-weight: 800;
 }
 
 .topbar__actions {
