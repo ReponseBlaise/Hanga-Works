@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/db';
 import { AuthenticatedRequest } from '../middlewares/auth.middleware';
+import { NotificationService } from '../services/notification.service';
 
 // 1. Get all jobs (with optional filters)
 export const getJobs = async (req: Request, res: Response) => {
@@ -107,7 +108,20 @@ export const createJob = async (req: AuthenticatedRequest, res: Response) => {
       return res.status(401).json({ status: 'error', message: 'Unauthorized' });
     }
 
-    if (!req.user.organizationId) {
+    let orgId = req.user.organizationId;
+    if (!orgId && req.user.role === 'EMPLOYER') {
+      // Auto-create an organization for testing purposes
+      const org = await prisma.organization.create({
+        data: { name: req.user.name + " Corp", type: 'EMPLOYER' }
+      });
+      await prisma.user.update({
+        where: { id: req.user.id },
+        data: { organizationId: org.id }
+      });
+      orgId = org.id;
+    }
+
+    if (!orgId) {
       return res.status(400).json({
         status: 'error',
         message: 'Your account must be linked to an Organization/Employer profile to post a job.',
@@ -132,9 +146,24 @@ export const createJob = async (req: AuthenticatedRequest, res: Response) => {
         jobType,
         salaryMin: salaryMin ? Number(salaryMin) : undefined,
         salaryMax: salaryMax ? Number(salaryMax) : undefined,
-        employerId: req.user.organizationId,
+        employerId: orgId,
       },
     });
+
+    // 5. Fire job-match notifications
+    // In a production app, this would use a semantic matching algorithm based on Skills.
+    // For now, we simulate a match by notifying all active LEARNERS.
+    const learners = await prisma.user.findMany({ where: { role: 'LEARNER' } });
+    const employer = await prisma.organization.findUnique({ where: { id: orgId }});
+    const companyName = employer?.name || 'A partner employer';
+
+    for (const learner of learners) {
+      NotificationService.sendJobMatchAlert(
+        { id: learner.id, email: learner.email },
+        job.title,
+        companyName
+      ).catch(err => console.error('Failed to send job match alert:', err));
+    }
 
     return res.status(201).json({
       status: 'success',

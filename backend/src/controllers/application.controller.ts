@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { prisma } from '../config/db';
 import { AuthenticatedRequest } from '../middlewares/auth.middleware';
+import { NotificationService } from '../services/notification.service';
 
 // 1. Apply for a job (Learners only)
 export const applyForJob = async (req: AuthenticatedRequest, res: Response) => {
@@ -153,7 +154,8 @@ export const updateApplicationStatus = async (req: AuthenticatedRequest, res: Re
     const application = await prisma.application.findUnique({
       where: { id: parsedApplicationId },
       include: {
-        job: true
+        job: true,
+        user: true
       }
     });
 
@@ -188,12 +190,19 @@ export const updateApplicationStatus = async (req: AuthenticatedRequest, res: Re
       data: {
         userId: application.userId,
         type: 'APPLICATION_STATUS_UPDATED',
-        payload: {
+        payload: JSON.stringify({
           title: 'Application Status Update 💼',
           message: `Your application status for "${application.job.title}" has been updated to "${status.toUpperCase()}".`
-        }
+        })
       }
     });
+
+    // Fire dual-channel real-time notification (Email + Socket.IO)
+    NotificationService.sendApplicationStatusUpdate(
+      { id: application.user.id, email: application.user.email },
+      application.job.title,
+      status.toUpperCase()
+    ).catch(err => console.error('Failed to send real-time notification:', err));
 
     return res.json({
       status: 'success',

@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { prisma } from '../config/db';
 import { AuthenticatedRequest } from '../middlewares/auth.middleware';
+import { NotificationService } from '../services/notification.service';
 
 // 1. Get all courses
 export const getCourses = async (_req: AuthenticatedRequest, res: Response) => {
@@ -264,17 +265,31 @@ export const updateLessonProgress = async (req: AuthenticatedRequest, res: Respo
           }
         });
 
-        // Add Notification
+        // Add Notification to DB (make sure payload is stringified for Prisma)
         await prisma.notification.create({
           data: {
             userId: req.user.id,
             type: 'CERTIFICATE_ISSUED',
-            payload: {
+            payload: JSON.stringify({
               title: 'Course Completed! 🎓',
               message: `Congratulations! You have completed "${enrollment.course.title}" and earned a digital certificate.`
-            }
+            })
           }
         });
+
+        // Fire dual-channel real-time notifications (Email + Socket.IO)
+        // We need the user's email for SendGrid
+        const userWithEmail = await prisma.user.findUnique({ where: { id: req.user.id } });
+        if (userWithEmail) {
+          const uInfo = { id: userWithEmail.id, email: userWithEmail.email };
+          
+          NotificationService.sendCourseCompletion(uInfo, enrollment.course.title)
+            .catch(err => console.error('Failed to send course notification:', err));
+            
+          NotificationService.sendCertificateIssued(uInfo, `${enrollment.course.title} Certificate`, `http://localhost:5001/api/v1/certificates/${certificate.code}`)
+            .catch(err => console.error('Failed to send cert notification:', err));
+        }
+
       } else {
         certificate = existingCert;
       }

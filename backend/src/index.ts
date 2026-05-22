@@ -16,8 +16,17 @@ import certificateRouter from './routes/certificate.routes';
 import employerRouter from './routes/employer.routes';
 import analyticsRouter from './routes/analytics.routes';
 
+import { createServer } from 'http';
+import { initSocket } from './utils/socket';
+
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Create HTTP server to wrap the Express app
+const httpServer = createServer(app);
+
+// Initialize Socket.IO with the HTTP server
+initSocket(httpServer);
 
 // Enable CORS
 app.use(cors());
@@ -78,6 +87,7 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`[server]: Server is running at http://localhost:${PORT}`);
+  console.log(`[Socket.IO]: WebSocket Gateway initialized`);
 });

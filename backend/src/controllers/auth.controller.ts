@@ -5,6 +5,7 @@ import { prisma } from '../config/db';
 import { AuthenticatedRequest } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
 import { sendResetPasswordEmail } from '../utils/email';
+import { NotificationService } from '../services/notification.service';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'hanga_works_jwt_secret_super_secure_key_2026';
 const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'hanga_works_jwt_refresh_secret_super_secure_key_2026';
@@ -77,6 +78,14 @@ export class AuthController {
         sameSite: 'strict',
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
+
+      // 6. Send Registration Notification (Email & In-App)
+      // We don't await this so it doesn't block the API response
+      NotificationService.sendRegistrationConfirmation({
+        id: user.id,
+        email: user.email,
+        name: user.name
+      }).catch(err => console.error('Failed to send registration notification:', err));
 
       // Return success
       return res.status(201).json({
