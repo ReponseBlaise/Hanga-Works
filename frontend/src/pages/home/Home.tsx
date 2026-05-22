@@ -332,7 +332,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="landing-newsletter">
+        <section id="contact" className="landing-newsletter">
           <div>
             <p className="landing-banner-card__kicker">Newsletter</p>
             <h2>New Things Will Always Update Regularly</h2>

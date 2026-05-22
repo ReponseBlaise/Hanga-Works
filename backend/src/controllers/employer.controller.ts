@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { prisma } from '../config/db';
 import { AuthenticatedRequest } from '../middlewares/auth.middleware';
+import { NotificationService } from '../services/notification.service';
 
 // 1. Get all applications for jobs posted by this employer
 export const getApplicants = async (req: AuthenticatedRequest, res: Response) => {
@@ -171,7 +172,6 @@ export const getApplicantsForJob = async (req: AuthenticatedRequest, res: Respon
 };
 
 // 4. Update application stage
-import { NotificationService } from '../services/notification.service';
 export const updateApplicationStage = async (req: AuthenticatedRequest, res: Response) => {
   const { id: applicationId } = req.params;
   const { stage } = req.body;

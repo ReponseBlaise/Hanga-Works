@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import * as authService from '../../services/auth.service';
 
 const ROLES = [
   { value: 'job_seeker', label: 'Job Seeker' },
@@ -21,17 +22,27 @@ export default function Register() {
   const blur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) =>
     (e.target.style.borderColor = 'var(--border)');
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    signIn({
-      name: form.name,
-      email: form.email,
-      username: form.username,
-      role: ROLES.find((role) => role.value === form.role)?.label ?? 'Dashboard user',
-    });
-
-    navigate('/dashboard');
+    setLoading(true);
+    setError('');
+    authService.register({ name: form.name, email: form.email, password: form.password, role: form.role })
+      .then((data) => {
+        if (data?.user) {
+          signIn(data.user);
+          const role = (data.user.role ?? '').toLowerCase();
+          if (role === 'employer') navigate('/employer');
+          else navigate('/dashboard');
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        setError(err?.response?.data?.message || err.message || 'Registration failed');
+      })
+      .finally(() => setLoading(false));
   };
 
   return (
@@ -107,7 +118,8 @@ export default function Register() {
           </Link>
         </div>
 
-        <button type="submit" style={btnStyle}>Submit &amp; Register</button>
+        <button type="submit" style={{ ...btnStyle, opacity: loading ? 0.7 : 1 }} disabled={loading}>{loading ? 'Creating…' : 'Submit & Register'}</button>
+        {error && <p style={{ color: 'var(--danger)', fontSize: '0.9rem' }}>{error}</p>}
       </form>
 
       <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '0.88rem', color: 'var(--text-soft)' }}>

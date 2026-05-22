@@ -2,25 +2,36 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import * as authService from '../../services/auth.service';
 
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
   const navigate = useNavigate();
   const { signIn } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    const namePart = form.email.split('@')[0]?.trim();
-
-    signIn({
-      name: namePart || 'User',
-      email: form.email,
-      username: namePart || 'user',
-      role: 'Dashboard user',
-    });
-
-    navigate('/dashboard');
+    setLoading(true);
+    setError('');
+    authService.login({ email: form.email, password: form.password })
+      .then((data) => {
+        if (data?.user) {
+          signIn(data.user);
+          const role = (data.user.role ?? '').toLowerCase();
+          if (role === 'employer' || role === 'employer') {
+            navigate('/employer');
+            return;
+          }
+          navigate('/dashboard');
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        setError(err?.response?.data?.message || err.message || 'Login failed');
+      })
+      .finally(() => setLoading(false));
   };
 
   return (
@@ -65,7 +76,8 @@ export default function Login() {
           </Link>
         </div>
 
-        <button type="submit" style={btnStyle}>Sign In</button>
+          <button type="submit" style={{ ...btnStyle, opacity: loading ? 0.7 : 1 }} disabled={loading}>{loading ? 'Signing in…' : 'Sign In'}</button>
+        {error && <p style={{ color: 'var(--danger)', fontSize: '0.9rem' }}>{error}</p>}
       </form>
 
       <p style={{ textAlign: 'center', marginTop: '24px', fontSize: '0.88rem', color: 'var(--text-soft)' }}>
