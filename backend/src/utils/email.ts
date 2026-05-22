@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import * as nodemailer from 'nodemailer';
 
 export const sendResetPasswordEmail = async (to: string, resetUrl: string): Promise<void> => {
   const emailUser = process.env.EMAIL_USER;
