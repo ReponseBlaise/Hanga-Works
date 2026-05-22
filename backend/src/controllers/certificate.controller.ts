@@ -31,7 +31,7 @@ export const getUserCertificates = async (req: AuthenticatedRequest, res: Respon
       issuedAt: cert.issuedAt,
       expiresAt: cert.expiresAt,
       verifyToken: cert.code,
-      course: cert.course
+      course: (cert as any).course
     }));
 
     return res.json({

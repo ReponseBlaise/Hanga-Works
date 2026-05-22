@@ -30,13 +30,12 @@ export const getCourses = async (_req: AuthenticatedRequest, res: Response) => {
 
 // 2. Get single course detail with modules
 export const getCourseById = async (req: AuthenticatedRequest, res: Response) => {
-  const { id } = req.params;
-  const courseId = Number(id);
+  const { id: courseId } = req.params;
 
-  if (isNaN(courseId)) {
+  if (!courseId) {
     return res.status(400).json({
       status: 'error',
-      message: 'Invalid course ID'
+      message: 'Course ID is required'
     });
   }
 
@@ -127,14 +126,13 @@ export const createCourse = async (req: AuthenticatedRequest, res: Response) => 
 // 4. Enroll in a course (Learner only)
 export const enrollInCourse = async (req: AuthenticatedRequest, res: Response) => {
   const { courseId } = req.body;
-  const parsedCourseId = Number(courseId);
 
   try {
     if (!req.user) {
       return res.status(401).json({ status: 'error', message: 'Unauthorized' });
     }
 
-    if (isNaN(parsedCourseId)) {
+    if (!courseId) {
       return res.status(400).json({
         status: 'error',
         message: 'Valid Course ID is required'
@@ -142,7 +140,7 @@ export const enrollInCourse = async (req: AuthenticatedRequest, res: Response) =
     }
 
     // Check if course exists
-    const course = await prisma.course.findUnique({ where: { id: parsedCourseId } });
+    const course = await prisma.course.findUnique({ where: { id: courseId } });
     if (!course) {
       return res.status(404).json({ status: 'error', message: 'Course not found' });
     }
@@ -152,7 +150,7 @@ export const enrollInCourse = async (req: AuthenticatedRequest, res: Response) =
       where: {
         userId_courseId: {
           userId: req.user.id,
-          courseId: parsedCourseId
+          courseId: courseId
         }
       }
     });
@@ -168,7 +166,7 @@ export const enrollInCourse = async (req: AuthenticatedRequest, res: Response) =
     const enrollment = await prisma.enrollment.create({
       data: {
         userId: req.user.id,
-        courseId: parsedCourseId
+        courseId: courseId
       }
     });
 
@@ -203,9 +201,7 @@ export const updateLessonProgress = async (req: AuthenticatedRequest, res: Respo
       });
     }
 
-    const parsedEnrollmentId = Number(enrollmentId);
-
-    if (isNaN(parsedEnrollmentId)) {
+    if (!enrollmentId) {
       return res.status(400).json({
         status: 'error',
         message: 'Valid Enrollment ID is required'
@@ -214,7 +210,7 @@ export const updateLessonProgress = async (req: AuthenticatedRequest, res: Respo
 
     // Verify enrollment belongs to user
     const enrollment = await prisma.enrollment.findUnique({
-      where: { id: parsedEnrollmentId },
+      where: { id: enrollmentId },
       include: {
         course: true
       }
@@ -240,10 +236,10 @@ export const updateLessonProgress = async (req: AuthenticatedRequest, res: Respo
     const isCompletedNow = progressPercent >= 100;
 
     const updatedEnrollment = await prisma.enrollment.update({
-      where: { id: parsedEnrollmentId },
+      where: { id: enrollmentId },
       data: {
         progress: Math.round(progressPercent),
-        status: isCompletedNow ? 'completed' : 'enrolled',
+        status: isCompletedNow ? 'COMPLETED' : 'ENROLLED',
         completedAt: isCompletedNow ? new Date() : null
       }
     });

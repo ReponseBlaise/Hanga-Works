@@ -55,15 +55,10 @@ export const getJobs = async (req: Request, res: Response) => {
 // 2. Get a job by ID
 export const getJobById = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const parsedId = Number(id);
-
-  if (isNaN(parsedId)) {
-    return res.status(400).json({
-      status: 'error',
 
   try {
     const job = await prisma.job.findUnique({
-      where: { id: req.params.id },
+      where: { id },
       include: {
         employer: {
           select: {

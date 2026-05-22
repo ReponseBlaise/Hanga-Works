@@ -6,14 +6,13 @@ import { NotificationService } from '../services/notification.service';
 // 1. Apply for a job (Learners only)
 export const applyForJob = async (req: AuthenticatedRequest, res: Response) => {
   const { jobId } = req.body;
-  const parsedJobId = Number(jobId);
 
   try {
     if (!req.user) {
       return res.status(401).json({ status: 'error', message: 'Unauthorized' });
     }
 
-    if (isNaN(parsedJobId)) {
+    if (!jobId) {
       return res.status(400).json({
         status: 'error',
         message: 'Valid Job ID is required'
@@ -21,7 +20,7 @@ export const applyForJob = async (req: AuthenticatedRequest, res: Response) => {
     }
 
     // Verify job listing exists
-    const job = await prisma.job.findUnique({ where: { id: parsedJobId } });
+    const job = await prisma.job.findUnique({ where: { id: jobId } });
     if (!job) {
       return res.status(404).json({ status: 'error', message: 'Job not found' });
     }
@@ -31,7 +30,7 @@ export const applyForJob = async (req: AuthenticatedRequest, res: Response) => {
       where: {
         userId_jobId: {
           userId: req.user.id,
-          jobId: parsedJobId
+          jobId: jobId
         }
       }
     });
@@ -46,7 +45,7 @@ export const applyForJob = async (req: AuthenticatedRequest, res: Response) => {
     // Create Application
     const application = await prisma.application.create({
       data: {
-        jobId: parsedJobId,
+        jobId: jobId,
         userId: req.user.id
       }
     });
@@ -127,14 +126,13 @@ export const getUserApplications = async (req: AuthenticatedRequest, res: Respon
 // 3. Update application hiring stage (Employer or Admin)
 export const updateApplicationStatus = async (req: AuthenticatedRequest, res: Response) => {
   const { applicationId, status } = req.body;
-  const parsedApplicationId = Number(applicationId);
 
   try {
     if (!req.user) {
       return res.status(401).json({ status: 'error', message: 'Unauthorized' });
     }
 
-    if (isNaN(parsedApplicationId) || !status) {
+    if (!applicationId || !status) {
       return res.status(400).json({
         status: 'error',
         message: 'Valid Application ID and status are required'
@@ -152,7 +150,7 @@ export const updateApplicationStatus = async (req: AuthenticatedRequest, res: Re
 
     // Verify application exists and employer is the owner of the job
     const application = await prisma.application.findUnique({
-      where: { id: parsedApplicationId },
+      where: { id: applicationId },
       include: {
         job: true,
         user: true
@@ -179,30 +177,19 @@ export const updateApplicationStatus = async (req: AuthenticatedRequest, res: Re
 
     // Update status
     const updatedApplication = await prisma.application.update({
-      where: { id: parsedApplicationId },
+      where: { id: applicationId },
       data: {
-        status: status.toLowerCase()
-      }
+        status: status.toUpperCase()
+      },
+      include: { user: true, job: true }
     });
 
     // Notify Candidate
-    await prisma.notification.create({
-      data: {
-        userId: application.userId,
-        type: 'APPLICATION_STATUS_UPDATED',
-        payload: JSON.stringify({
-          title: 'Application Status Update 💼',
-          message: `Your application status for "${application.job.title}" has been updated to "${status.toUpperCase()}".`
-        })
-      }
-    });
-
-    // Fire dual-channel real-time notification (Email + Socket.IO)
-    NotificationService.sendApplicationStatusUpdate(
-      { id: application.user.id, email: application.user.email },
-      application.job.title,
-      status.toUpperCase()
-    ).catch(err => console.error('Failed to send real-time notification:', err));
+    await NotificationService.sendApplicationStatusUpdate(
+      updatedApplication.user,
+      updatedApplication.job.title,
+      updatedApplication.status
+    );
 
     return res.json({
       status: 'success',

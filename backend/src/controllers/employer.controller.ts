@@ -92,21 +92,21 @@ export const getDashboardStats = async (req: AuthenticatedRequest, res: Response
     const pendingReview = await prisma.application.count({
       where: {
         job: { employerId: req.user.organizationId },
-        status: { equals: 'applied', mode: 'insensitive' }
+        status: 'APPLIED'
       }
     });
 
     const shortlisted = await prisma.application.count({
       where: {
         job: { employerId: req.user.organizationId },
-        status: { equals: 'shortlisted', mode: 'insensitive' }
+        status: 'SHORTLISTED'
       }
     });
 
     const hired = await prisma.application.count({
       where: {
         job: { employerId: req.user.organizationId },
-        status: { equals: 'hired', mode: 'insensitive' }
+        status: 'HIRED'
       }
     });
 
