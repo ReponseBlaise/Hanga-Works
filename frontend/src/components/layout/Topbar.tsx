@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 const navLinks = [
   { label: 'Home', href: '/' },
@@ -58,6 +59,12 @@ export function Topbar({ userName, role, unreadCount, onMenuToggle }: { userName
 
 export default function Navbar() {
   const [hovered, setHovered] = useState<string | null>(null);
+  const { isAuthenticated, user, signOut } = useAuth();
+  const navItems = isAuthenticated ? [{ label: 'Dashboard', href: '/dashboard' }, ...navLinks] : navLinks;
+
+  const handleLogout = () => {
+    signOut();
+  };
 
   return (
     <nav style={{
@@ -87,7 +94,7 @@ export default function Navbar() {
 
         {/* Nav links */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flex: 1, justifyContent: 'center', flexWrap: 'wrap' }}>
-          {navLinks.map(link => (
+          {navItems.map(link => (
             <Link
               key={link.label}
               to={link.href}
@@ -118,31 +125,59 @@ export default function Navbar() {
 
         {/* Auth buttons */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
-          <Link to="/register" style={{
-            fontSize: '0.88rem',
-            fontWeight: 600,
-            color: 'var(--text)',
-            textDecoration: 'none',
-            padding: '6px 14px',
-            borderRadius: '10px',
-            border: '1px solid var(--border)',
-            background: 'rgba(255,255,255,0.82)',
-            transition: 'background 150ms, border-color 150ms',
-          }}>
-            Register
-          </Link>
-          <Link to="/login" style={{
-            fontSize: '0.88rem',
-            fontWeight: 700,
-            color: '#fff',
-            textDecoration: 'none',
-            padding: '7px 18px',
-            borderRadius: '10px',
-            background: 'linear-gradient(135deg, var(--accent), var(--accent-strong))',
-            boxShadow: '0 4px 14px rgba(37, 71, 202, 0.22)',
-          }}>
-            Sign In
-          </Link>
+          {isAuthenticated ? (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 12px', borderRadius: '999px', border: '1px solid var(--border)', background: 'rgba(255,255,255,0.82)' }}>
+                <span style={{ width: '8px', height: '8px', borderRadius: '999px', background: 'var(--accent)' }} />
+                <span style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text)' }}>{user?.name ?? 'Signed in'}</span>
+              </div>
+              <button
+                type="button"
+                onClick={handleLogout}
+                style={{
+                  fontSize: '0.88rem',
+                  fontWeight: 700,
+                  color: '#fff',
+                  border: 'none',
+                  padding: '7px 18px',
+                  borderRadius: '10px',
+                  background: 'linear-gradient(135deg, #202a44, #0f172a)',
+                  boxShadow: '0 4px 14px rgba(15, 23, 42, 0.18)',
+                  cursor: 'pointer',
+                }}
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/register" style={{
+                fontSize: '0.88rem',
+                fontWeight: 600,
+                color: 'var(--text)',
+                textDecoration: 'none',
+                padding: '6px 14px',
+                borderRadius: '10px',
+                border: '1px solid var(--border)',
+                background: 'rgba(255,255,255,0.82)',
+                transition: 'background 150ms, border-color 150ms',
+              }}>
+                Sign Up
+              </Link>
+              <Link to="/login" style={{
+                fontSize: '0.88rem',
+                fontWeight: 700,
+                color: '#fff',
+                textDecoration: 'none',
+                padding: '7px 18px',
+                borderRadius: '10px',
+                background: 'linear-gradient(135deg, var(--accent), var(--accent-strong))',
+                boxShadow: '0 4px 14px rgba(37, 71, 202, 0.22)',
+              }}>
+                Sign In
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </nav>
