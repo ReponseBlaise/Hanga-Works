@@ -37,8 +37,7 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Initialize Auth Module
-app.use(AuthModule.init());
+// Initialize app (Auth is handled by routes)
 
 // Root route
 app.get('/', (_req: Request, res: Response) => {
