@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 const ROLES = [
   { value: 'job_seeker', label: 'Job Seeker' },
@@ -11,11 +13,26 @@ export default function Register() {
   const [form, setForm] = useState({
     name: '', email: '', username: '', password: '', confirmPassword: '', role: '', agreed: false,
   });
+  const navigate = useNavigate();
+  const { signIn } = useAuth();
 
   const focus = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) =>
     (e.target.style.borderColor = 'var(--accent)');
   const blur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) =>
     (e.target.style.borderColor = 'var(--border)');
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    signIn({
+      name: form.name,
+      email: form.email,
+      username: form.username,
+      role: ROLES.find((role) => role.value === form.role)?.label ?? 'Dashboard user',
+    });
+
+    navigate('/dashboard');
+  };
 
   return (
     <div style={{
@@ -37,7 +54,7 @@ export default function Register() {
         Access to all features. No credit card required.
       </p>
 
-      <form onSubmit={e => e.preventDefault()} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
         <Field label="Full Name *">
           <input type="text" placeholder="Enter full name" required
             value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}

@@ -1,6 +1,8 @@
 import { useState, type ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
+import Footer from './Footer';
 import { Topbar } from './Topbar';
+import { useAuth } from '../../context/AuthContext';
 
 type DashboardLayoutProps = {
 	children: ReactNode;
@@ -8,14 +10,18 @@ type DashboardLayoutProps = {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
 	return (
-		<div className="dashboard-shell">
-			<DashboardFrame>{children}</DashboardFrame>
+		<div className="dashboard-page">
+			<div className="dashboard-shell">
+				<DashboardFrame>{children}</DashboardFrame>
+			</div>
+			<Footer />
 		</div>
 	);
 }
 
 function DashboardFrame({ children }: DashboardLayoutProps) {
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+	const { user } = useAuth();
 
 	return (
 		<>
@@ -38,8 +44,8 @@ function DashboardFrame({ children }: DashboardLayoutProps) {
 
 			<div className="dashboard-main">
 				<Topbar
-					userName="Amina Kato"
-					role="Career growth analyst"
+					userName={user?.name ?? 'Amina Kato'}
+					role={user?.role ?? 'Career growth analyst'}
 					unreadCount={4}
 					onMenuToggle={() => setIsSidebarOpen(true)}
 				/>

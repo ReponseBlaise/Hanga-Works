@@ -1,8 +1,27 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
+  const navigate = useNavigate();
+  const { signIn } = useAuth();
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const namePart = form.email.split('@')[0]?.trim();
+
+    signIn({
+      name: namePart || 'User',
+      email: form.email,
+      username: namePart || 'user',
+      role: 'Dashboard user',
+    });
+
+    navigate('/dashboard');
+  };
 
   return (
     <div style={{
@@ -19,7 +38,7 @@ export default function Login() {
         Sign in to your account to continue
       </p>
 
-      <form onSubmit={e => e.preventDefault()} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <Field label="Email *">
           <input
             type="email" placeholder="you@example.com" required
