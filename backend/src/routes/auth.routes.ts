@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { AuthController } from '../controllers/auth.controller';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RolesGuard } from '../auth/roles.guard';
+import { authenticateJWT, requireRoles } from '../middlewares/auth.middleware';
 
 const router = Router();
 
@@ -18,8 +17,8 @@ router.get('/reset-password', AuthController.resetPasswordPage);
 // Using JwtAuthGuard and RolesGuard inspecting AuthController.getProfile decorator metadata
 router.get(
   '/profile',
-  JwtAuthGuard,
-  RolesGuard(AuthController.getProfile),
+  authenticateJWT,
+  requireRoles(['LEARNER', 'EMPLOYER', 'INSTITUTION', 'MENTOR', 'ADMIN']),
   AuthController.getProfile
 );
 

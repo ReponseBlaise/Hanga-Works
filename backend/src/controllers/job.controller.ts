@@ -60,13 +60,10 @@ export const getJobById = async (req: Request, res: Response) => {
   if (isNaN(parsedId)) {
     return res.status(400).json({
       status: 'error',
-      message: 'Invalid job ID format',
-    });
-  }
 
   try {
     const job = await prisma.job.findUnique({
-      where: { id: parsedId },
+      where: { id: req.params.id },
       include: {
         employer: {
           select: {

@@ -2,8 +2,6 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../config/db';
-import { AuthenticatedRequest } from '../auth/jwt-auth.guard';
-import { Roles } from '../auth/roles.decorator';
 import { sendResetPasswordEmail } from '../utils/email';
 import { NotificationService } from '../services/notification.service';
 
@@ -54,6 +52,7 @@ export class AuthController {
           name,
           email,
           password: hashedPassword,
+          passwordHash: hashedPassword,
           role: userRole,
         },
       });
@@ -195,7 +194,7 @@ export class AuthController {
     }
 
     try {
-      const decoded = jwt.verify(refreshToken, REFRESH_SECRET) as { id: number };
+      const decoded = jwt.verify(refreshToken, REFRESH_SECRET) as { id: string };
 
       const user = await prisma.user.findUnique({
         where: { id: decoded.id },
@@ -250,10 +249,10 @@ export class AuthController {
     });
   }
 
-  @Roles('LEARNER', 'EMPLOYER', 'INSTITUTION', 'MENTOR', 'ADMIN')
-  static async getProfile(req: AuthenticatedRequest, res: Response) {
+  static async getProfile(req: Request, res: Response) {
     try {
-      if (!req.user) {
+      const userId = (req as any).user?.id;
+      if (!userId) {
         return res.status(401).json({
           status: 'error',
           message: 'Unauthorized',
@@ -261,7 +260,7 @@ export class AuthController {
       }
 
       const user = await prisma.user.findUnique({
-        where: { id: req.user.id },
+        where: { id: userId },
         select: {
           id: true,
           name: true,

@@ -2,7 +2,6 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
-import { AuthModule } from './auth/auth.module';
 
 // Load environment variables
 dotenv.config();

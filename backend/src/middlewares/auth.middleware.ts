@@ -4,11 +4,11 @@ import jwt from 'jsonwebtoken';
 declare global {
   namespace Express {
     interface User {
-      id: number;
+      id: string;
       email: string;
       role: 'LEARNER' | 'EMPLOYER' | 'INSTITUTION' | 'MENTOR' | 'ADMIN';
       name?: string;
-      organizationId?: number | null;
+      organizationId?: string | null;
     }
   }
 }
@@ -30,7 +30,7 @@ export const authenticateJWT = (
 
     try {
       const decoded = jwt.verify(token, secret) as {
-        id: number;
+        id: string;
         email: string;
         role: 'LEARNER' | 'EMPLOYER' | 'INSTITUTION' | 'MENTOR' | 'ADMIN';
       };
