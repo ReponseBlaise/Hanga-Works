@@ -60,10 +60,10 @@ export const applyForJob = async (req: AuthenticatedRequest, res: Response) => {
           data: {
             userId: empUser.id,
             type: 'NEW_APPLICANT',
-            payload: {
+            payload: JSON.stringify({
               title: 'New Applicant! 💼',
               message: `A candidate has applied for your job listing: "${job.title}".`
-            }
+            })
           }
         });
       }
