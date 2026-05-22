@@ -1,1 +1,0 @@
-# SEWI-Platform

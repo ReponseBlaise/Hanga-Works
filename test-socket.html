@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hanga Works - Live Notifications Test</title>
+    <!-- Import Socket.IO client library -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f1f5f9; margin: 0; padding: 20px; color: #334155; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h2 { margin-top: 0; color: #0f172a; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"] { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box; }
+        button { background-color: #2563eb; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #1d4ed8; }
+        button:disabled { background-color: #94a3b8; cursor: not-allowed; }
+        #status { display: inline-block; margin-left: 10px; font-weight: bold; padding: 5px 10px; border-radius: 20px; font-size: 14px; }
+        .status-disconnected { background-color: #fee2e2; color: #b91c1c; }
+        .status-connected { background-color: #dcfce3; color: #15803d; }
+        .notifications { margin-top: 20px; }
+        .notification-card { background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 15px; margin-bottom: 10px; border-radius: 0 5px 5px 0; animation: slideIn 0.3s ease-out; }
+        .notification-title { font-weight: bold; color: #1e40af; margin-bottom: 5px; }
+        .notification-body { margin: 0; font-size: 14px; }
+        @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🔔 Live Notifications Test</h2>
+    <p>Paste an Access Token from a successful Login or Register response in Thunder Client to connect to the Socket!</p>
+    
+    <div class="form-group">
+        <label for="token">Your JWT Token:</label>
+        <input type="text" id="token" placeholder="eyJhbGciOiJIUzI1NiIs..." />
+    </div>
+    
+    <button id="connectBtn" onclick="connect()">Connect to Socket</button>
+    <button id="disconnectBtn" onclick="disconnect()" style="display:none; background-color: #dc2626;">Disconnect</button>
+    <span id="status" class="status-disconnected">Disconnected</span>
+
+    <div class="notifications" id="notificationBox">
+        <h3 style="margin-top:30px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">Live Alerts</h3>
+        <p id="emptyMsg" style="color: #64748b; font-size: 14px; font-style: italic;">Waiting for events...</p>
+        <!-- Notifications will appear here -->
+    </div>
+</div>
+
+<script>
+    let socket;
+
+    function connect() {
+        const token = document.getElementById('token').value.trim();
+        if (!token) {
+            alert('Please paste a JWT token first!');
+            return;
+        }
+
+        // Initialize Socket connection
+        socket = io('http://localhost:5001', {
+            auth: { token: token }
+        });
+
+        socket.on('connect', () => {
+            document.getElementById('status').className = 'status-connected';
+            document.getElementById('status').innerText = 'Connected as User!';
+            document.getElementById('connectBtn').style.display = 'none';
+            document.getElementById('disconnectBtn').style.display = 'inline-block';
+        });
+
+        socket.on('connect_error', (err) => {
+            alert('Connection failed: ' + err.message);
+            disconnect();
+        });
+
+        socket.on('disconnect', () => {
+            document.getElementById('status').className = 'status-disconnected';
+            document.getElementById('status').innerText = 'Disconnected';
+            document.getElementById('connectBtn').style.display = 'inline-block';
+            document.getElementById('disconnectBtn').style.display = 'none';
+        });
+
+        // Listen for the master "notification" event
+        socket.on('notification', (data) => {
+            document.getElementById('emptyMsg').style.display = 'none';
+            
+            const box = document.getElementById('notificationBox');
+            const card = document.createElement('div');
+            card.className = 'notification-card';
+            
+            card.innerHTML = `
+                <div class="notification-title">[${data.type.toUpperCase()}] ${data.title || 'Alert'}</div>
+                <p class="notification-body">${data.message || JSON.stringify(data)}</p>
+            `;
+            
+            // Add to the top
+            box.insertBefore(card, box.children[2]);
+        });
+    }
+
+    function disconnect() {
+        if (socket) {
+            socket.disconnect();
+        }
+    }
+</script>
+
+</body>
+</html>
