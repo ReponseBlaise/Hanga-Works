@@ -79,7 +79,6 @@ model User {
   phone        String?       @unique
   passwordHash String
   role         Role          @default(LEARNER)
-  password     String
   status       AccountStatus @default(ACTIVE)
   bio          String?
   avatarUrl    String?

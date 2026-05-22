@@ -5,7 +5,6 @@ import {
 } from '@nestjs/common';
 import { EnrollmentStatus } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import { CertificationsService } from '../../certifications/certifications.service';
 import { UpdateProgressDto } from './dto/update-progress.dto';
 import { SubmitQuizDto } from './dto/submit-quiz.dto';
 
@@ -13,10 +12,7 @@ const QUIZ_PASS_SCORE = 70;
 
 @Injectable()
 export class ProgressService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly certifications: CertificationsService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async updateProgress(enrollmentId: string, userId: string, dto: UpdateProgressDto) {
     const enrollment = await this.prisma.enrollment.findUnique({
@@ -31,7 +27,7 @@ export class ProgressService {
         ? EnrollmentStatus.COMPLETED
         : dto.status ?? EnrollmentStatus.IN_PROGRESS;
 
-    const updated = await this.prisma.enrollment.update({
+    return this.prisma.enrollment.update({
       where: { id: enrollmentId },
       data: {
         progress: dto.progress,
@@ -43,12 +39,6 @@ export class ProgressService {
         course: { select: { id: true, title: true } },
       },
     });
-
-    if (status === EnrollmentStatus.COMPLETED) {
-      await this.certifications.issue(userId, enrollment.courseId);
-    }
-
-    return updated;
   }
 
   async submitQuiz(moduleId: string, userId: string, dto: SubmitQuizDto) {
@@ -95,10 +85,6 @@ export class ProgressService {
       },
       include: { course: { select: { id: true, title: true } } },
     });
-
-    if (status === EnrollmentStatus.COMPLETED) {
-      await this.certifications.issue(enrollment.userId, enrollment.courseId);
-    }
 
     return {
       passed: true,

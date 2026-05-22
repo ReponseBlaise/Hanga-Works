@@ -5,11 +5,13 @@
     "outDir": "dist",
     "rootDir": "src",
     "strict": true,
+    "strictPropertyInitialization": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
+    "sourceMap": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "prisma", "test"]
+  "exclude": ["node_modules", "dist", "test", "prisma"]
 }

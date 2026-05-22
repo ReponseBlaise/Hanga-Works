@@ -1,7 +1,9 @@
+import { Link } from 'react-router-dom';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
 import { ProgressBar } from '../../components/shared/ProgressBar';
+import { courses } from '../../data/courses';
 
 const progressCards = [
 	{ title: 'Profile completion', value: 82, meta: '7 profile fields left to unlock premium matches.' },
@@ -36,13 +38,28 @@ const recommendedJobs = [
 	},
 ];
 
-const recentCourses = [
-	{ title: 'Advanced React Patterns', provider: 'Coursera', progress: 78, lesson: 'Next lesson: compound components' },
-	{ title: 'Data-Driven Career Planning', provider: 'LinkedIn Learning', progress: 52, lesson: 'Next lesson: interview funnels' },
-	{ title: 'Job Market Analytics', provider: 'Pluralsight', progress: 31, lesson: 'Next lesson: dashboard forecasting' },
-];
+const recentCourses = courses
+	.filter((course) => course.enrolled && course.progress < 100)
+	.slice(0, 3)
+	.map((course) => ({
+		id: course.id,
+		title: course.title,
+		provider: course.provider,
+		progress: course.progress,
+		lesson: `Next lesson: ${course.modules.find((m) => !m.completed)?.title ?? 'course complete'}`,
+	}));
 
-function DashboardSectionTitle({ eyebrow, title, action }: { eyebrow: string; title: string; action?: string }) {
+function DashboardSectionTitle({
+	eyebrow,
+	title,
+	action,
+	actionHref = '#',
+}: {
+	eyebrow: string;
+	title: string;
+	action?: string;
+	actionHref?: string;
+}) {
 	return (
 		<div className="section-head">
 			<div>
@@ -50,7 +67,7 @@ function DashboardSectionTitle({ eyebrow, title, action }: { eyebrow: string; ti
 				<h2>{title}</h2>
 			</div>
 			{action ? (
-				<Button href="#" variant="ghost" className="section-head__action">
+				<Button to={actionHref} variant="ghost" className="section-head__action">
 					{action}
 				</Button>
 			) : null}
@@ -99,7 +116,7 @@ function DashboardContent() {
 			</section>
 
 			<section className="dashboard-section dashboard-section--wide" id="recommended-jobs">
-				<DashboardSectionTitle eyebrow="Jobs" title="Recommended jobs" action="View all jobs" />
+				<DashboardSectionTitle eyebrow="Jobs" title="Recommended jobs" action="View all jobs" actionHref="/jobs" />
 				<div className="job-grid">
 					{recommendedJobs.map((job) => (
 						<Card key={`${job.role}-${job.company}`} className="job-card">
@@ -128,21 +145,23 @@ function DashboardContent() {
 			</section>
 
 			<section className="dashboard-section" id="recent-courses">
-				<DashboardSectionTitle eyebrow="Learning" title="Recent courses" action="Browse all courses" />
+				<DashboardSectionTitle eyebrow="Learning" title="Recent courses" action="Browse all courses" actionHref="/courses" />
 				<div className="course-stack">
 					{recentCourses.map((course) => (
-						<Card key={course.title} className="course-card">
+						<Card key={course.id} className="course-card">
 							<div className="course-card__top">
 								<div>
 									<CardEyebrow>{course.provider}</CardEyebrow>
-									<CardTitle>{course.title}</CardTitle>
+									<CardTitle>
+										<Link to={`/courses/${course.id}`}>{course.title}</Link>
+									</CardTitle>
 								</div>
 								<strong>{course.progress}%</strong>
 							</div>
 							<ProgressBar value={course.progress} />
 							<CardMeta>{course.lesson}</CardMeta>
 							<div className="course-card__actions">
-								<Button href="#" variant="ghost">Continue</Button>
+								<Button to={`/courses/${course.id}`} variant="ghost">Continue</Button>
 							</div>
 						</Card>
 					))}
