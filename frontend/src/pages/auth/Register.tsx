@@ -5,9 +5,12 @@ import { useAuth } from '../../context/AuthContext';
 import * as authService from '../../services/auth.service';
 
 const ROLES = [
-  { value: 'job_seeker', label: 'Job Seeker' },
-  { value: 'employer', label: 'Employer' },
-  { value: 'trainer', label: 'Trainer' },
+  { value: 'LEARNER', label: 'LEARNER' },
+  { value: 'EMPLOYER', label: 'EMPLOYER' },
+  { value: 'INSTITUTION', label: 'INSTITUTION' },
+  { value: 'MENTOR', label: 'MENTOR' },
+  { value: 'ADMIN', label: 'ADMIN' },
+
 ];
 
 export default function Register() {
