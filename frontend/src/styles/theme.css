@@ -617,6 +617,7 @@ select {
   width: min(100%, var(--content-width));
   margin: 0 auto;
   padding: 28px 24px 56px;
+  flex: 1;
   display: grid;
   gap: 28px;
 }

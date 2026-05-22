@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
 import Footer from './Footer';
+import Navbar from './Topbar';
 import { Topbar } from './Topbar';
 import { useAuth } from '../../context/AuthContext';
 
@@ -11,6 +12,7 @@ type DashboardLayoutProps = {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
 	return (
 		<div className="dashboard-page">
+			<Navbar />
 			<div className="dashboard-shell">
 				<DashboardFrame>{children}</DashboardFrame>
 			</div>
