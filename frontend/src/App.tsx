@@ -9,6 +9,10 @@ import ForgotPassword from './pages/auth/ForgotPassword';
 import { Dashboard } from './pages/dashboard/Dashboard';
 import { CourseList } from './pages/courses/CourseList';
 import { CourseDetail } from './pages/courses/CourseDetail';
+import EmployerDashboard from './pages/employer/EmployerDashboard';
+import PostJob from './pages/employer/PostJob';
+import Applicants from './pages/employer/Applicants';
+import { useAuth } from './context/AuthContext';
 
 export default function App() {
   return (
@@ -29,7 +33,9 @@ export default function App() {
           <Route path="/applications" element={<Navigate to="/dashboard#applications" replace />} />
           <Route path="/profile" element={<Navigate to="/dashboard#profile" replace />} />
           <Route path="/certifications" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/employer" element={<Navigate to="/register" replace />} />
+          <Route path="/employer" element={<EmployerRoute><EmployerDashboard /></EmployerRoute>} />
+          <Route path="/employer/post-job" element={<EmployerRoute><PostJob /></EmployerRoute>} />
+          <Route path="/employer/applicants" element={<EmployerRoute><Applicants /></EmployerRoute>} />
           <Route path="/contact" element={<Navigate to="/#contact" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
@@ -37,3 +43,10 @@ export default function App() {
     </AuthProvider>
   );
 }
+
+  function EmployerRoute({ children }: { children: JSX.Element }) {
+    const { user } = useAuth();
+    const role = user?.role ?? '';
+    if (role && role.toUpperCase() === 'EMPLOYER') return children;
+    return <Navigate to="/register" replace />;
+  }
