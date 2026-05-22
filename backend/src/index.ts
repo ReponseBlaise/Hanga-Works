@@ -27,8 +27,13 @@ const httpServer = createServer(app);
 // Initialize Socket.IO with the HTTP server
 initSocket(httpServer);
 
-// Enable CORS
-app.use(cors());
+// Enable CORS for frontend requests
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:3000'], // Add your frontend URLs
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+}));
 
 // Cookie parser
 app.use(cookieParser());
