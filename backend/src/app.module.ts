@@ -7,6 +7,7 @@ import { EnrollmentModule } from './lms/enrollment/enrollment.module';
 import { ProgressModule } from './lms/progress/progress.module';
 import { JobsModule } from './jobs/jobs.module';
 import { CertificationsModule } from './certifications/certifications.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { CertificationsModule } from './certifications/certifications.module';
     ProgressModule,
     JobsModule,
     CertificationsModule,
+    AnalyticsModule,
   ],
   providers: [PrismaService, RedisService],
 })

@@ -39,6 +39,12 @@ export class JobsController {
     return this.jobsService.findAll(filters);
   }
 
+  @Get('jobs/recommended')
+  @UseGuards(JwtAuthGuard)
+  getRecommended(@CurrentUser() user: CurrentUserPayload) {
+    return this.jobsService.getRecommended(user.userId);
+  }
+
   @Get('jobs/:id')
   findOne(@Param('id') id: string) {
     return this.jobsService.findOne(id);

@@ -147,6 +147,33 @@ export class JobsService {
     });
   }
 
+  // ── GET /jobs/recommended ─────────────────────────────────────────────────
+  async getRecommended(userId: string) {
+    const userSkills = await this.prisma.userSkill.findMany({
+      where: { userId },
+      select: { skillId: true },
+    });
+
+    const userSkillIds = new Set(userSkills.map((s) => s.skillId));
+
+    const jobs = await this.prisma.job.findMany({
+      where: { isActive: true },
+      include: jobInclude,
+    });
+
+    if (userSkillIds.size === 0) {
+      return jobs.slice(0, 10).map((j) => ({ ...j, matchScore: 0 }));
+    }
+
+    return jobs
+      .map((job) => {
+        const overlap = job.skills.filter((s) => userSkillIds.has(s.skillId)).length;
+        return { ...job, matchScore: overlap };
+      })
+      .sort((a, b) => b.matchScore - a.matchScore)
+      .slice(0, 10);
+  }
+
   // ── GET /applications ─────────────────────────────────────────────────────
   async getApplications(userId: string, userRole: string) {
     if (userRole === Role.LEARNER) {
