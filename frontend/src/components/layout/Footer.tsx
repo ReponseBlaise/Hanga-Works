@@ -22,9 +22,10 @@ const columns = [
 export default function Footer() {
   return (
     <footer style={{
-      background: 'var(--bg-elevated)',
+      background: 'rgba(255, 255, 255, 0.76)',
       borderTop: '1px solid var(--border)',
       marginTop: 'auto',
+      backdropFilter: 'blur(18px)',
     }}>
       {/* Main footer */}
       <div style={{
@@ -37,8 +38,8 @@ export default function Footer() {
       }}>
         {/* Brand column */}
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-            <img src="/hanga-works-logo.svg" alt="Hanga Works Logo" style={{ height: '28px', width: 'auto' }} />
+          <div style={{ marginBottom: '12px' }}>
+            <img src="/hanga-works-logo.svg" alt="Hanga Works Logo" style={{ height: '40px', width: 'auto' }} />
           </div>
           <p style={{ fontSize: '0.82rem', color: 'var(--text-soft)', lineHeight: 1.6, margin: '0 0 16px', maxWidth: '200px' }}>
             HANGA WORKS is the home of the skills employment and workforce intelligence platform.
@@ -48,7 +49,7 @@ export default function Footer() {
             {['f', 't', 'in'].map(s => (
               <a key={s} href="#" style={{
                 width: '30px', height: '30px', borderRadius: '50%',
-                background: 'var(--accent-soft)',
+                background: 'var(--accent-wash)',
                 display: 'grid', placeItems: 'center',
                 fontSize: '0.75rem', fontWeight: 700,
                 color: 'var(--accent)', textDecoration: 'none',
