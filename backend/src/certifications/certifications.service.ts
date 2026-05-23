@@ -92,6 +92,18 @@ export class CertificationsService {
     return cert;
   }
 
+  // GET /certificates — learner's own certificates
+  async getMyCertificates(userId: string) {
+    return this.prisma.certification.findMany({
+      where: { userId },
+      include: {
+        course: { select: { id: true, title: true, slug: true } },
+        issuer: { select: { id: true, name: true } },
+      },
+      orderBy: { issuedAt: 'desc' },
+    });
+  }
+
   // POST /certificates/validate — employer only
   async validate(token: string, userId: string, userRole: string) {
     if (userRole !== Role.EMPLOYER && userRole !== Role.ADMIN) {

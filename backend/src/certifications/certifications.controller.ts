@@ -11,6 +11,12 @@ import {
 export class CertificationsController {
   constructor(private readonly service: CertificationsService) {}
 
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  getMyCertificates(@CurrentUser() user: CurrentUserPayload) {
+    return this.service.getMyCertificates(user.userId);
+  }
+
   @Get('verify/:token')
   verify(@Param('token') token: string) {
     return this.service.verify(token);
