@@ -5,17 +5,16 @@ import { useAuth } from '../../context/AuthContext';
 import * as authService from '../../services/auth.service';
 
 const ROLES = [
-  { value: 'LEARNER', label: 'LEARNER' },
-  { value: 'EMPLOYER', label: 'EMPLOYER' },
-  { value: 'INSTITUTION', label: 'INSTITUTION' },
-  { value: 'MENTOR', label: 'MENTOR' },
-  { value: 'ADMIN', label: 'ADMIN' },
+  { value: 'LEARNER', label: 'Job Seeker' },
+  { value: 'EMPLOYER', label: 'Employer' },
+  { value: 'INSTITUTION', label: 'Institution' },
+  { value: 'MENTOR', label: 'Mentor' },
 
 ];
 
 export default function Register() {
   const [form, setForm] = useState({
-    name: '', email: '', username: '', password: '', confirmPassword: '', role: '', agreed: false,
+    name: '', email: '', password: '', role: '' as '' | 'LEARNER' | 'EMPLOYER' | 'INSTITUTION' | 'MENTOR',
   });
   const navigate = useNavigate();
   const { signIn } = useAuth();
@@ -32,7 +31,7 @@ export default function Register() {
     e.preventDefault();
     setLoading(true);
     setError('');
-    authService.register({ name: form.name, email: form.email, password: form.password, role: form.role })
+    authService.register({ name: form.name, email: form.email, password: form.password, role: form.role || undefined })
       .then((data) => {
         if (data?.user) {
           signIn(data.user);
@@ -65,7 +64,7 @@ export default function Register() {
         Start for free Today
       </h1>
       <p style={{ margin: '0 0 24px', fontSize: '0.85rem', color: 'var(--text-soft)' }}>
-        Access to all features. No credit card required.
+        Create your account with the same fields used by the backend: name, email, password, and role.
       </p>
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -87,12 +86,6 @@ export default function Register() {
             style={inputStyle} onFocus={focus} onBlur={blur} />
         </Field>
 
-        <Field label="Role *">
-          <select required value={form.role}
-            onChange={e => setForm({ ...form, role: e.target.value })}
-            style={{ ...inputStyle, appearance: 'none' } as React.CSSProperties}
-            onFocus={focus} onBlur={blur}>
-            <option value="" disabled>Select your role</option>
             {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
           </select>
         </Field>
@@ -102,24 +95,6 @@ export default function Register() {
             value={form.password} onChange={e => setForm({ ...form, password: e.target.value })}
             style={inputStyle} onFocus={focus} onBlur={blur} />
         </Field>
-
-        <Field label="Re-Password *">
-          <input type="password" placeholder="••••••••" required
-            value={form.confirmPassword} onChange={e => setForm({ ...form, confirmPassword: e.target.value })}
-            style={inputStyle} onFocus={focus} onBlur={blur} />
-        </Field>
-
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--text-soft)', cursor: 'pointer' }}>
-            <input type="checkbox" required checked={form.agreed}
-              onChange={e => setForm({ ...form, agreed: e.target.checked })}
-              style={{ accentColor: 'var(--accent)', width: '15px', height: '15px' }} />
-            Agree our terms and policy
-          </label>
-          <Link to="/terms" style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--accent)' }}>
-            Learn more
-          </Link>
-        </div>
 
         <button type="submit" style={{ ...btnStyle, opacity: loading ? 0.7 : 1 }} disabled={loading}>{loading ? 'Creating…' : 'Submit & Register'}</button>
         {error && <p style={{ color: 'var(--danger)', fontSize: '0.9rem' }}>{error}</p>}

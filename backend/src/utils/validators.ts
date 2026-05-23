@@ -16,7 +16,7 @@ export const CreateJobSchema = z.object({
   title: z.string().min(3, 'Title is required'),
   description: z.string().min(10, 'Description is required'),
   location: z.string().optional(),
-  jobType: z.enum(['FULL_TIME', 'PART_TIME', 'CONTRACT', 'FREELANCE', 'INTERNSHIP']).optional(),
+  jobType: z.enum(['FULL_TIME', 'PART_TIME', 'REMOTE', 'HYBRID', 'INTERNSHIP', 'FREELANCE']).optional(),
   salaryMin: z.union([z.string(), z.number()]).optional(),
   salaryMax: z.union([z.string(), z.number()]).optional(),
 }).strict();

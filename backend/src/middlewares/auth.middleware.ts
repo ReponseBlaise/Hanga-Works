@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { prisma } from '../config/db';
 
 declare global {
   namespace Express {
@@ -17,7 +18,7 @@ export interface AuthenticatedRequest extends Request {
   user?: Express.User;
 }
 
-export const authenticateJWT = (
+export const authenticateJWT = async (
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
@@ -35,7 +36,25 @@ export const authenticateJWT = (
         role: 'LEARNER' | 'EMPLOYER' | 'INSTITUTION' | 'MENTOR' | 'ADMIN';
       };
 
-      req.user = decoded;
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.id },
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          name: true,
+          organizationId: true,
+        },
+      });
+
+      if (!user) {
+        return res.status(401).json({
+          status: 'error',
+          message: 'Unauthorized',
+        });
+      }
+
+      req.user = user;
       return next();
     } catch (error) {
       return res.status(403).json({
