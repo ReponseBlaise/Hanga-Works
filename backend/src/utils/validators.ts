@@ -12,6 +12,15 @@ export const LoginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
 }).strict();
 
+export const ForgotPasswordSchema = z.object({
+  email: z.string().email('Invalid email format'),
+}).strict();
+
+export const ResetPasswordSchema = z.object({
+  token: z.string().min(1, 'Token is required'),
+  newPassword: z.string().min(6, 'Password must be at least 6 characters'),
+}).strict();
+
 export const CreateJobSchema = z.object({
   title: z.string().min(3, 'Title is required'),
   description: z.string().min(10, 'Description is required'),

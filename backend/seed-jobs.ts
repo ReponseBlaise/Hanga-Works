@@ -17,6 +17,7 @@ async function seed() {
       name: 'Tech Corp HR',
       email: 'hr@techcorp.com',
       password: passwordHash, // raw password for auth
+      passwordHash: passwordHash,
       role: 'EMPLOYER',
     }
   });

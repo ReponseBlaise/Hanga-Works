@@ -1,18 +1,18 @@
 import { Router } from 'express';
 import { AuthController } from '../controllers/auth.controller';
 import { authenticateJWT, requireRoles } from '../middlewares/auth.middleware';
-import { validateRequest } from '../middlewares/validate.middleware';
-import { RegisterSchema, LoginSchema } from '../utils/validators';
+import { validateDto } from '../middlewares/validation.middleware';
+import { RegisterDto, LoginDto, ForgotPasswordDto, ResetPasswordDto } from '../dtos/auth.dto';
 
 const router = Router();
 
 // Public routes
-router.post('/register', validateRequest(RegisterSchema), AuthController.register);
-router.post('/login', validateRequest(LoginSchema), AuthController.login);
+router.post('/register', validateDto(RegisterDto), AuthController.register);
+router.post('/login', validateDto(LoginDto), AuthController.login);
 router.post('/refresh', AuthController.refresh);
 router.post('/logout', AuthController.logout);
-router.post('/forgot-password', AuthController.forgotPassword);
-router.post('/reset-password', AuthController.resetPassword);
+router.post('/forgot-password', validateDto(ForgotPasswordDto), AuthController.forgotPassword);
+router.post('/reset-password', validateDto(ResetPasswordDto), AuthController.resetPassword);
 router.get('/reset-password', AuthController.resetPasswordPage);
 
 // Protected routes
