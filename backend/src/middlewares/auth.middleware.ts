@@ -5,11 +5,11 @@ import { prisma } from '../config/db';
 declare global {
   namespace Express {
     interface User {
-      id: string;
+      id: number;
       email: string;
       role: 'LEARNER' | 'EMPLOYER' | 'INSTITUTION' | 'MENTOR' | 'ADMIN';
       name?: string;
-      organizationId?: string | null;
+      organizationId?: number | null;
     }
   }
 }
@@ -31,7 +31,7 @@ export const authenticateJWT = async (
 
     try {
       const decoded = jwt.verify(token, secret) as {
-        id: string;
+        id: number;
         email: string;
         role: 'LEARNER' | 'EMPLOYER' | 'INSTITUTION' | 'MENTOR' | 'ADMIN';
       };
