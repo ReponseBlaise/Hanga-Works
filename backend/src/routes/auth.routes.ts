@@ -1,12 +1,14 @@
 import { Router } from 'express';
 import { AuthController } from '../controllers/auth.controller';
 import { authenticateJWT, requireRoles } from '../middlewares/auth.middleware';
+import { validateRequest } from '../middlewares/validate.middleware';
+import { RegisterSchema, LoginSchema } from '../utils/validators';
 
 const router = Router();
 
 // Public routes
-router.post('/register', AuthController.register);
-router.post('/login', AuthController.login);
+router.post('/register', validateRequest(RegisterSchema), AuthController.register);
+router.post('/login', validateRequest(LoginSchema), AuthController.login);
 router.post('/refresh', AuthController.refresh);
 router.post('/logout', AuthController.logout);
 router.post('/forgot-password', AuthController.forgotPassword);

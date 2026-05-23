@@ -2,6 +2,8 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 
 // Load environment variables
 dotenv.config();
@@ -21,14 +23,30 @@ import { initSocket } from './utils/socket';
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Security: HTTP Headers
+app.use(helmet());
+
+// Security: Rate Limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: { status: 'error', message: 'Too many requests, please try again later.' }
+});
+app.use('/api', limiter);
+
 // Create HTTP server to wrap the Express app
 const httpServer = createServer(app);
 
 // Initialize Socket.IO with the HTTP server
 initSocket(httpServer);
 
-// Enable CORS
-app.use(cors());
+// Enable CORS for frontend requests
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:3000'], // Add your frontend URLs
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+}));
 
 // Cookie parser
 app.use(cookieParser());
@@ -37,8 +55,7 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Initialize Auth Module
-app.use(AuthModule.init());
+// Initialize app (Auth is handled by routes)
 
 // Root route
 app.get('/', (_req: Request, res: Response) => {

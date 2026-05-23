@@ -1,4 +1,5 @@
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost';
 
@@ -10,17 +11,33 @@ type SharedProps = {
 
 type NativeButtonProps = SharedProps & ButtonHTMLAttributes<HTMLButtonElement> & {
 	href?: undefined;
+	to?: undefined;
 };
 
 type AnchorButtonProps = SharedProps & AnchorHTMLAttributes<HTMLAnchorElement> & {
 	href: string;
+	to?: undefined;
+};
+
+type RouterLinkButtonProps = SharedProps & {
+	to: string;
+	href?: undefined;
 };
 
 function getButtonClassName(variant: ButtonVariant = 'primary', className = '') {
 	return `button button-${variant} ${className}`.trim();
 }
 
-export function Button(props: NativeButtonProps | AnchorButtonProps) {
+export function Button(props: NativeButtonProps | AnchorButtonProps | RouterLinkButtonProps) {
+	if ('to' in props && props.to) {
+		const { variant = 'primary', className = '', children, to } = props;
+		return (
+			<Link className={getButtonClassName(variant, className)} to={to}>
+				{children}
+			</Link>
+		);
+	}
+
 	if ('href' in props && props.href) {
 		const { variant = 'primary', className = '', children, ...anchorProps } = props;
 		return (

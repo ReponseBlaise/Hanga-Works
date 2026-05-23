@@ -426,7 +426,7 @@ export class AuthController {
       }
 
       // 1. Decode token to find user ID first (before verifying signature, since secret needs the user's hash)
-      const decoded = jwt.decode(token) as { id: number } | null;
+      const decoded = jwt.decode(token) as { id: string } | null;
       if (!decoded || !decoded.id) {
         return res.status(400).json({
           status: 'error',
