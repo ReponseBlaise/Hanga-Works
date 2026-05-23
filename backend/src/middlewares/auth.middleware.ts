@@ -54,7 +54,13 @@ export const authenticateJWT = async (
         });
       }
 
-      req.user = user;
+      req.user = {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        name: user.name ?? undefined,
+        organizationId: user.organizationId,
+      };
       return next();
     } catch (error) {
       return res.status(403).json({

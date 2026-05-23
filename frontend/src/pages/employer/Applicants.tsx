@@ -145,7 +145,7 @@ export default function Applicants() {
 
       <Modal open={!!active} onClose={() => setActive(null)} title={active?.name} variant="drawer" actions={
         <div style={{ display: 'flex', gap: 8 }}>
-          {active && active.stage !== 'Hired' && active.stage !== 'REJECTED' && (
+          {active && active.stage !== 'HIRED' && active.stage !== 'REJECTED' && (
             <Button onClick={() => moveCandidate(active.id, pipelineStages[pipelineStages.indexOf(active.stage) + 1])}>Move to next</Button>
           )}
           <Button variant="secondary" onClick={() => setActive(null)}>Close</Button>
