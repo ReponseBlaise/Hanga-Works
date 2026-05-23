@@ -80,13 +80,20 @@ export default function Register() {
             style={inputStyle} onFocus={focus} onBlur={blur} />
         </Field>
 
-        <Field label="Username *">
-          <input type="text" placeholder="username" required
-            value={form.username} onChange={e => setForm({ ...form, username: e.target.value })}
-            style={inputStyle} onFocus={focus} onBlur={blur} />
-        </Field>
-
-            {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+        <Field label="Role">
+          <select
+            value={form.role}
+            onChange={(e) => setForm({ ...form, role: e.target.value as any })}
+            style={inputStyle}
+            onFocus={focus}
+            onBlur={blur}
+          >
+            <option value="">Select role</option>
+            {ROLES.map((r) => (
+              <option key={r.value} value={r.value}>
+                {r.label}
+              </option>
+            ))}
           </select>
         </Field>
 
