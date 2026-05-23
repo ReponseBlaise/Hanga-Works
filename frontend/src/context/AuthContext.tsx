@@ -1,10 +1,13 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import * as authService from '../services/auth.service';
 
 export type AuthUser = {
+  id?: string;
   name: string;
   email: string;
   username?: string;
   role?: string;
+  organizationId?: string | null;
 };
 
 type AuthContextValue = {
@@ -47,6 +50,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     window.localStorage.removeItem(AUTH_STORAGE_KEY);
+  }, [user]);
+
+  useEffect(() => {
+    let active = true;
+
+    if (!user) {
+      authService.refresh()
+        .then((data) => {
+          if (active && data?.user) {
+            setUser(data.user);
+          }
+        })
+        .catch(() => {
+          // No active refresh cookie yet; stay signed out.
+        });
+    }
+
+    return () => {
+      active = false;
+    };
   }, [user]);
 
   const value: AuthContextValue = {

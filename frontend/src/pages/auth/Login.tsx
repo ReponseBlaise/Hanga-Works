@@ -20,7 +20,7 @@ export default function Login() {
         if (data?.user) {
           signIn(data.user);
           const role = (data.user.role ?? '').toLowerCase();
-          if (role === 'employer' || role === 'employer') {
+          if (role === 'employer') {
             navigate('/employer');
             return;
           }

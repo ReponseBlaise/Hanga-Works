@@ -96,6 +96,7 @@ export class AuthController {
             name: user.name,
             email: user.email,
             role: user.role,
+            organizationId: user.organizationId,
           },
         },
       });
@@ -170,6 +171,7 @@ export class AuthController {
             name: user.name,
             email: user.email,
             role: user.role,
+            organizationId: user.organizationId,
           },
         },
       });
@@ -203,6 +205,7 @@ export class AuthController {
           name: true,
           email: true,
           role: true,
+          organizationId: true,
         },
       });
 
@@ -266,6 +269,7 @@ export class AuthController {
           name: true,
           email: true,
           role: true,
+          organizationId: true,
           createdAt: true,
         },
       });
