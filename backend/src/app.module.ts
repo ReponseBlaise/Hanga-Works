@@ -8,6 +8,8 @@ import { ProgressModule } from './lms/progress/progress.module';
 import { JobsModule } from './jobs/jobs.module';
 import { CertificationsModule } from './certifications/certifications.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { AuthModule } from './auth/auth.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { AnalyticsModule } from './analytics/analytics.module';
     JobsModule,
     CertificationsModule,
     AnalyticsModule,
+    NotificationsModule,
+    AuthModule,
   ],
   providers: [PrismaService, RedisService],
 })
