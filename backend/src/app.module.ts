@@ -10,6 +10,7 @@ import { CertificationsModule } from './certifications/certifications.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { AuthModule } from './auth/auth.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { EmployerModule } from './employer/employer.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     AnalyticsModule,
     NotificationsModule,
     AuthModule,
+    EmployerModule,
   ],
   providers: [PrismaService, RedisService],
 })
