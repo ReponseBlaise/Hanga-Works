@@ -8,10 +8,12 @@ import { ProgressModule } from './lms/progress/progress.module';
 import { JobsModule } from './jobs/jobs.module';
 import { CertificationsModule } from './certifications/certifications.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    AuthModule,
     CoursesModule,
     EnrollmentModule,
     ProgressModule,

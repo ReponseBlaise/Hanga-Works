@@ -83,6 +83,9 @@ model User {
   bio          String?
   avatarUrl    String?
   location     String?
+  
+  resetToken        String?
+  resetTokenExpires DateTime?
 
   // Relations
   organizationId String?
