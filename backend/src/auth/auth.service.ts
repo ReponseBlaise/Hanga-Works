@@ -7,7 +7,7 @@ import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { NotificationsService } from '../notifications/notifications.service';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -29,6 +29,7 @@ export class AuthService {
 
     await this.notifications.sendRegistrationConfirmation(user.email, user.name);
     
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete (user as any).passwordHash;
     return user;
   }
@@ -53,6 +54,7 @@ export class AuthService {
 
     this.notifications.emitUserLoggedIn(user.id);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete (user as any).passwordHash;
     return { access_token, refresh_token, user };
   }

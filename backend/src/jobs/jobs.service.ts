@@ -5,9 +5,8 @@ import {
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
-import { ApplicationStatus, Role } from '@prisma/client';
+import { Role } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateJobDto } from './dto/create-job.dto';
 import { FilterJobsDto } from './dto/filter-jobs.dto';
 import { UpdateApplicationStatusDto } from './dto/update-application-status.dto';
 

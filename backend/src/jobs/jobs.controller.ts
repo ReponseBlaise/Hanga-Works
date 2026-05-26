@@ -10,7 +10,6 @@ import {
 } from '@nestjs/common';
 import { JobsService } from './jobs.service';
 import { CreateJobDto } from './dto/create-job.dto';
-import { ApplyJobDto } from './dto/apply-job.dto';
 import { FilterJobsDto } from './dto/filter-jobs.dto';
 import { UpdateApplicationStatusDto } from './dto/update-application-status.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -55,7 +54,6 @@ export class JobsController {
   apply(
     @Param('id') jobId: string,
     @CurrentUser() user: CurrentUserPayload,
-    @Body() _dto: ApplyJobDto,
   ) {
     return this.jobsService.apply(jobId, user.userId, user.role);
   }
