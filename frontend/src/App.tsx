@@ -12,6 +12,7 @@ import { CourseDetail } from './pages/courses/CourseDetail';
 import EmployerDashboard from './pages/employer/EmployerDashboard';
 import PostJob from './pages/employer/PostJob';
 import Applicants from './pages/employer/Applicants';
+import AdminPanelPage from './pages/admin/AdminPanelPage';
 import { useAuth } from './context/AuthContext';
 
 export default function App() {
@@ -37,6 +38,7 @@ export default function App() {
           <Route path="/employer/post-job" element={<EmployerRoute><PostJob /></EmployerRoute>} />
           <Route path="/employer/applicants" element={<EmployerRoute><Applicants /></EmployerRoute>} />
           <Route path="/contact" element={<Navigate to="/#contact" replace />} />
+          <Route path="/admin" element={<AdminRoute><AdminPanelPage /></AdminRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
@@ -49,4 +51,11 @@ export default function App() {
     const role = user?.role ?? '';
     if (role && role.toUpperCase() === 'EMPLOYER') return children;
     return <Navigate to="/register" replace />;
+  }
+
+  function AdminRoute({ children }: { children: JSX.Element }) {
+    const { user } = useAuth();
+    const role = user?.role ?? '';
+    if (role && role.toUpperCase() === 'ADMIN') return children;
+    return <Navigate to="/" replace />;
   }
