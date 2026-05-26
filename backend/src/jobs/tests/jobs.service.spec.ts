@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   BadRequestException,
@@ -205,6 +206,23 @@ describe('JobsService', () => {
       await expect(
         service.apply(JOB_ID, EMPLOYER_ID, Role.EMPLOYER),
       ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should throw ConflictException if already applied', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (prisma.application.findUnique as unknown as jest.Mock).mockResolvedValue({ id: 'app1' });
+      await expect(service.apply('job1', 'user1', Role.LEARNER)).rejects.toThrow(
+        ConflictException,
+      );
+    });
+
+    it('should create an application successfully', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (prisma.application.findUnique as unknown as jest.Mock).mockResolvedValue(null);
+      await service.apply('job1', 'user1', Role.LEARNER);
+      await expect(
+        service.apply(JOB_ID, LEARNER_ID, Role.LEARNER),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('throws NotFoundException if job does not exist', async () => {
