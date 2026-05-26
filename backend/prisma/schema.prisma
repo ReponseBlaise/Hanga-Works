@@ -87,9 +87,6 @@ model User {
   resetToken        String?
   resetTokenExpires DateTime?
 
-  resetToken        String?
-  resetTokenExpires DateTime?
-
   // Relations
   organizationId String?
   organization   Organization? @relation(fields: [organizationId], references: [id])
