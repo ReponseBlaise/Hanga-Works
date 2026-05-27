@@ -1,4 +1,5 @@
 import api from './api';
+import type { JobApplication } from '../types/job.types';
 
 export type JobType = 'FULL_TIME' | 'PART_TIME' | 'REMOTE' | 'HYBRID' | 'INTERNSHIP' | 'FREELANCE';
 
@@ -6,6 +7,16 @@ export type JobEmployer = {
 	id: string;
 	name: string;
 	website?: string | null;
+};
+
+export type JobSkill = {
+	id: string;
+	skillId: string;
+	skill: {
+		id: string;
+		name: string;
+		tag?: string | null;
+	};
 };
 
 export type JobSummary = {
@@ -19,10 +30,12 @@ export type JobSummary = {
 	salaryMax?: number | null;
 	isActive: boolean;
 	employer: JobEmployer;
+	skills?: JobSkill[];
 	postedAt: string;
 	updatedAt: string;
 	expiresAt?: string | null;
 	_count?: { applications: number };
+	matchScore?: number;
 };
 
 export type CreateJobPayload = {
@@ -45,6 +58,11 @@ export async function getJobById(id: string) {
 }
 
 export async function applyForJob(jobId: string) {
-	const res = await api.post('/applications/apply', { jobId });
+	const res = await api.post(`/jobs/${jobId}/apply`, {});
 	return res.data?.data?.application;
+}
+
+export async function getApplications() {
+	const res = await api.get('/applications');
+	return res.data?.data?.applications as JobApplication[];
 }

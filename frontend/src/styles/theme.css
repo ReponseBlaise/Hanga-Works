@@ -2111,6 +2111,228 @@ select {
   line-height: 1.55;
 }
 
+.job-market-page,
+.job-detail-page,
+.applications-page,
+.profile-page {
+  display: grid;
+  gap: 22px;
+}
+
+.job-market-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  gap: 22px;
+  align-items: stretch;
+}
+
+.job-market-hero__stats {
+  display: grid;
+  gap: 14px;
+}
+
+.job-market-toolbar {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  align-items: end;
+}
+
+.job-market-toolbar__toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 0 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--text-soft);
+  font-weight: 700;
+}
+
+.job-market-toolbar__toggle input {
+  width: 18px;
+  height: 18px;
+}
+
+.job-market-results,
+.job-detail-grid,
+.profile-grid,
+.profile-timeline {
+  display: grid;
+  gap: 16px;
+}
+
+.job-detail-grid,
+.profile-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.job-detail-page .course-detail__hero,
+.profile-page .job-market-hero {
+  align-items: start;
+}
+
+.employer-branding {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: var(--surface-muted);
+}
+
+.employer-branding__mark {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  background: linear-gradient(145deg, #6f8fff, var(--accent));
+  color: #ffffff;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.employer-branding strong {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.employer-branding p {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.88rem;
+}
+
+.profile-avatar-preview {
+  width: 100%;
+  max-width: 180px;
+  margin: 14px 0;
+  border-radius: 24px;
+  border: 1px solid var(--border);
+  object-fit: cover;
+}
+
+.profile-avatar-fallback {
+  width: 160px;
+  height: 160px;
+  display: grid;
+  place-items: center;
+  margin: 14px 0;
+  border-radius: 28px;
+  background: linear-gradient(145deg, rgba(63, 102, 244, 0.14), rgba(255, 255, 255, 0.96));
+  border: 1px solid var(--border);
+  color: var(--accent);
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.onboarding-wizard {
+  display: grid;
+  gap: 16px;
+}
+
+.onboarding-wizard__steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.onboarding-step {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--text-soft);
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+}
+
+.onboarding-step span {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--surface-muted);
+  color: var(--text);
+}
+
+.onboarding-step.is-active {
+  border-color: rgba(37, 71, 202, 0.35);
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+.onboarding-step.is-active span {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.onboarding-wizard__content {
+  padding: 18px;
+  border-radius: 18px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  color: var(--text-soft);
+}
+
+.profile-form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.profile-form-grid label {
+  display: grid;
+  gap: 8px;
+  color: var(--text-soft);
+  font-weight: 700;
+}
+
+.profile-form-grid input,
+.profile-form-grid select,
+.profile-form-grid textarea {
+  width: 100%;
+  min-height: 46px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--text);
+  resize: vertical;
+}
+
+.profile-form-grid textarea {
+  min-height: 104px;
+}
+
+.profile-tags {
+  margin-top: 14px;
+}
+
+@media (max-width: 980px) {
+  .courses-hero,
+  .courses-filters,
+  .courses-grid,
+  .course-detail__hero,
+  .quiz-score,
+  .job-market-hero,
+  .job-market-toolbar,
+  .job-detail-grid,
+  .profile-grid,
+  .profile-form-grid,
+  .onboarding-wizard__steps {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 980px) {
   .courses-hero,
   .courses-filters,

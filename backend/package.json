@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/main.ts",
-    "build": "tsc -p .",
+    "build": "node build.js",
     "start": "node dist/main.js",
     "test": "jest",
     "test:watch": "jest --watch",
