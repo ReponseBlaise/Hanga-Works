@@ -9,6 +9,10 @@ import ForgotPassword from './pages/auth/ForgotPassword';
 import { Dashboard } from './pages/dashboard/Dashboard';
 import { CourseList } from './pages/courses/CourseList';
 import { CourseDetail } from './pages/courses/CourseDetail';
+import JobList from './pages/jobs/JobList';
+import JobDetail from './pages/jobs/JobDetail';
+import MyApplications from './pages/jobs/MyApplications';
+import Profile from './pages/profile/Profile';
 import EmployerDashboard from './pages/employer/EmployerDashboard';
 import PostJob from './pages/employer/PostJob';
 import Applicants from './pages/employer/Applicants';
@@ -30,9 +34,11 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/courses" element={<CourseList />} />
           <Route path="/courses/:id" element={<CourseDetail />} />
-          <Route path="/jobs" element={<Navigate to="/dashboard#recommended-jobs" replace />} />
-          <Route path="/applications" element={<Navigate to="/dashboard#applications" replace />} />
-          <Route path="/profile" element={<Navigate to="/dashboard#profile" replace />} />
+          <Route path="/jobs" element={<JobList />} />
+          <Route path="/jobs/:id" element={<JobDetail />} />
+          <Route path="/applications" element={<MyApplications />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/profile/:username" element={<Profile />} />
           <Route path="/certifications" element={<Navigate to="/dashboard" replace />} />
           <Route path="/employer" element={<EmployerRoute><EmployerDashboard /></EmployerRoute>} />
           <Route path="/employer/post-job" element={<EmployerRoute><PostJob /></EmployerRoute>} />
