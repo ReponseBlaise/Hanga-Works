@@ -1,4 +1,5 @@
 import api from './api';
+import type { JobApplication } from '../types/job.types';
 
 export type JobType = 'FULL_TIME' | 'PART_TIME' | 'REMOTE' | 'HYBRID' | 'INTERNSHIP' | 'FREELANCE';
 
@@ -23,6 +24,7 @@ export type JobSummary = {
 	updatedAt: string;
 	expiresAt?: string | null;
 	_count?: { applications: number };
+	remoteOnly?: boolean;
 };
 
 export type CreateJobPayload = {
@@ -45,6 +47,11 @@ export async function getJobById(id: string) {
 }
 
 export async function applyForJob(jobId: string) {
-	const res = await api.post('/applications/apply', { jobId });
+	const res = await api.post(`/jobs/${jobId}/apply`, {});
 	return res.data?.data?.application;
+}
+
+export async function getApplications() {
+	const res = await api.get('/applications');
+	return res.data?.data?.applications as JobApplication[];
 }
