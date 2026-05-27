@@ -1,5 +1,22 @@
 import api from './api';
 
+export type BackendCourseSkill = {
+	id: string;
+	skill: {
+		id: string;
+		name: string;
+		tag?: string | null;
+	};
+};
+
+export type BackendCourseModule = {
+	id: string;
+	title: string;
+	content?: string | null;
+	videoUrl?: string | null;
+	order: number;
+};
+
 export type BackendCourse = {
 	id: string;
 	title: string;
@@ -9,6 +26,17 @@ export type BackendCourse = {
 	published: boolean;
 	createdAt: string;
 	updatedAt: string;
+	institution?: {
+		id: string;
+		name: string;
+		website?: string | null;
+	} | null;
+	skills?: BackendCourseSkill[];
+	modules?: BackendCourseModule[];
+	_count?: {
+		enrollments?: number;
+		modules?: number;
+	};
 };
 
 export async function getCourses() {

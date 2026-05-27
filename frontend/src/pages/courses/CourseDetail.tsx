@@ -1,44 +1,65 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
-import { CourseProgressBar } from '../../components/learning/CourseProgressBar';
 import { Quiz } from '../../components/learning/Quiz';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
-import { categoryLabels, getCourseById, levelLabels } from '../../data/courses';
+import { getCourseById, type BackendCourse } from '../../services/courses.service';
 
 export function CourseDetail() {
 	const { id } = useParams<{ id: string }>();
-	const course = id ? getCourseById(id) : undefined;
-	const [progress, setProgress] = useState(course?.progress ?? 0);
-	const [quizScore, setQuizScore] = useState<number | null>(null);
+	const [course, setCourse] = useState<BackendCourse | null>(null);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState('');
 
-	const completedLessons = useMemo(
-		() => course?.modules.filter((module) => module.completed).length ?? 0,
-		[course],
-	);
+	useEffect(() => {
+		if (!id) return;
+		let active = true;
+		setLoading(true);
+		setError('');
 
-	if (!course) {
+		getCourseById(id)
+			.then((item) => {
+				if (active) setCourse(item ?? null);
+			})
+			.catch((fetchError) => {
+				console.error(fetchError);
+				if (active) setError('This course could not be loaded.');
+			})
+			.finally(() => {
+				if (active) setLoading(false);
+			});
+
+		return () => {
+			active = false;
+		};
+	}, [id]);
+
+	if (loading) {
 		return (
 			<DashboardLayout>
 				<Card className="courses-empty">
-					<CardTitle>Course not found</CardTitle>
-					<CardMeta>The course you are looking for does not exist or was removed.</CardMeta>
-					<Button to="/courses" variant="primary">
-						Back to courses
-					</Button>
+					<CardTitle>Loading course…</CardTitle>
+					<CardMeta>Fetching the live record from the backend.</CardMeta>
 				</Card>
 			</DashboardLayout>
 		);
 	}
 
-	const activeCourse = course;
+	if (error) {
+		return (
+			<DashboardLayout>
+				<Card className="courses-empty">
+					<CardTitle>{error}</CardTitle>
+					<CardMeta>The course may have been unpublished or the identifier is invalid.</CardMeta>
+					<Button to="/courses" variant="primary">Back to courses</Button>
+				</Card>
+			</DashboardLayout>
+		);
+	}
 
-	function markModuleComplete(moduleId: string) {
-		const moduleIndex = activeCourse.modules.findIndex((m) => m.id === moduleId);
-		if (moduleIndex < 0) return;
-		const increment = Math.round(100 / activeCourse.modules.length);
-		setProgress((prev) => Math.min(100, prev + (prev < 100 ? increment : 0)));
+	if (!course) {
+		return null;
 	}
 
 	return (
@@ -50,32 +71,22 @@ export function CourseDetail() {
 
 				<section className="course-detail__hero card">
 					<div className="course-detail__hero-copy">
-						<CardEyebrow>
-							{categoryLabels[activeCourse.category]} · {levelLabels[activeCourse.level]} · {activeCourse.provider}
-						</CardEyebrow>
-						<h2 className="course-detail__title">{activeCourse.title}</h2>
-						<p className="card-meta">{activeCourse.description}</p>
+						<CardEyebrow>{course.institution?.name ?? 'Hanga Works'} · {course.published ? 'Published' : 'Draft'}</CardEyebrow>
+						<h2 className="course-detail__title">{course.title}</h2>
+						<p className="card-meta">{course.description}</p>
 						<div className="course-detail__tags">
-							{activeCourse.skills.map((skill) => (
-								<span key={skill}>{skill}</span>
+							{(course.skills ?? []).map((skill) => (
+								<span key={skill.id}>{skill.skill.name}</span>
 							))}
 						</div>
 						<p className="course-detail__meta">
-							{activeCourse.duration} · {activeCourse.lessons} lessons · {activeCourse.modules.length} modules
+							{course._count?.modules ?? course.modules?.length ?? 0} modules · {course._count?.enrollments ?? 0} enrollments
 						</p>
 					</div>
 					<div className="course-detail__hero-panel">
-						<CourseProgressBar
-							value={progress}
-							completedLessons={completedLessons}
-							totalLessons={activeCourse.modules.length}
-						/>
-						{quizScore !== null ? (
-							<p className="course-detail__quiz-note">Latest quiz score: {quizScore}%</p>
-						) : null}
-						<Button type="button" variant="primary" onClick={() => setProgress((p) => Math.min(100, p + 10))}>
-							{progress >= 100 ? 'Completed' : 'Mark progress +10%'}
-						</Button>
+						{course.thumbnailUrl ? <img src={course.thumbnailUrl} alt={course.title} className="course-detail__thumbnail" /> : null}
+						<CardMeta>{course.institution?.website ?? 'No public institution website provided'}</CardMeta>
+						<Button type="button" variant="primary" to="/courses">Back to courses</Button>
 					</div>
 				</section>
 
@@ -83,39 +94,23 @@ export function CourseDetail() {
 					<div className="section-head">
 						<div>
 							<p className="section-head__eyebrow">Curriculum</p>
-							<h2>Course modules</h2>
+							<h2>Course modules from the database</h2>
 						</div>
 					</div>
 					<div className="course-module-list">
-						{activeCourse.modules.map((module, index) => (
+						{(course.modules ?? []).map((module) => (
 							<Card key={module.id} className="course-module-card">
 								<div className="course-module-card__top">
 									<div>
-										<CardEyebrow>Module {index + 1}</CardEyebrow>
+										<CardEyebrow>Module {module.order}</CardEyebrow>
 										<CardTitle>{module.title}</CardTitle>
 									</div>
-									<span className={`course-module-card__status ${module.completed ? 'is-done' : ''}`.trim()}>
-										{module.completed ? 'Completed' : 'Up next'}
-									</span>
 								</div>
-								<CardMeta>{module.duration}</CardMeta>
-								<div className="course-module-card__actions">
-									<Button type="button" variant="secondary" onClick={() => markModuleComplete(module.id)}>
-										{module.completed ? 'Review lesson' : 'Start lesson'}
-									</Button>
-								</div>
+								<CardMeta>{module.content ?? 'Module content stored in the backend.'}</CardMeta>
+								{module.videoUrl ? <CardMeta>{module.videoUrl}</CardMeta> : null}
 							</Card>
 						))}
 					</div>
-				</section>
-
-				<section className="dashboard-section">
-					<Card className="course-quiz-card">
-						<Quiz
-							quiz={activeCourse.quiz}
-							onSubmit={(score) => setQuizScore(score)}
-						/>
-					</Card>
 				</section>
 			</div>
 		</DashboardLayout>
