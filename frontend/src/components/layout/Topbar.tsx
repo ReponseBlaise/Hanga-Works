@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { publicNavItems } from '../../constants/routes';
+import { useAuth } from '../../context/AuthContext';
 
 export function Topbar({ userName, role, unreadCount, onMenuToggle }: { userName?: string; role?: string; unreadCount?: number; onMenuToggle?: () => void }) {
 	const initials = (userName ?? 'User')
@@ -49,7 +50,20 @@ export function Topbar({ userName, role, unreadCount, onMenuToggle }: { userName
 
 export default function Navbar() {
 	const location = useLocation();
+	const { user, isAuthenticated } = useAuth();
 	const [hovered, setHovered] = useState<string | null>(null);
+	const [menuOpen, setMenuOpen] = useState(false);
+
+	useEffect(() => {
+		setMenuOpen(false);
+	}, [location.pathname]);
+
+	const dashboardHref = useMemo(() => {
+		const role = (user?.role ?? '').toUpperCase();
+		if (role === 'EMPLOYER') return '/employer';
+		if (role === 'ADMIN') return '/admin';
+		return '/dashboard';
+	}, [user?.role]);
 
 	function isNavActive(href: string) {
 		if (href === '/') return location.pathname === '/';
@@ -63,6 +77,19 @@ export default function Navbar() {
 					<img src="/hanga-works-logo.svg" alt="Hanga Works" />
 				</Link>
 
+				<button
+					type="button"
+					className="public-navbar__menu"
+					aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+					aria-expanded={menuOpen}
+					onClick={() => setMenuOpen((value) => !value)}
+				>
+					<span />
+					<span />
+					<span />
+				</button>
+
+				<div className={`public-navbar__panel ${menuOpen ? 'is-open' : ''}`}>
 				<div className="public-navbar__links">
 					{publicNavItems.map((link) => {
 						const active = isNavActive(link.href);
@@ -74,6 +101,7 @@ export default function Navbar() {
 								aria-current={active ? 'page' : undefined}
 								onMouseEnter={() => setHovered(link.label)}
 								onMouseLeave={() => setHovered(null)}
+								onClick={() => setMenuOpen(false)}
 								style={{
 									color: active || hovered === link.label ? 'var(--accent)' : 'var(--text-soft)',
 								}}
@@ -85,15 +113,26 @@ export default function Navbar() {
 				</div>
 
 				<div className="public-navbar__auth">
-					<Link to="/register" className="public-navbar__register">
-						Register
-					</Link>
-					<Link to="/login" className="public-navbar__signin">
-						Sign In
-					</Link>
-					<Link to="/dashboard" className="public-navbar__dashboard">
-						Dashboard
-					</Link>
+					{isAuthenticated ? (
+						<>
+							<Link to={dashboardHref} className="public-navbar__dashboard" onClick={() => setMenuOpen(false)}>
+								Dashboard
+							</Link>
+							<Link to="/profile" className="public-navbar__signin" onClick={() => setMenuOpen(false)}>
+								Profile
+							</Link>
+						</>
+					) : (
+						<>
+							<Link to="/register" className="public-navbar__register" onClick={() => setMenuOpen(false)}>
+								Register
+							</Link>
+							<Link to="/login" className="public-navbar__signin" onClick={() => setMenuOpen(false)}>
+								Sign In
+							</Link>
+						</>
+					)}
+				</div>
 				</div>
 			</div>
 		</nav>
