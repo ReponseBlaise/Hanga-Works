@@ -1,11 +1,13 @@
 import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { Role } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import * as bcrypt from 'bcrypt';
+import { NotificationsService } from '../notifications/notifications.service';
+import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -13,129 +15,95 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private notifications: NotificationsService
   ) {}
 
   async register(dto: RegisterDto) {
     const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
-    if (existing) {
-      throw new ConflictException('Email already in use');
-    }
+    if (existing) throw new ConflictException('Email already in use');
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
-
     const user = await this.prisma.user.create({
-      data: {
-        name: dto.name,
-        email: dto.email,
-        passwordHash,
-        role: dto.role || 'LEARNER',
-      },
+      data: { name: dto.name, email: dto.email, passwordHash, role: (dto.role || 'LEARNER') as Role },
     });
 
-    const { passwordHash: _, ...result } = user;
-    return result;
+    await this.notifications.sendRegistrationConfirmation(user.email, user.name);
+    
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (user as any).passwordHash;
+    return user;
   }
 
   async login(dto: LoginDto) {
     const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
+    if (!user) throw new UnauthorizedException('Invalid credentials');
 
     const isMatch = await bcrypt.compare(dto.password, user.passwordHash);
-    if (!isMatch) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
+    if (!isMatch) throw new UnauthorizedException('Invalid credentials');
 
     const payload = { sub: user.id, email: user.email, role: user.role };
     const access_token = this.jwtService.sign(payload);
 
     const refresh_token = crypto.randomBytes(40).toString('hex');
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
+    expiresAt.setDate(expiresAt.getDate() + 7);
 
     await this.prisma.refreshToken.create({
-      data: {
-        userId: user.id,
-        token: refresh_token,
-        expiresAt,
-      },
+      data: { userId: user.id, token: refresh_token, expiresAt },
     });
 
-    const { passwordHash: _, ...result } = user;
-    return {
-      access_token,
-      refresh_token,
-      user: result,
-    };
+    this.notifications.emitUserLoggedIn(user.id);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (user as any).passwordHash;
+    return { access_token, refresh_token, user };
   }
 
   async refreshToken(token: string) {
     const storedToken = await this.prisma.refreshToken.findUnique({
-      where: { token },
-      include: { user: true },
+      where: { token }, include: { user: true },
     });
-
     if (!storedToken || storedToken.isRevoked || storedToken.expiresAt < new Date()) {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
-
     const payload = { sub: storedToken.user.id, email: storedToken.user.email, role: storedToken.user.role };
-    const access_token = this.jwtService.sign(payload);
-
-    return { access_token };
+    return { access_token: this.jwtService.sign(payload) };
   }
 
   async logout(token: string) {
     if (!token) return;
     await this.prisma.refreshToken.updateMany({
-      where: { token },
-      data: { isRevoked: true },
+      where: { token }, data: { isRevoked: true },
     });
   }
 
   async forgotPassword(dto: ForgotPasswordDto) {
     const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
-    if (!user) {
-      return { message: 'If that email exists, a reset link has been sent.' };
-    }
+    if (!user) return { message: 'If that email exists, a reset link has been sent.' };
 
     const resetToken = crypto.randomBytes(32).toString('hex');
     const resetTokenExpires = new Date();
     resetTokenExpires.setMinutes(resetTokenExpires.getMinutes() + 15);
 
     await this.prisma.user.update({
-      where: { id: user.id },
-      data: { resetToken, resetTokenExpires },
+      where: { id: user.id }, data: { resetToken, resetTokenExpires },
     });
 
-    return { 
-      message: 'If that email exists, a reset link has been sent.',
-      resetToken // Returned here purely for testing since we don't have an email service yet
-    };
+    await this.notifications.sendPasswordReset(user.email, resetToken);
+
+    return { message: 'If that email exists, a reset link has been sent.', resetToken };
   }
 
   async resetPassword(dto: ResetPasswordDto) {
     const user = await this.prisma.user.findFirst({
-      where: {
-        resetToken: dto.token,
-        resetTokenExpires: { gt: new Date() },
-      },
+      where: { resetToken: dto.token, resetTokenExpires: { gt: new Date() } },
     });
-
-    if (!user) {
-      throw new UnauthorizedException('Invalid or expired reset token');
-    }
+    if (!user) throw new UnauthorizedException('Invalid or expired reset token');
 
     const passwordHash = await bcrypt.hash(dto.newPassword, 10);
-
     await this.prisma.user.update({
       where: { id: user.id },
-      data: {
-        passwordHash,
-        resetToken: null,
-        resetTokenExpires: null,
-      },
+      data: { passwordHash, resetToken: null, resetTokenExpires: null },
     });
 
     return { message: 'Password successfully reset' };

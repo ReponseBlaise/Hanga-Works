@@ -6,12 +6,7 @@ export interface CurrentUserPayload {
   role: string;
 }
 
-export const CurrentUser = createParamDecorator(
-  (_data: unknown, ctx: ExecutionContext): CurrentUserPayload => {
-    const request = ctx.switchToHttp().getRequest();
-    return {
-      ...request.user,
-      userId: request.user?.id || request.user?.userId
-    };
-  },
-);
+export const CurrentUser = createParamDecorator((_data: unknown, ctx: ExecutionContext) => {
+  const req = ctx.switchToHttp().getRequest();
+  return { ...req.user, userId: req.user?.id || req.user?.userId };
+});

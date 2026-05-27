@@ -1,4 +1,27 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+const fs = require('fs');
+const path = require('path');
+
+const files = {
+  'src/employer/dto/create-job.dto.ts': `import { IsString, IsNotEmpty, IsOptional, IsInt, IsEnum } from 'class-validator';
+import { JobType } from '@prisma/client';
+
+export class CreateJobDto {
+  @IsString() @IsNotEmpty() title: string;
+  @IsString() @IsNotEmpty() description: string;
+  @IsOptional() @IsString() location?: string;
+  @IsOptional() @IsEnum(JobType) jobType?: JobType;
+  @IsOptional() @IsInt() salaryMin?: number;
+  @IsOptional() @IsInt() salaryMax?: number;
+}`,
+  'src/employer/dto/update-stage.dto.ts': `import { IsEnum, IsNotEmpty } from 'class-validator';
+import { ApplicationStatus } from '@prisma/client';
+
+export class UpdateStageDto {
+  @IsEnum(ApplicationStatus)
+  @IsNotEmpty()
+  status: ApplicationStatus;
+}`,
+  'src/employer/employer.service.ts': `import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateStageDto } from './dto/update-stage.dto';
@@ -15,7 +38,7 @@ export class EmployerService {
     let user = await this.prisma.user.findUnique({ where: { id: userId }, include: { organization: true } });
     if (!user?.organizationId) {
       const org = await this.prisma.organization.create({
-        data: { name: `${userName}'s Company`, type: 'EMPLOYER' }
+        data: { name: \`\${userName}'s Company\`, type: 'EMPLOYER' }
       });
       user = await this.prisma.user.update({
         where: { id: userId },
@@ -90,8 +113,65 @@ export class EmployerService {
     const breakdown = statusCounts.reduce((acc, curr) => {
       acc[curr.status] = curr._count.status;
       return acc;
-    }, {} as Record<string, number>);
+    }, {});
 
     return { totalJobs, totalApplicants, breakdown };
   }
+}`,
+  'src/employer/employer.controller.ts': `import { Controller, Post, Get, Patch, Body, Param, UseGuards } from '@nestjs/common';
+import { EmployerService } from './employer.service';
+import { CreateJobDto } from './dto/create-job.dto';
+import { UpdateStageDto } from './dto/update-stage.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('EMPLOYER')
+@Controller('employer')
+export class EmployerController {
+  constructor(private readonly employerService: EmployerService) {}
+
+  @Post('jobs')
+  async createJob(@CurrentUser() user: any, @Body() dto: CreateJobDto) {
+    return this.employerService.createJob(user.userId, user.name || 'Employer', dto);
+  }
+
+  @Get('jobs/:id/applicants')
+  async getApplicants(@CurrentUser() user: any, @Param('id') jobId: string) {
+    return this.employerService.getApplicants(user.userId, jobId);
+  }
+
+  @Patch('applications/:id/stage')
+  async updateStage(
+    @CurrentUser() user: any,
+    @Param('id') applicationId: string,
+    @Body() dto: UpdateStageDto
+  ) {
+    return this.employerService.updateStage(user.userId, applicationId, dto);
+  }
+
+  @Get('analytics')
+  async getAnalytics(@CurrentUser() user: any) {
+    return this.employerService.getAnalytics(user.userId);
+  }
+}`,
+  'src/employer/employer.module.ts': `import { Module } from '@nestjs/common';
+import { EmployerController } from './employer.controller';
+import { EmployerService } from './employer.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsModule } from '../notifications/notifications.module';
+
+@Module({
+  imports: [NotificationsModule],
+  controllers: [EmployerController],
+  providers: [EmployerService, PrismaService],
+})
+export class EmployerModule {}`
+};
+
+for (const [filePath, content] of Object.entries(files)) {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, content);
 }
