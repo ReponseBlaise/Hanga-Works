@@ -86,7 +86,7 @@ export function CourseDetail() {
 					<div className="course-detail__hero-panel">
 						{course.thumbnailUrl ? <img src={course.thumbnailUrl} alt={course.title} className="course-detail__thumbnail" /> : null}
 						<CardMeta>{course.institution?.website ?? 'No public institution website provided'}</CardMeta>
-						<Button type="button" variant="primary" to="/courses">Back to courses</Button>
+						<Button variant="primary" to="/courses">Back to courses</Button>
 					</div>
 				</section>
 

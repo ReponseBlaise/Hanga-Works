@@ -165,12 +165,13 @@ export default function Applicants() {
 }
 
 function mapApplicantToCandidate(application: EmployerApplicant): Candidate {
+  const jobTitle = application.job?.title ?? 'Job details unavailable';
   return {
     id: application.id,
     name: application.user.name,
     email: application.user.email,
     stage: application.status,
     summary: `Applied on ${new Date(application.appliedAt).toLocaleDateString()}`,
-    jobTitle: application.job.title,
+    jobTitle,
   };
 }

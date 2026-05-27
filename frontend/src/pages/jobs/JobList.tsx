@@ -58,7 +58,7 @@ export default function JobList() {
 				job.employer.name.toLowerCase().includes(query);
 			const matchesLocation = !locationQuery || (job.location ?? '').toLowerCase().includes(locationQuery);
 			const matchesType = filters.jobType === 'ALL' || job.jobType === filters.jobType;
-			const matchesRemote = !filters.remoteOnly || job.jobType === 'REMOTE' || job.remoteOnly;
+			const matchesRemote = !filters.remoteOnly || job.jobType === 'REMOTE';
 			return matchesQuery && matchesLocation && matchesType && matchesRemote;
 		});
 	}, [filters, jobs]);
