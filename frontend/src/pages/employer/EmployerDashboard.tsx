@@ -51,11 +51,11 @@ export default function EmployerDashboard() {
         </Card>
         <Card>
           <CardTitle>New Applicants</CardTitle>
-          <CardMeta>{stats?.totalApplications ?? 0}</CardMeta>
+          <CardMeta>{stats?.totalApplicants ?? 0}</CardMeta>
         </Card>
         <Card>
           <CardTitle>Hires</CardTitle>
-          <CardMeta>{stats?.hired ?? 0}</CardMeta>
+          <CardMeta>{stats?.breakdown.HIRED ?? 0}</CardMeta>
         </Card>
       </div>
 
