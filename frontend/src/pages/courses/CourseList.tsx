@@ -1,35 +1,33 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
-import { CourseProgressBar } from '../../components/learning/CourseProgressBar';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
-import { categoryLabels, courses, levelLabels } from '../../data/courses';
-import type { Course, CourseCategory, CourseLevel } from '../../types/course';
-
-type ProgressFilter = 'all' | 'not-started' | 'in-progress' | 'completed';
-
-const categories: Array<CourseCategory | 'all'> = ['all', 'development', 'career', 'analytics', 'design'];
-const levels: Array<CourseLevel | 'all'> = ['all', 'beginner', 'intermediate', 'advanced'];
-const progressFilters: { value: ProgressFilter; label: string }[] = [
-	{ value: 'all', label: 'All progress' },
-	{ value: 'not-started', label: 'Not started' },
-	{ value: 'in-progress', label: 'In progress' },
-	{ value: 'completed', label: 'Completed' },
-];
-
-function matchesProgress(course: Course, filter: ProgressFilter) {
-	if (filter === 'all') return true;
-	if (filter === 'not-started') return course.progress === 0;
-	if (filter === 'completed') return course.progress === 100;
-	return course.progress > 0 && course.progress < 100;
-}
+import { getCourses, type BackendCourse } from '../../services/courses.service';
 
 export function CourseList() {
 	const [search, setSearch] = useState('');
-	const [category, setCategory] = useState<CourseCategory | 'all'>('all');
-	const [level, setLevel] = useState<CourseLevel | 'all'>('all');
-	const [progressFilter, setProgressFilter] = useState<ProgressFilter>('all');
+	const [courses, setCourses] = useState<BackendCourse[]>([]);
+	const [loading, setLoading] = useState(true);
+
+	useEffect(() => {
+		let active = true;
+		getCourses()
+			.then((items) => {
+				if (active) setCourses(items ?? []);
+			})
+			.catch((error) => {
+				console.error('Failed to load courses', error);
+				if (active) setCourses([]);
+			})
+			.finally(() => {
+				if (active) setLoading(false);
+			});
+
+		return () => {
+			active = false;
+		};
+	}, []);
 
 	const filteredCourses = useMemo(() => {
 		const query = search.trim().toLowerCase();
@@ -38,13 +36,16 @@ export function CourseList() {
 				!query ||
 				course.title.toLowerCase().includes(query) ||
 				course.description.toLowerCase().includes(query) ||
-				course.provider.toLowerCase().includes(query) ||
-				course.skills.some((skill) => skill.toLowerCase().includes(query));
-			const matchesCategory = category === 'all' || course.category === category;
-			const matchesLevel = level === 'all' || course.level === level;
-			return matchesSearch && matchesCategory && matchesLevel && matchesProgress(course, progressFilter);
+				course.institution?.name?.toLowerCase().includes(query) ||
+				(course.skills ?? []).some((skill) => skill.skill.name.toLowerCase().includes(query));
+			return matchesSearch;
 		});
-	}, [search, category, level, progressFilter]);
+	}, [courses, search]);
+
+	const totalEnrollments = useMemo(
+		() => courses.reduce((sum, course) => sum + (course._count?.enrollments ?? 0), 0),
+		[courses],
+	);
 
 	return (
 		<DashboardLayout>
@@ -53,20 +54,18 @@ export function CourseList() {
 					<div>
 						<p className="section-head__eyebrow">Learning</p>
 						<h2 className="courses-hero__title">Browse courses</h2>
-						<p className="card-meta">
-							Search and filter courses by skill area, level, and your progress. Pick up where you left off or start something new.
-						</p>
+						<p className="card-meta">Search database-backed courses by title, description, institution, or skill.</p>
 					</div>
 					<div className="courses-hero__stats">
 						<div className="hero-stat">
-							<span>Enrolled</span>
-							<strong>{courses.filter((c) => c.enrolled).length}</strong>
-							<p>Active learning paths</p>
+							<span>Published courses</span>
+							<strong>{courses.length}</strong>
+							<p>Loaded from the backend</p>
 						</div>
 						<div className="hero-stat">
-							<span>In progress</span>
-							<strong>{courses.filter((c) => c.progress > 0 && c.progress < 100).length}</strong>
-							<p>Courses underway</p>
+							<span>Total enrollments</span>
+							<strong>{totalEnrollments}</strong>
+							<p>Counted from the LMS tables</p>
 						</div>
 					</div>
 				</section>
@@ -76,100 +75,50 @@ export function CourseList() {
 						<span className="courses-search__label">Search courses</span>
 						<input
 							type="search"
-							placeholder="Search by title, skill, or provider..."
+							placeholder="Search by title, description, institution, or skill..."
 							value={search}
 							onChange={(e) => setSearch(e.target.value)}
 						/>
 					</label>
-
-					<div className="courses-filters">
-						<FilterSelect
-							label="Category"
-							value={category}
-							options={categories.map((value) => ({
-								value,
-								label: value === 'all' ? 'All categories' : categoryLabels[value],
-							}))}
-							onChange={(value) => setCategory(value as CourseCategory | 'all')}
-						/>
-						<FilterSelect
-							label="Level"
-							value={level}
-							options={levels.map((value) => ({
-								value,
-								label: value === 'all' ? 'All levels' : levelLabels[value],
-							}))}
-							onChange={(value) => setLevel(value as CourseLevel | 'all')}
-						/>
-						<FilterSelect
-							label="Progress"
-							value={progressFilter}
-							options={progressFilters.map(({ value, label }) => ({ value, label }))}
-							onChange={(value) => setProgressFilter(value as ProgressFilter)}
-						/>
-					</div>
 				</section>
 
 				<section className="courses-results">
 					<p className="courses-results__count">
 						{filteredCourses.length} course{filteredCourses.length === 1 ? '' : 's'} found
 					</p>
+					{loading ? <p>Loading courses…</p> : null}
 
 					{filteredCourses.length === 0 ? (
 						<Card className="courses-empty">
 							<CardTitle>No courses match your filters</CardTitle>
-							<CardMeta>Try clearing search or choosing a broader category.</CardMeta>
-							<Button
-								type="button"
-								variant="ghost"
-								onClick={() => {
-									setSearch('');
-									setCategory('all');
-									setLevel('all');
-									setProgressFilter('all');
-								}}
-							>
-								Reset filters
-							</Button>
+							<CardMeta>Try a broader keyword or clear the search field.</CardMeta>
 						</Card>
 					) : (
 						<div className="courses-grid">
 							{filteredCourses.map((course) => {
-								const completedLessons = course.modules.filter((m) => m.completed).length;
 								return (
 									<Card key={course.id} className="course-list-card">
 										<div className="course-list-card__top">
 											<div>
-												<CardEyebrow>
-													{categoryLabels[course.category]} · {levelLabels[course.level]}
-												</CardEyebrow>
+												<CardEyebrow>{course.institution?.name ?? 'Hanga Works'}</CardEyebrow>
 												<CardTitle>
 													<Link to={`/courses/${course.id}`}>{course.title}</Link>
 												</CardTitle>
 											</div>
-											<span className="course-list-card__provider">{course.provider}</span>
+											<span className="course-list-card__provider">{course.published ? 'Published' : 'Draft'}</span>
 										</div>
-										<CardMeta>{course.summary}</CardMeta>
+										<CardMeta>{course.description}</CardMeta>
 										<div className="course-list-card__tags">
-											{course.skills.map((skill) => (
-												<span key={skill}>{skill}</span>
+											{(course.skills ?? []).map((skill) => (
+												<span key={skill.id}>{skill.skill.name}</span>
 											))}
 										</div>
 										<p className="course-list-card__meta">
-											{course.duration} · {course.lessons} lessons
+											{course._count?.modules ?? course.modules?.length ?? 0} modules · {course._count?.enrollments ?? 0} enrollments
 										</p>
-										{course.enrolled ? (
-											<CourseProgressBar
-												value={course.progress}
-												completedLessons={completedLessons}
-												totalLessons={course.modules.length}
-											/>
-										) : (
-											<p className="course-list-card__status">Not enrolled yet</p>
-										)}
 										<div className="course-list-card__actions">
 											<Button to={`/courses/${course.id}`} variant="primary">
-												{course.enrolled ? 'Continue' : 'View course'}
+												View course
 											</Button>
 										</div>
 									</Card>
@@ -180,30 +129,5 @@ export function CourseList() {
 				</section>
 			</div>
 		</DashboardLayout>
-	);
-}
-
-function FilterSelect({
-	label,
-	value,
-	options,
-	onChange,
-}: {
-	label: string;
-	value: string;
-	options: { value: string; label: string }[];
-	onChange: (value: string) => void;
-}) {
-	return (
-		<label className="courses-filter">
-			<span>{label}</span>
-			<select value={value} onChange={(e) => onChange(e.target.value)}>
-				{options.map((option) => (
-					<option key={option.value} value={option.value}>
-						{option.label}
-					</option>
-				))}
-			</select>
-		</label>
 	);
 }
