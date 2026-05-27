@@ -3,10 +3,8 @@ import type { CreateJobPayload, JobSummary, JobType } from './jobs.service';
 
 export type EmployerStats = {
 	totalJobs: number;
-	totalApplications: number;
-	pendingReview: number;
-	shortlisted: number;
-	hired: number;
+	totalApplicants: number;
+	breakdown: Partial<Record<'APPLIED' | 'REVIEWING' | 'SHORTLISTED' | 'HIRED' | 'REJECTED', number>>;
 };
 
 export type EmployerApplicant = {
@@ -14,15 +12,15 @@ export type EmployerApplicant = {
 	status: 'APPLIED' | 'REVIEWING' | 'SHORTLISTED' | 'HIRED' | 'REJECTED';
 	appliedAt: string;
 	updatedAt: string;
-	job: {
-		id: string;
-		title: string;
-		location?: string | null;
-	};
 	user: {
 		id: string;
 		name: string;
 		email: string;
+		phone?: string | null;
+	};
+	job?: {
+		id: string;
+		title: string;
 	};
 };
 
@@ -44,11 +42,15 @@ export async function getApplicantsForJob(jobId: string) {
 }
 
 export async function createEmployerJob(payload: CreateJobPayload) {
-	const res = await api.post('/employer/jobs', payload);
+	const res = await api.post('/employer/jobs', {
+		...payload,
+		salaryMin: payload.salaryMin === '' ? undefined : payload.salaryMin == null ? undefined : Number(payload.salaryMin),
+		salaryMax: payload.salaryMax === '' ? undefined : payload.salaryMax == null ? undefined : Number(payload.salaryMax),
+	});
 	return res.data?.data?.job as EmployerJob;
 }
 
 export async function updateApplicationStage(applicationId: string, stage: EmployerApplicant['status']) {
-	const res = await api.patch(`/employer/applications/${applicationId}/stage`, { stage });
+	const res = await api.patch(`/employer/applications/${applicationId}/stage`, { status: stage });
 	return res.data?.data?.application as EmployerApplicant;
 }

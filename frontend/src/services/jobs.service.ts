@@ -9,6 +9,16 @@ export type JobEmployer = {
 	website?: string | null;
 };
 
+export type JobSkill = {
+	id: string;
+	skillId: string;
+	skill: {
+		id: string;
+		name: string;
+		tag?: string | null;
+	};
+};
+
 export type JobSummary = {
 	id: string;
 	title: string;
@@ -20,11 +30,12 @@ export type JobSummary = {
 	salaryMax?: number | null;
 	isActive: boolean;
 	employer: JobEmployer;
+	skills?: JobSkill[];
 	postedAt: string;
 	updatedAt: string;
 	expiresAt?: string | null;
 	_count?: { applications: number };
-	remoteOnly?: boolean;
+	matchScore?: number;
 };
 
 export type CreateJobPayload = {
