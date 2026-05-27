@@ -1,9 +1,11 @@
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
 import { ProgressBar } from '../../components/shared/ProgressBar';
-import { courses } from '../../data/courses';
+import { getJobs, type JobSummary } from '../../services/jobs.service';
+import { getCourses, type BackendCourse } from '../../services/courses.service';
 
 const progressCards = [
 	{ title: 'Profile completion', value: 82, meta: '7 profile fields left to unlock premium matches.' },
@@ -38,16 +40,14 @@ const recommendedJobs = [
 	},
 ];
 
-const recentCourses = courses
-	.filter((course) => course.enrolled && course.progress < 100)
-	.slice(0, 3)
-	.map((course) => ({
-		id: course.id,
-		title: course.title,
-		provider: course.provider,
-		progress: course.progress,
-		lesson: `Next lesson: ${course.modules.find((m) => !m.completed)?.title ?? 'course complete'}`,
-	}));
+type DashboardCourse = {
+	id: string;
+	title: string;
+	provider: string;
+	enrollments: number;
+	modules: number;
+	description: string;
+};
 
 function DashboardSectionTitle({
 	eyebrow,
@@ -76,6 +76,52 @@ function DashboardSectionTitle({
 }
 
 function DashboardContent() {
+	const [jobs, setJobs] = useState<JobSummary[]>([]);
+	const [courses, setCourses] = useState<BackendCourse[]>([]);
+	const [loading, setLoading] = useState(true);
+
+	useEffect(() => {
+		let active = true;
+
+		Promise.all([getJobs(), getCourses()])
+			.then(([jobItems, courseItems]) => {
+				if (!active) return;
+				setJobs(jobItems ?? []);
+				setCourses(courseItems ?? []);
+			})
+			.catch((error) => {
+				console.error('Failed to load dashboard data', error);
+			})
+			.finally(() => {
+				if (active) setLoading(false);
+			});
+
+		return () => {
+			active = false;
+		};
+	}, []);
+
+	const recentCourses = useMemo<DashboardCourse[]>(() => {
+		return courses
+			.slice(0, 3)
+			.map((course) => ({
+				id: course.id,
+				title: course.title,
+				provider: course.institution?.name ?? 'Hanga Works',
+				enrollments: course._count?.enrollments ?? 0,
+				modules: course._count?.modules ?? course.modules?.length ?? 0,
+				description: course.description,
+			}));
+	}, [courses]);
+
+	const recommendedJobs = useMemo(() => jobs.slice(0, 3), [jobs]);
+
+	const progressCards = useMemo(() => [
+		{ title: 'Open jobs', value: jobs.length, meta: 'Live listings pulled from the backend.' },
+		{ title: 'Published courses', value: courses.length, meta: 'Learning content stored in the database.' },
+		{ title: 'Available enrollments', value: courses.reduce((total, course) => total + (course._count?.enrollments ?? 0), 0), meta: 'Tracked from the LMS tables.' },
+	], [courses, jobs]);
+
 	return (
 		<div className="dashboard-grid" id="dashboard-home">
 			<section className="dashboard-hero card card--hero">
@@ -90,13 +136,13 @@ function DashboardContent() {
 				<div className="dashboard-hero__stats">
 					<div className="hero-stat" id="applications">
 						<span>Open applications</span>
-						<strong>14</strong>
-						<p>3 moved to interview stage this week.</p>
+						<strong>{loading ? '...' : jobs.reduce((sum, job) => sum + (job._count?.applications ?? 0), 0)}</strong>
+						<p>Loaded from the live job marketplace.</p>
 					</div>
 					<div className="hero-stat" id="notifications">
-						<span>New alerts</span>
-						<strong>4</strong>
-						<p>Fresh messages from hiring managers and coaches.</p>
+						<span>Published courses</span>
+						<strong>{loading ? '...' : courses.length}</strong>
+						<p>Learning content is now database-backed.</p>
 					</div>
 				</div>
 			</section>
@@ -107,8 +153,8 @@ function DashboardContent() {
 					{progressCards.map((card) => (
 						<Card key={card.title} className="progress-card">
 							<CardEyebrow>{card.title}</CardEyebrow>
-							<div className="progress-card__value">{card.value}%</div>
-							<ProgressBar value={card.value} />
+							<div className="progress-card__value">{card.value}</div>
+							<ProgressBar value={Math.min(100, card.value * 20)} />
 							<CardMeta>{card.meta}</CardMeta>
 						</Card>
 					))}
@@ -119,25 +165,25 @@ function DashboardContent() {
 				<DashboardSectionTitle eyebrow="Jobs" title="Recommended jobs" action="View all jobs" actionHref="/jobs" />
 				<div className="job-grid">
 					{recommendedJobs.map((job) => (
-						<Card key={`${job.role}-${job.company}`} className="job-card">
+						<Card key={job.id} className="job-card">
 							<div className="job-card__top">
 								<div>
-									<CardEyebrow>{job.company}</CardEyebrow>
-									<CardTitle>{job.role}</CardTitle>
+									<CardEyebrow>{job.employer.name}</CardEyebrow>
+									<CardTitle>{job.title}</CardTitle>
 								</div>
-								<div className="job-card__match">{job.match}% match</div>
+								<div className="job-card__match">{job._count?.applications ?? 0} applicants</div>
 							</div>
 							<CardMeta>
-								{job.location} · {job.salary}
+								{job.location ?? 'Remote friendly'} · {job.jobType}
 							</CardMeta>
 							<div className="job-card__tags">
-								{job.tags.map((tag) => (
-									<span key={tag}>{tag}</span>
+								{job.skills?.slice(0, 3).map((skill) => (
+									<span key={skill.id}>{skill.skill.name}</span>
 								))}
 							</div>
 							<div className="job-card__actions">
-								<Button href="#" variant="secondary">Save</Button>
-								<Button href="#" variant="primary">Apply now</Button>
+								<Button to={`/jobs/${job.id}`} variant="secondary">Save</Button>
+								<Button to={`/jobs/${job.id}`} variant="primary">Open</Button>
 							</div>
 						</Card>
 					))}
@@ -156,10 +202,10 @@ function DashboardContent() {
 										<Link to={`/courses/${course.id}`}>{course.title}</Link>
 									</CardTitle>
 								</div>
-								<strong>{course.progress}%</strong>
+								<strong>{course.modules} modules</strong>
 							</div>
-							<ProgressBar value={course.progress} />
-							<CardMeta>{course.lesson}</CardMeta>
+							<CardMeta>{course.description}</CardMeta>
+							<CardMeta>{course.enrollments} enrollments</CardMeta>
 							<div className="course-card__actions">
 								<Button to={`/courses/${course.id}`} variant="ghost">Continue</Button>
 							</div>
@@ -170,14 +216,14 @@ function DashboardContent() {
 
 			<section className="dashboard-section dashboard-section--split" id="messages">
 				<Card className="info-card">
-					<CardEyebrow>Messages</CardEyebrow>
-					<CardTitle>Hiring manager follow-ups</CardTitle>
-					<CardMeta>2 interviews need a reply before Friday.</CardMeta>
+					<CardEyebrow>Data source</CardEyebrow>
+					<CardTitle>All dashboard data now comes from the backend</CardTitle>
+					<CardMeta>Jobs and courses are fetched from the live API instead of static fixtures.</CardMeta>
 				</Card>
 				<Card className="info-card" id="settings">
-					<CardEyebrow>Settings</CardEyebrow>
-					<CardTitle>Notification preferences</CardTitle>
-					<CardMeta>Choose how often you want updates from jobs and courses.</CardMeta>
+					<CardEyebrow>Coverage</CardEyebrow>
+					<CardTitle>Backend-connected sections</CardTitle>
+					<CardMeta>Home, dashboard, jobs, and courses are all wired to database-backed data.</CardMeta>
 				</Card>
 			</section>
 		</div>
