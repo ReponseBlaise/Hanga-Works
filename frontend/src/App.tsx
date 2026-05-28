@@ -6,7 +6,6 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import VerifyEmail from './pages/auth/VerifyEmail';
 import ForgotPassword from './pages/auth/ForgotPassword';
-import { Dashboard } from './pages/dashboard/Dashboard';
 import { CourseList } from './pages/courses/CourseList';
 import { CourseDetail } from './pages/courses/CourseDetail';
 import JobList from './pages/jobs/JobList';
@@ -27,6 +26,9 @@ import MentorList from './pages/mentors/MentorList';
 import MentorProfile from './pages/mentors/MentorProfile';
 import MentorBooking from './pages/mentors/MentorBooking';
 import Contact from './pages/contact/Contact';
+import Pricing from './pages/pricing/Pricing';
+import Candidates from './pages/candidates/Candidates';
+import Blog from './pages/blog/Blog';
 
 export default function App() {
   return (
@@ -53,6 +55,9 @@ export default function App() {
           <Route path="/mentors" element={<MentorList />} />
           <Route path="/mentors/:id" element={<MentorProfile />} />
           <Route path="/mentors/:id/book" element={<MentorBooking />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/candidates" element={<Candidates />} />
+          <Route path="/blog" element={<Blog />} />
           <Route path="/employer" element={<EmployerRoute><EmployerDashboard /></EmployerRoute>} />
           <Route path="/employer/post-job" element={<EmployerRoute><PostJob /></EmployerRoute>} />
           <Route path="/employer/applicants" element={<EmployerRoute><Applicants /></EmployerRoute>} />
@@ -91,7 +96,7 @@ export default function App() {
       return <Navigate to="/admin" replace />;
     }
 
-    return <Dashboard />;
+
   }
 
   function AdminRoute({ children }: { children: JSX.Element }) {

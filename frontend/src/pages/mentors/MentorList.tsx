@@ -28,6 +28,13 @@ export default function MentorList() {
 
         {loading ? <p>Loading mentors…</p> : null}
 
+        {!loading && mentors.length === 0 ? (
+          <Card className="courses-empty">
+            <CardTitle>No mentors available yet</CardTitle>
+            <CardMeta>Backend mentor discovery is still pending, so the screen falls back to local mentor examples when needed.</CardMeta>
+          </Card>
+        ) : null}
+
         <div className="mentor-grid">
           {mentors.map((m) => (
             <Card key={m.id} className="mentor-card">
@@ -36,9 +43,10 @@ export default function MentorList() {
                   <CardEyebrow>{m.title ?? 'Mentor'}</CardEyebrow>
                   <CardTitle>{m.name}</CardTitle>
                 </div>
-                <div className="mentor-skills">{(m.skills ?? []).slice(0,3).map(s => <span key={s}>{s}</span>)}</div>
+                <div className="mentor-skills">{(m.skills ?? []).slice(0,3).map((s) => <span key={s}>{s}</span>)}</div>
               </div>
               <CardMeta>{m.bio ?? 'Industry practitioner available for mentoring sessions.'}</CardMeta>
+              {m.availability?.length ? <CardMeta>{m.availability.join(' · ')}</CardMeta> : null}
               <div className="mentor-card__actions">
                 <Button to={`/mentors/${m.id}`} variant="secondary">View profile</Button>
                 <Button to={`/mentors/${m.id}/book`} variant="primary">Book session</Button>

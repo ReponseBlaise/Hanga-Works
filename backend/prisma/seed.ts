@@ -7,8 +7,9 @@ import {
   EnrollmentStatus,
   ApplicationStatus,
   JobType,
+  SessionStatus,
 } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -20,6 +21,9 @@ async function main() {
   console.log('🌱 Seeding Hanga-Works database...');
 
   // ── Clean slate (order respects FK constraints) ───────────────────────────
+  await prisma.sessionReview.deleteMany();
+  await prisma.mentorSession.deleteMany();
+  await prisma.mentorProfile.deleteMany();
   await prisma.auditLog.deleteMany();
   await prisma.notification.deleteMany();
   await prisma.refreshToken.deleteMany();
@@ -362,10 +366,54 @@ async function main() {
   );
   console.log(`✅ user skill assignments`);
 
+  // ── Mentorship System ─────────────────────────────────────────────────────
+  const mentorPwd = await hash('Mentor@123');
+  const mentorUsers = await Promise.all([
+    prisma.user.create({
+      data: { name: 'Dr. Jane Smith', email: 'jane.smith@mentor.rw', phone: '+250783000001', passwordHash: mentorPwd, role: Role.MENTOR },
+    }),
+    prisma.user.create({
+      data: { name: 'Alex Johnson', email: 'alex.johnson@mentor.rw', phone: '+250783000002', passwordHash: mentorPwd, role: Role.MENTOR },
+    }),
+  ]);
+
+  const mentorProfiles = await Promise.all([
+    prisma.mentorProfile.create({
+      data: {
+        userId: mentorUsers[0].id,
+        expertise: 'Software Engineering & Career Growth',
+        bio: '10+ years at Big Tech. Here to help you navigate your career.',
+        hourlyRate: 50000,
+        availability: 'Mon-Wed 5PM-8PM',
+      },
+    }),
+    prisma.mentorProfile.create({
+      data: {
+        userId: mentorUsers[1].id,
+        expertise: 'Data Science & Machine Learning',
+        bio: 'Senior Data Scientist. Let\'s talk algorithms and data.',
+        hourlyRate: 40000,
+        availability: 'Sat-Sun 10AM-2PM',
+      },
+    }),
+  ]);
+
+  await prisma.mentorSession.create({
+    data: {
+      mentorId: mentorProfiles[0].id,
+      menteeId: learners[0].id,
+      status: SessionStatus.ACCEPTED,
+      scheduledAt: new Date(Date.now() + 86400000 * 3),
+      notes: 'Please review my resume before the session.',
+    },
+  });
+  console.log(`✅ mentorship profiles and sessions`);
+
   console.log('\n🎉 Seed complete!');
   console.log('──────────────────────────────────────────');
   console.log('  Learner password : Learner@123');
   console.log('  Employer password: Employer@123');
+  console.log('  Mentor password  : Mentor@123');
   console.log('  Run `npm run prisma:studio` to browse data');
 }
 

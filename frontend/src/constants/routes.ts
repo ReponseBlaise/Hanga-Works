@@ -14,10 +14,11 @@ export type NavItem = {
 /** Public marketing navbar (auth / landing pages) */
 export const publicNavItems: NavItem[] = [
 	{ label: 'Home', href: '/' },
-	{ label: 'Courses', href: '/courses' },
-	{ label: 'Jobs', href: '/jobs' },
-	{ label: 'Mentors', href: '/mentors' },
-	{ label: 'For Employers', href: '/employer' },
+	{ label: 'Find Job', href: '/jobs' },
+	{ label: 'Recruiters', href: '/employer' },
+	{ label: 'Candidates', href: '/candidates' },
+	{ label: 'Pages', href: '/pricing' },
+	{ label: 'Blog', href: '/blog' },
 	{ label: 'Contact', href: '/contact' },
 ];
 
