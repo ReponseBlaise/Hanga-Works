@@ -3,3 +3,4 @@
 "3. Wire certification routes in App.tsx"  
 "4. Enforce auth for job apply/save to prompt sign-in"  
 "5. Confirm public access to job and course listing and detail pages"  
+"6. Ready for link scan and UX checks; documentation updated"  
