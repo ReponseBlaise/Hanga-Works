@@ -28,7 +28,7 @@ export default function Login() {
             navigate('/admin');
             return;
           }
-          navigate('/dashboard');
+          navigate('/jobs');
         }
       })
       .catch((err) => {

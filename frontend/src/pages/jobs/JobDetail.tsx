@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
 import { applyForJob, getJobById, getJobs, type JobSummary } from '../../services/jobs.service';
@@ -26,7 +26,7 @@ export default function JobDetail() {
 			.then(([foundJob, allJobs]) => {
 				if (!active) return;
 				setJob(foundJob ?? null);
-				setSimilarJobs((allJobs ?? []).filter((item) => item.id !== id).slice(0, 4));
+				setSimilarJobs((allJobs.jobs ?? []).filter((item) => item.id !== id).slice(0, 4));
 			})
 			.catch((fetchError) => {
 				console.error(fetchError);
@@ -69,7 +69,7 @@ export default function JobDetail() {
 	}
 
 	return (
-		<DashboardLayout>
+		<SiteLayout>
 			<section className="job-detail-page">
 				<Link to="/jobs" className="course-detail__back">← Back to jobs</Link>
 
@@ -153,7 +153,7 @@ export default function JobDetail() {
 					</>
 				) : null}
 			</section>
-		</DashboardLayout>
+		</SiteLayout>
 	);
 }
 

@@ -1,5 +1,4 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import * as authService from '../services/auth.service';
 
 export type AuthUser = {
   id?: string;
@@ -52,31 +51,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     window.localStorage.removeItem(AUTH_STORAGE_KEY);
   }, [user]);
 
-  useEffect(() => {
-    let active = true;
-
-    if (!user) {
-      authService.refresh()
-        .then((data) => {
-          if (active && data?.user) {
-            setUser(data.user);
-          }
-        })
-        .catch(() => {
-          // No active refresh cookie yet; stay signed out.
-        });
-    }
-
-    return () => {
-      active = false;
-    };
-  }, [user]);
-
   const value: AuthContextValue = {
     user,
     isAuthenticated: user !== null,
-    signIn: (nextUser) => setUser(nextUser),
-    signOut: () => setUser(null),
+    signIn: (nextUser) => {
+      setUser(nextUser);
+    },
+    signOut: () => {
+      setUser(null);
+    },
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
