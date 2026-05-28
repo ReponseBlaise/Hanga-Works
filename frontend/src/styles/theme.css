@@ -2196,6 +2196,11 @@ select {
   align-items: stretch;
 }
 
+/* When the right-hand stats column is intentionally removed, collapse to single column */
+.job-market-hero.no-stats {
+  grid-template-columns: 1fr;
+}
+
 .job-market-hero__stats {
   display: grid;
   gap: 14px;
