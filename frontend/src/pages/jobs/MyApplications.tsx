@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
 import { getApplications } from '../../services/jobs.service';
@@ -47,7 +47,7 @@ export default function MyApplications() {
 	}, [applications]);
 
 	return (
-		<DashboardLayout>
+		<SiteLayout>
 			<section className="applications-page">
 				<header className="job-market-hero card">
 					<div>
@@ -88,6 +88,6 @@ export default function MyApplications() {
 					))}
 				</div>
 			</section>
-		</DashboardLayout>
+		</SiteLayout>
 	);
 }

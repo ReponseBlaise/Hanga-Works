@@ -75,6 +75,6 @@ export async function bookSession(mentorId: string, payload: { date: string; not
     return res.data;
   } catch (e) {
     saveBooking(mentorId, payload);
-    return { data: { booking: { mentorId, ...payload, status: 'confirmed-local' } } };
+    return { booking: { mentorId, scheduledAt: payload.date, notes: payload.notes, status: 'confirmed-local' } };
   }
 }
