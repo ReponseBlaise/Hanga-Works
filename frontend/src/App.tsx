@@ -6,7 +6,6 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import VerifyEmail from './pages/auth/VerifyEmail';
 import ForgotPassword from './pages/auth/ForgotPassword';
-import { Dashboard } from './pages/dashboard/Dashboard';
 import { CourseList } from './pages/courses/CourseList';
 import { CourseDetail } from './pages/courses/CourseDetail';
 import JobList from './pages/jobs/JobList';
@@ -97,7 +96,7 @@ export default function App() {
       return <Navigate to="/admin" replace />;
     }
 
-    return <Dashboard />;
+
   }
 
   function AdminRoute({ children }: { children: JSX.Element }) {

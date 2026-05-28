@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { publicNavItems } from '../../constants/routes';
+import { publicNavItems, dashboardNavItems } from '../../constants/routes';
 import { useAuth } from '../../context/AuthContext';
 
 export function DashboardTopbar({ userName, role, unreadCount, onMenuToggle }: { userName?: string; role?: string; unreadCount?: number; onMenuToggle?: () => void }) {
@@ -65,6 +65,20 @@ export default function Navbar() {
 		return '/dashboard';
 	}, [user?.role]);
 
+	const userRole = (user?.role ?? 'LEARNER').toUpperCase();
+
+	const authLinks = useMemo(() => {
+		if (userRole === 'EMPLOYER') {
+			return dashboardNavItems.filter((i) => ['/jobs', '/applications', '/profile', '/employer', '/candidates'].some((p) => i.href === p || i.href.startsWith(p)));
+		}
+		if (userRole === 'ADMIN') {
+			return [
+				{ label: 'Admin', href: '/admin' },
+			];
+		}
+		return dashboardNavItems; // Learner/default
+	}, [userRole]);
+
 	function isNavActive(href: string) {
 		if (href === '/') return location.pathname === '/';
 		return location.pathname === href || location.pathname.startsWith(`${href}/`);
@@ -92,6 +106,25 @@ export default function Navbar() {
 				<div className={`public-navbar__panel ${menuOpen ? 'is-open' : ''}`}>
 				<div className="public-navbar__links">
 					{publicNavItems.map((link) => {
+
+										{/* Authenticated users: direct links to dashboard pages in the topbar */}
+										{isAuthenticated && (
+											<div className="public-navbar__links public-navbar__links--auth">
+												{authLinks.map((link) => {
+													const active = isNavActive(link.href);
+													return (
+														<Link
+															key={link.href}
+															to={link.href}
+															className={`public-navbar__link ${active ? 'is-active' : ''}`.trim()}
+															onClick={() => setMenuOpen(false)}
+														>
+															{link.label}
+														</Link>
+													);
+												})}
+											</div>
+										)}
 						const active = isNavActive(link.href);
 						return (
 							<Link
