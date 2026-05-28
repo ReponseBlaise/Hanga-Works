@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { publicNavItems } from '../../constants/routes';
+import { publicNavItems, dashboardNavItems } from '../../constants/routes';
 import { useAuth } from '../../context/AuthContext';
 
-export function Topbar({ userName, role, unreadCount, onMenuToggle }: { userName?: string; role?: string; unreadCount?: number; onMenuToggle?: () => void }) {
+export function DashboardTopbar({ userName, role, unreadCount, onMenuToggle }: { userName?: string; role?: string; unreadCount?: number; onMenuToggle?: () => void }) {
 	const initials = (userName ?? 'User')
 		.split(' ')
 		.filter(Boolean)
@@ -26,7 +26,7 @@ export function Topbar({ userName, role, unreadCount, onMenuToggle }: { userName
 
 			<div className="topbar__copy">
 				<p className="topbar__eyebrow">Dashboard overview</p>
-				<h1>Welcome back, {userName ?? 'Guest'}</h1>
+				<h1>Welcome back{userName ? `, ${userName}` : ''}</h1>
 				<p>{role ?? 'Monitor your progress, applications, and learning in one place.'}</p>
 			</div>
 
@@ -50,7 +50,7 @@ export function Topbar({ userName, role, unreadCount, onMenuToggle }: { userName
 
 export default function Navbar() {
 	const location = useLocation();
-	const { user, isAuthenticated } = useAuth();
+	const { user, isAuthenticated, signOut } = useAuth();
 	const [hovered, setHovered] = useState<string | null>(null);
 	const [menuOpen, setMenuOpen] = useState(false);
 
@@ -64,6 +64,20 @@ export default function Navbar() {
 		if (role === 'ADMIN') return '/admin';
 		return '/dashboard';
 	}, [user?.role]);
+
+	const userRole = (user?.role ?? 'LEARNER').toUpperCase();
+
+	const authLinks = useMemo(() => {
+		if (userRole === 'EMPLOYER') {
+			return dashboardNavItems.filter((i) => ['/jobs', '/applications', '/profile', '/employer', '/candidates'].some((p) => i.href === p || i.href.startsWith(p)));
+		}
+		if (userRole === 'ADMIN') {
+			return [
+				{ label: 'Admin', href: '/admin' },
+			];
+		}
+		return dashboardNavItems; // Learner/default
+	}, [userRole]);
 
 	function isNavActive(href: string) {
 		if (href === '/') return location.pathname === '/';
@@ -92,6 +106,25 @@ export default function Navbar() {
 				<div className={`public-navbar__panel ${menuOpen ? 'is-open' : ''}`}>
 				<div className="public-navbar__links">
 					{publicNavItems.map((link) => {
+
+										{/* Authenticated users: direct links to dashboard pages in the topbar */}
+										{isAuthenticated && (
+											<div className="public-navbar__links public-navbar__links--auth">
+												{authLinks.map((link) => {
+													const active = isNavActive(link.href);
+													return (
+														<Link
+															key={link.href}
+															to={link.href}
+															className={`public-navbar__link ${active ? 'is-active' : ''}`.trim()}
+															onClick={() => setMenuOpen(false)}
+														>
+															{link.label}
+														</Link>
+													);
+												})}
+											</div>
+										)}
 						const active = isNavActive(link.href);
 						return (
 							<Link
@@ -118,14 +151,21 @@ export default function Navbar() {
 							<Link to={dashboardHref} className="public-navbar__dashboard" onClick={() => setMenuOpen(false)}>
 								Dashboard
 							</Link>
-							<Link to="/profile" className="public-navbar__signin" onClick={() => setMenuOpen(false)}>
-								Profile
-							</Link>
+							<button
+								type="button"
+								className="public-navbar__signin"
+								onClick={() => {
+									setMenuOpen(false);
+									signOut();
+								}}
+							>
+								Sign Out
+							</button>
 						</>
 					) : (
 						<>
 							<Link to="/register" className="public-navbar__register" onClick={() => setMenuOpen(false)}>
-								Register
+								Sign Up
 							</Link>
 							<Link to="/login" className="public-navbar__signin" onClick={() => setMenuOpen(false)}>
 								Sign In

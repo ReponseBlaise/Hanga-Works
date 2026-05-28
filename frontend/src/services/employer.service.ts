@@ -1,5 +1,5 @@
 import api from './api';
-import type { CreateJobPayload, JobSummary, JobType } from './jobs.service';
+import type { CreateJobPayload, JobSummary } from './jobs.service';
 
 export type EmployerStats = {
 	totalJobs: number;
@@ -28,17 +28,25 @@ export type EmployerJob = JobSummary;
 
 export async function getEmployerAnalytics() {
 	const res = await api.get('/employer/analytics');
-	return res.data as EmployerStats;
+	return (res.data?.data?.stats ?? res.data?.stats ?? res.data) as EmployerStats;
 }
 
 export async function getEmployerJobs() {
-	const res = await api.get('/jobs');
-	return res.data as EmployerJob[];
+	const res = await api.get('/employer/jobs');
+	if (Array.isArray(res.data)) {
+		return res.data as EmployerJob[];
+	}
+
+	return (res.data?.data?.jobs ?? res.data?.jobs ?? []) as EmployerJob[];
 }
 
 export async function getApplicantsForJob(jobId: string) {
 	const res = await api.get(`/employer/jobs/${jobId}/applicants`);
-	return res.data as EmployerApplicant[];
+	if (Array.isArray(res.data)) {
+		return res.data as EmployerApplicant[];
+	}
+
+	return (res.data?.data?.applications ?? res.data?.applications ?? []) as EmployerApplicant[];
 }
 
 export async function createEmployerJob(payload: CreateJobPayload) {
@@ -47,10 +55,10 @@ export async function createEmployerJob(payload: CreateJobPayload) {
 		salaryMin: payload.salaryMin === '' ? undefined : payload.salaryMin == null ? undefined : Number(payload.salaryMin),
 		salaryMax: payload.salaryMax === '' ? undefined : payload.salaryMax == null ? undefined : Number(payload.salaryMax),
 	});
-	return res.data as EmployerJob;
+	return (res.data?.data?.job ?? res.data?.job ?? res.data) as EmployerJob;
 }
 
 export async function updateApplicationStage(applicationId: string, stage: EmployerApplicant['status']) {
 	const res = await api.patch(`/employer/applications/${applicationId}/stage`, { status: stage });
-	return res.data as EmployerApplicant;
+	return (res.data?.data?.application ?? res.data?.application ?? res.data) as EmployerApplicant;
 }

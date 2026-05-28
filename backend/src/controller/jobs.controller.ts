@@ -38,6 +38,11 @@ export class JobsController {
     return this.jobsService.findAll(filters);
   }
 
+  @Get('skills')
+  findSkills() {
+    return this.jobsService.getSkills();
+  }
+
   @Get('jobs/recommended')
   @UseGuards(JwtAuthGuard)
   getRecommended(@CurrentUser() user: CurrentUserPayload) {
