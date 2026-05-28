@@ -28,17 +28,17 @@ export type EmployerJob = JobSummary;
 
 export async function getEmployerAnalytics() {
 	const res = await api.get('/employer/analytics');
-	return res.data?.data?.stats as EmployerStats;
+	return res.data as EmployerStats;
 }
 
 export async function getEmployerJobs() {
 	const res = await api.get('/jobs');
-	return res.data?.data?.jobs as EmployerJob[];
+	return res.data as EmployerJob[];
 }
 
 export async function getApplicantsForJob(jobId: string) {
 	const res = await api.get(`/employer/jobs/${jobId}/applicants`);
-	return res.data?.data?.applications as EmployerApplicant[];
+	return res.data as EmployerApplicant[];
 }
 
 export async function createEmployerJob(payload: CreateJobPayload) {
@@ -47,10 +47,10 @@ export async function createEmployerJob(payload: CreateJobPayload) {
 		salaryMin: payload.salaryMin === '' ? undefined : payload.salaryMin == null ? undefined : Number(payload.salaryMin),
 		salaryMax: payload.salaryMax === '' ? undefined : payload.salaryMax == null ? undefined : Number(payload.salaryMax),
 	});
-	return res.data?.data?.job as EmployerJob;
+	return res.data as EmployerJob;
 }
 
 export async function updateApplicationStage(applicationId: string, stage: EmployerApplicant['status']) {
 	const res = await api.patch(`/employer/applications/${applicationId}/stage`, { status: stage });
-	return res.data?.data?.application as EmployerApplicant;
+	return res.data as EmployerApplicant;
 }

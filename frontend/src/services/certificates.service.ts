@@ -12,10 +12,10 @@ export type LearnerCertificate = {
 
 export async function getMyCertificates() {
 	const res = await api.get('/certificates');
-	return res.data?.data?.certificates as LearnerCertificate[];
+	return res.data as LearnerCertificate[];
 }
 
 export async function verifyCertificate(token: string) {
 	const res = await api.get(`/certificates/verify/${token}`);
-	return res.data?.data?.certificate as LearnerCertificate;
+	return res.data as LearnerCertificate;
 }
