@@ -6,10 +6,9 @@ import { PrismaService } from '../prisma/prisma.service';
 export class AnalyticsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // ── GET /analytics/overview ───────────────────────────────────────────────
   async getOverview() {
     const now = new Date();
-    const startOfDay   = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
     const [
@@ -23,27 +22,22 @@ export class AnalyticsService {
       totalCertifications,
     ] = await Promise.all([
       this.prisma.user.count(),
-
-      // DAU — users who had enrollment or application activity today
       this.prisma.user.count({
         where: {
           OR: [
-            { enrollments:   { some: { updatedAt: { gte: startOfDay } } } },
-            { applications:  { some: { updatedAt: { gte: startOfDay } } } },
+            { enrollments: { some: { updatedAt: { gte: startOfDay } } } },
+            { applications: { some: { updatedAt: { gte: startOfDay } } } },
           ],
         },
       }),
-
-      // MAU — users active this month
       this.prisma.user.count({
         where: {
           OR: [
-            { enrollments:  { some: { updatedAt: { gte: startOfMonth } } } },
+            { enrollments: { some: { updatedAt: { gte: startOfMonth } } } },
             { applications: { some: { updatedAt: { gte: startOfMonth } } } },
           ],
         },
       }),
-
       this.prisma.enrollment.count(),
       this.prisma.enrollment.count({ where: { status: EnrollmentStatus.COMPLETED } }),
       this.prisma.job.count({ where: { isActive: true } }),
@@ -51,10 +45,9 @@ export class AnalyticsService {
       this.prisma.certification.count(),
     ]);
 
-    const completionRate =
-      totalEnrollments > 0
-        ? Math.round((completedEnrollments / totalEnrollments) * 100)
-        : 0;
+    const completionRate = totalEnrollments > 0
+      ? Math.round((completedEnrollments / totalEnrollments) * 100)
+      : 0;
 
     return {
       dau,
@@ -69,7 +62,6 @@ export class AnalyticsService {
     };
   }
 
-  // ── GET /analytics/export?format=csv ──────────────────────────────────────
   async exportCsv() {
     const enrollments = await this.prisma.enrollment.findMany({
       select: {
@@ -78,7 +70,7 @@ export class AnalyticsService {
         status: true,
         startedAt: true,
         completedAt: true,
-        user:   { select: { id: true, name: true, email: true } },
+        user: { select: { id: true, name: true, email: true } },
         course: { select: { id: true, title: true } },
       },
       orderBy: { startedAt: 'desc' },
@@ -97,20 +89,18 @@ export class AnalyticsService {
       'completedAt',
     ].join(',');
 
-    const rows = enrollments.map((e) =>
-      [
-        e.id,
-        e.user.id,
-        `"${e.user.name}"`,
-        e.user.email,
-        e.course.id,
-        `"${e.course.title}"`,
-        e.progress,
-        e.status,
-        e.startedAt.toISOString(),
-        e.completedAt ? e.completedAt.toISOString() : '',
-      ].join(','),
-    );
+    const rows = enrollments.map((e) => [
+      e.id,
+      e.user.id,
+      `"${e.user.name}"`,
+      e.user.email,
+      e.course.id,
+      `"${e.course.title}"`,
+      e.progress,
+      e.status,
+      e.startedAt.toISOString(),
+      e.completedAt ? e.completedAt.toISOString() : '',
+    ].join(','));
 
     return [headers, ...rows].join('\n');
   }

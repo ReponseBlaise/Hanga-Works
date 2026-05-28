@@ -1,7 +1,7 @@
 import { BadRequestException, Controller, ForbiddenException, Get, Query, Res, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
 import { Role } from '@prisma/client';
-import { AnalyticsService } from './analytics.service';
+import { AnalyticsService } from '../analytics/analytics.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser, CurrentUserPayload } from '../auth/decorators/current-user.decorator';
 

@@ -210,7 +210,7 @@ describe('JobsService', () => {
 
     it('should throw ConflictException if already applied', async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (prisma.application.findUnique as unknown as jest.Mock).mockResolvedValue({ id: 'app1' });
+      (mockPrisma.application.findUnique as unknown as jest.Mock).mockResolvedValue({ id: 'app1' });
       await expect(service.apply('job1', 'user1', Role.LEARNER)).rejects.toThrow(
         ConflictException,
       );
@@ -218,7 +218,7 @@ describe('JobsService', () => {
 
     it('should create an application successfully', async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (prisma.application.findUnique as unknown as jest.Mock).mockResolvedValue(null);
+      (mockPrisma.application.findUnique as unknown as jest.Mock).mockResolvedValue(null);
       await service.apply('job1', 'user1', Role.LEARNER);
       await expect(
         service.apply(JOB_ID, LEARNER_ID, Role.LEARNER),

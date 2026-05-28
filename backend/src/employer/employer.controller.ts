@@ -13,8 +13,8 @@ export class EmployerController {
   constructor(private readonly employerService: EmployerService) {}
 
   @Post('jobs')
-  async createJob(@Body() createJobDto: CreateJobDto, @Request() req: { user: { userId: string, role: string } }) {
-    return this.employerService.createJob(req.user.userId, createJobDto);
+  async createJob(@Body() createJobDto: CreateJobDto, @Request() req: { user: { userId: string, role: string, name?: string } }) {
+    return this.employerService.createJob(req.user.userId, req.user.name || 'Employer', createJobDto);
   }
 
   @Get('jobs/:id/applicants')

@@ -8,6 +8,7 @@ import {
 import { Role } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { FilterJobsDto } from './dto/filter-jobs.dto';
+import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateApplicationStatusDto } from './dto/update-application-status.dto';
 
 const jobInclude = {
@@ -43,7 +44,7 @@ export class JobsService {
         expiresAt: expiresAt ? new Date(expiresAt) : undefined,
         employerId: user.organizationId,
         skills: skillIds?.length
-          ? { create: skillIds.map((skillId) => ({ skillId })) }
+          ? { create: skillIds.map((skillId: string) => ({ skillId })) }
           : undefined,
       },
       include: jobInclude,
