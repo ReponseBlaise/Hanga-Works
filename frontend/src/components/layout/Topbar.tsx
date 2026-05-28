@@ -26,7 +26,7 @@ export function Topbar({ userName, role, unreadCount, onMenuToggle }: { userName
 
 			<div className="topbar__copy">
 				<p className="topbar__eyebrow">Dashboard overview</p>
-				<h1>Welcome back, {userName ?? 'Guest'}</h1>
+				<h1>Welcome back{userName ? `, ${userName}` : ''}</h1>
 				<p>{role ?? 'Monitor your progress, applications, and learning in one place.'}</p>
 			</div>
 
@@ -64,6 +64,14 @@ export default function Navbar() {
 		if (role === 'ADMIN') return '/admin';
 		return '/dashboard';
 	}, [user?.role]);
+
+	const profileHref = useMemo(() => {
+		const username = user?.username?.trim();
+		if (username) {
+			return `/profile/${username}`;
+		}
+		return '/profile';
+	}, [user?.username]);
 
 	function isNavActive(href: string) {
 		if (href === '/') return location.pathname === '/';
@@ -118,7 +126,7 @@ export default function Navbar() {
 							<Link to={dashboardHref} className="public-navbar__dashboard" onClick={() => setMenuOpen(false)}>
 								Dashboard
 							</Link>
-							<Link to="/profile" className="public-navbar__signin" onClick={() => setMenuOpen(false)}>
+							<Link to={profileHref} className="public-navbar__signin" onClick={() => setMenuOpen(false)}>
 								Profile
 							</Link>
 						</>

@@ -22,9 +22,9 @@ export default function Contact() {
           </div>
 
           <div className="landing-hero__visual">
-            <Card className="hero-visual-card">
+            <Card className="hero-visual-card contact-card">
               <CardTitle>Contact details</CardTitle>
-              <CardMeta>hello@hanga.works</CardMeta>
+              <p className="contact-card__value">hello@hanga.works</p>
               <CardMeta>+250 700 000 000</CardMeta>
               <CardMeta>Kigali, Rwanda</CardMeta>
             </Card>
@@ -39,7 +39,7 @@ export default function Contact() {
             </div>
           </div>
 
-          <div className="landing-category-row">
+          <div className="contact-card-grid">
             <Card className="landing-category-card">
               <div className="landing-category-card__icon">✦</div>
               <div>

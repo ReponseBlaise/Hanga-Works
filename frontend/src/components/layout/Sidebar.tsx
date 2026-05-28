@@ -6,10 +6,19 @@ type SidebarProps = {
 	isOpen: boolean;
 	onClose: () => void;
 	brand?: ReactNode;
+	userName?: string;
+	userRole?: string;
+	userEmail?: string;
 };
 
-export function Sidebar({ isOpen, onClose, brand }: SidebarProps) {
+export function Sidebar({ isOpen, onClose, brand, userName, userRole, userEmail }: SidebarProps) {
 	const location = useLocation();
+	const initials = (userName ?? 'User')
+		.split(' ')
+		.filter(Boolean)
+		.slice(0, 2)
+		.map((part) => part[0]?.toUpperCase() ?? '')
+		.join('');
 
 	return (
 		<aside className={`sidebar ${isOpen ? 'sidebar-open' : ''}`.trim()} aria-label="Sidebar navigation">
@@ -41,9 +50,15 @@ export function Sidebar({ isOpen, onClose, brand }: SidebarProps) {
 			</nav>
 
 			<div className="sidebar__panel" id="profile">
-				<p className="sidebar__label">Profile status</p>
-				<strong>82% complete</strong>
-				<span>Finish your skills profile to unlock better matches.</span>
+				<p className="sidebar__label">Signed in as</p>
+				<div className="sidebar__user">
+					<div className="avatar avatar-sm" aria-hidden="true">{initials || 'U'}</div>
+					<div>
+						<strong>{userName ?? 'Guest user'}</strong>
+						<span>{userRole ?? 'Learner'}</span>
+					</div>
+				</div>
+				<span>{userEmail ?? 'Signed in session active'}</span>
 			</div>
 		</aside>
 	);

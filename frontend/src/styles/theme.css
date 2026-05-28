@@ -209,6 +209,23 @@ select {
   line-height: 1.55;
 }
 
+.sidebar__user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.sidebar__user strong {
+  margin: 0;
+  font-size: 0.98rem;
+}
+
+.sidebar__user span {
+  display: block;
+  margin-top: 3px;
+}
+
 .sidebar-backdrop {
   display: none;
 }
@@ -1705,6 +1722,10 @@ select {
     width: 100%;
   }
 
+	.contact-card-grid {
+		grid-template-columns: 1fr;
+	}
+
   .landing-job-card__logo-image {
     width: 36px;
     height: 36px;
@@ -2630,6 +2651,28 @@ select {
 .form-stack textarea {
   min-height: 110px;
   resize: vertical;
+}
+
+.contact-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.contact-card {
+  display: grid;
+  gap: 10px;
+}
+
+.contact-card__value {
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.mentor-booking__header {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 18px;
 }
 
 @media (max-width: 980px) {

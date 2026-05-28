@@ -39,8 +39,10 @@ export default function MentorBooking() {
     <DashboardLayout>
       <div className="page-shell">
         <Card>
-          <CardTitle>Book a session with {mentorName || 'mentor'}</CardTitle>
-          <CardMeta>Choose a date and add notes for the session.</CardMeta>
+          <div className="mentor-booking__header">
+            <CardTitle>Book a session with {mentorName || 'mentor'}</CardTitle>
+            <CardMeta>Choose a date and add notes for the session.</CardMeta>
+          </div>
           <form onSubmit={handleSubmit} className="form-stack">
             <label>
               Date & time

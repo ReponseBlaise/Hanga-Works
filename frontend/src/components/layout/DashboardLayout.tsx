@@ -24,6 +24,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 function DashboardFrame({ children }: DashboardLayoutProps) {
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 	const { user } = useAuth();
+	const userRole = user?.role ? user.role.toUpperCase() : 'Learner';
 
 	return (
 		<>
@@ -31,6 +32,9 @@ function DashboardFrame({ children }: DashboardLayoutProps) {
 			<Sidebar
 				isOpen={isSidebarOpen}
 				onClose={() => setIsSidebarOpen(false)}
+				userName={user?.name}
+				userRole={userRole}
+				userEmail={user?.email}
 				brand={
 					<div className="brand-lockup brand-lockup--sidebar">
 						<div className="brand-mark" aria-hidden="true">
@@ -46,8 +50,8 @@ function DashboardFrame({ children }: DashboardLayoutProps) {
 
 			<div className="dashboard-main">
 				<Topbar
-					userName={user?.name ?? 'Amina Kato'}
-					role={user?.role ?? 'Career growth analyst'}
+					userName={user?.name}
+					role={userRole}
 					unreadCount={4}
 					onMenuToggle={() => setIsSidebarOpen(true)}
 				/>
