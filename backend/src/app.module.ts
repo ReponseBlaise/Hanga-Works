@@ -14,6 +14,8 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { EmployerModule } from './employer/employer.module';
+import { MentorshipModule } from './mentorship/mentorship.module';
+import { IntelligenceModule } from './intelligence/intelligence.module';
 import { AuditInterceptor } from './common/interceptors/audit.interceptor';
 
 @Module({
@@ -35,6 +37,8 @@ import { AuditInterceptor } from './common/interceptors/audit.interceptor';
     AuthModule,
     UsersModule,
     EmployerModule,
+    MentorshipModule,
+    IntelligenceModule,
   ],
   providers: [
     PrismaService, 
