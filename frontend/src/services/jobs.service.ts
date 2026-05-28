@@ -47,13 +47,22 @@ export type CreateJobPayload = {
 	salaryMax?: number | string;
 };
 
-export async function getJobs(params?: { search?: string; location?: string }) {
+export async function getJobs(params?: { search?: string; location?: string; page?: number; perPage?: number; jobType?: string; skillId?: string }) {
 	const res = await api.get('/jobs', { params });
-	if (Array.isArray(res.data)) {
-		return res.data as JobSummary[];
+	// backend returns { jobs, total } when pagination is used
+	if (res.data?.data?.jobs || res.data?.jobs) {
+		const jobs = (res.data?.data?.jobs ?? res.data?.jobs) as JobSummary[];
+		const total = res.data?.data?.total ?? res.data?.total ?? jobs.length;
+		return { jobs, total } as { jobs: JobSummary[]; total: number };
 	}
 
-	return (res.data?.data?.jobs ?? res.data?.jobs ?? []) as JobSummary[];
+	if (Array.isArray(res.data)) {
+		return { jobs: res.data as JobSummary[], total: res.data.length };
+	}
+
+	const jobs = (res.data?.data?.jobs ?? res.data?.jobs ?? []) as JobSummary[];
+	const total = res.data?.data?.total ?? res.data?.total ?? jobs.length;
+	return { jobs, total } as { jobs: JobSummary[]; total: number };
 }
 
 export async function getJobById(id: string) {

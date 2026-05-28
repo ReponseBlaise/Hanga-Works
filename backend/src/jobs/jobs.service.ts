@@ -55,24 +55,32 @@ export class JobsService {
 
   // ── GET /jobs (with filters) ──────────────────────────────────────────────
   async findAll(filters: FilterJobsDto) {
-    const { search, location, jobType, skillId } = filters;
+    const { search, location, jobType, skillId, page = 1, perPage = 20 } = filters as any;
 
-    return this.prisma.job.findMany({
-      where: {
-        isActive: true,
-        ...(location && { location: { contains: location, mode: 'insensitive' } }),
-        ...(jobType && { jobType }),
-        ...(search && {
-          OR: [
-            { title: { contains: search, mode: 'insensitive' } },
-            { description: { contains: search, mode: 'insensitive' } },
-          ],
-        }),
-        ...(skillId && { skills: { some: { skillId } } }),
-      },
+    const where: any = {
+      isActive: true,
+      ...(location && { location: { contains: location, mode: 'insensitive' } }),
+      ...(jobType && { jobType }),
+      ...(search && {
+        OR: [
+          { title: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } },
+        ],
+      }),
+      ...(skillId && { skills: { some: { skillId } } }),
+    };
+
+    const total = await this.prisma.job.count({ where });
+
+    const jobs = await this.prisma.job.findMany({
+      where,
       include: jobInclude,
       orderBy: { postedAt: 'desc' },
+      skip: (page - 1) * perPage,
+      take: perPage,
     });
+
+    return { jobs, total };
   }
 
   // ── GET /jobs/:id ─────────────────────────────────────────────────────────

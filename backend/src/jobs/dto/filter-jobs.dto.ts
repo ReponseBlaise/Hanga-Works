@@ -1,4 +1,5 @@
-import { IsOptional, IsEnum, IsString, IsUUID } from 'class-validator';
+import { IsOptional, IsEnum, IsString, IsUUID, IsInt, Min } from 'class-validator';
+import { Type } from 'class-transformer';
 import { JobType } from '@prisma/client';
 
 export class FilterJobsDto {
@@ -17,4 +18,16 @@ export class FilterJobsDto {
   @IsOptional()
   @IsUUID()
   skillId?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  perPage?: number;
 }

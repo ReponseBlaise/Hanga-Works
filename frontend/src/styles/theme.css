@@ -1479,6 +1479,119 @@ select {
     grid-template-columns: 1fr;
   }
 
+
+  /* Job marketplace layout */
+  .job-market-page {
+    display: block;
+    width: min(100%, var(--content-width));
+    margin: 0 auto;
+    padding: 8px 0 40px;
+    display: grid;
+    gap: 18px;
+  }
+
+  .job-market-body {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 22px;
+    align-items: start;
+  }
+
+  .advance-filter {
+    padding: 18px;
+    display: grid;
+    gap: 12px;
+  }
+
+  .advance-filter h3 {
+    margin: 0 0 8px;
+    font-size: 1.02rem;
+  }
+
+  .filter-section {
+    display: grid;
+    gap: 8px;
+  }
+
+  .filter-section__title {
+    margin: 0;
+    font-weight: 800;
+    color: var(--text-soft);
+  }
+
+  .filter-checkbox-list label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .filter-checkbox-list input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+  }
+
+  .job-market-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .job-market-counts {
+    color: var(--text-soft);
+    font-weight: 700;
+  }
+
+  .job-market-sorting label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .job-market-pagination {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  .pagination-pages {
+    font-weight: 700;
+  }
+
+  .salary-range input {
+    width: 100%;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  .job-market-results {
+    display: block;
+  }
+
+  .job-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  @media (max-width: 980px) {
+    .job-market-body {
+      grid-template-columns: 1fr;
+    }
+
+    .job-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 640px) {
+    .job-grid {
+      grid-template-columns: 1fr;
+    }
+  }
   .dashboard-hero {
     gap: 18px;
   }
