@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
 import { getCourses, type BackendCourse } from '../../services/courses.service';
@@ -48,7 +48,7 @@ export function CourseList() {
 	);
 
 	return (
-		<DashboardLayout>
+		<SiteLayout>
 			<div className="courses-page">
 				<section className="courses-hero card">
 					<div>
@@ -128,6 +128,6 @@ export function CourseList() {
 					)}
 				</section>
 			</div>
-		</DashboardLayout>
+		</SiteLayout>
 	);
 }

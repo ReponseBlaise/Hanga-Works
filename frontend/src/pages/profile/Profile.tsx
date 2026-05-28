@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
 import { useAuth } from '../../context/AuthContext';
@@ -79,7 +79,7 @@ export default function Profile() {
 	}
 
 	return (
-		<DashboardLayout>
+		<SiteLayout>
 			<section className="profile-page">
 				<header className="job-market-hero card">
 					<div>
@@ -241,6 +241,6 @@ export default function Profile() {
 					</Card>
 				</section>
 			</section>
-		</DashboardLayout>
+		</SiteLayout>
 	);
 }

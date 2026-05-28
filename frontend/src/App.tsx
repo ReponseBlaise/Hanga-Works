@@ -42,7 +42,6 @@ export default function App() {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
           </Route>
-          <Route path="/dashboard" element={<DashboardRoute />} />
           <Route path="/courses" element={<CourseList />} />
           <Route path="/courses/:id" element={<CourseDetail />} />
           <Route path="/jobs" element={<JobList />} />
@@ -78,25 +77,6 @@ export default function App() {
     const role = user?.role ?? '';
     if (role && role.toUpperCase() === 'EMPLOYER') return children;
     return <Navigate to="/register" replace />;
-  }
-
-  function DashboardRoute() {
-    const { user, isAuthenticated } = useAuth();
-    const role = (user?.role ?? '').toUpperCase();
-
-    if (!isAuthenticated) {
-      return <Navigate to="/login" replace />;
-    }
-
-    if (role === 'EMPLOYER') {
-      return <Navigate to="/employer" replace />;
-    }
-
-    if (role === 'ADMIN') {
-      return <Navigate to="/admin" replace />;
-    }
-
-
   }
 
   function AdminRoute({ children }: { children: JSX.Element }) {

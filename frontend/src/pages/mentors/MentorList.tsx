@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Card, CardEyebrow, CardTitle, CardMeta } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { getMentors, MentorSummary } from '../../services/mentors.service';
@@ -19,7 +19,7 @@ export default function MentorList() {
   }, []);
 
   return (
-    <DashboardLayout>
+    <SiteLayout>
       <div className="page-shell">
         <header className="page-head">
           <h1>Mentors</h1>
@@ -55,6 +55,6 @@ export default function MentorList() {
           ))}
         </div>
       </div>
-    </DashboardLayout>
+    </SiteLayout>
   );
 }

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
 import { getJobs, getSkills, type SkillWithCount, type JobSummary, type JobType } from '../../services/jobs.service';
@@ -176,7 +176,7 @@ export default function JobList() {
 	const paginatedJobs = useMemo(() => sortedJobs, [sortedJobs]);
 
 	return (
-		<DashboardLayout>
+		<SiteLayout>
 			<section className="job-market-page">
 				<header className="job-market-hero card">
 					<div>
@@ -376,7 +376,7 @@ export default function JobList() {
 					</section>
 					</div>
 			</section>
-		</DashboardLayout>
+		</SiteLayout>
 	);
 }
 
