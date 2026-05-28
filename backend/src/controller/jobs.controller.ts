@@ -8,10 +8,10 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { JobsService } from './jobs.service';
-import { CreateJobDto } from './dto/create-job.dto';
-import { FilterJobsDto } from './dto/filter-jobs.dto';
-import { UpdateApplicationStatusDto } from './dto/update-application-status.dto';
+import { JobsService } from '../jobs/jobs.service';
+import { CreateJobDto } from '../jobs/dto/create-job.dto';
+import { FilterJobsDto } from '../jobs/dto/filter-jobs.dto';
+import { UpdateApplicationStatusDto } from '../jobs/dto/update-application-status.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import {
   CurrentUser,
