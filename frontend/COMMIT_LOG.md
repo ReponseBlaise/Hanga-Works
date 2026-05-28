@@ -2,3 +2,4 @@
 "2. Add certificate verify page (frontend/src/pages/certifications/CertificationVerify.tsx)"  
 "3. Wire certification routes in App.tsx"  
 "4. Enforce auth for job apply/save to prompt sign-in"  
+"5. Confirm public access to job and course listing and detail pages"  
