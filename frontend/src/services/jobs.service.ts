@@ -47,15 +47,22 @@ export type CreateJobPayload = {
 	salaryMax?: number | string;
 };
 
-
-export async function getJobs(params?: { search?: string; location?: string; page?: number; perPage?: number; jobType?: string; skillId?: string; skillIds?: string[] }) {
-	// normalize params: if skillIds provided as array, send as comma-separated string for query
+export async function getJobs(params?: {
+	search?: string;
+	location?: string;
+	page?: number;
+	perPage?: number;
+	jobType?: string;
+	skillId?: string;
+	skillIds?: string[];
+	skillMatch?: 'any' | 'all';
+}) {
 	const sendParams: any = { ...(params || {}) };
 	if (params?.skillIds && Array.isArray(params.skillIds)) {
 		sendParams.skillIds = params.skillIds.join(',');
 	}
+
 	const res = await api.get('/jobs', { params: sendParams });
-	// backend returns { jobs, total } when pagination is used
 	if (res.data?.data?.jobs || res.data?.jobs) {
 		const jobs = (res.data?.data?.jobs ?? res.data?.jobs) as JobSummary[];
 		const total = res.data?.data?.total ?? res.data?.total ?? jobs.length;
