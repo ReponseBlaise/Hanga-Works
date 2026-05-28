@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Quiz } from '../../components/learning/Quiz';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
@@ -37,24 +37,24 @@ export function CourseDetail() {
 
 	if (loading) {
 		return (
-			<DashboardLayout>
+			<SiteLayout>
 				<Card className="courses-empty">
 					<CardTitle>Loading course…</CardTitle>
 					<CardMeta>Fetching the live record from the backend.</CardMeta>
 				</Card>
-			</DashboardLayout>
+			</SiteLayout>
 		);
 	}
 
 	if (error) {
 		return (
-			<DashboardLayout>
+			<SiteLayout>
 				<Card className="courses-empty">
 					<CardTitle>{error}</CardTitle>
 					<CardMeta>The course may have been unpublished or the identifier is invalid.</CardMeta>
 					<Button to="/courses" variant="primary">Back to courses</Button>
 				</Card>
-			</DashboardLayout>
+			</SiteLayout>
 		);
 	}
 
@@ -63,7 +63,7 @@ export function CourseDetail() {
 	}
 
 	return (
-		<DashboardLayout>
+		<SiteLayout>
 			<div className="course-detail">
 				<Link to="/courses" className="course-detail__back">
 					← Back to courses
@@ -113,6 +113,6 @@ export function CourseDetail() {
 					</div>
 				</section>
 			</div>
-		</DashboardLayout>
+		</SiteLayout>
 	);
 }

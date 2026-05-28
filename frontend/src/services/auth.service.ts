@@ -10,27 +10,27 @@ export type AuthUser = {
 };
 
 type AuthResponse = {
-	token: string;
+	access_token: string;
 	user: AuthUser;
 };
 
 export async function register(payload: { name: string; email: string; password: string; role?: 'LEARNER' | 'EMPLOYER' | 'INSTITUTION' | 'MENTOR' }) {
 	const res = await api.post('/auth/register', payload);
-	const data = res.data?.data as AuthResponse;
-	if (data?.token) setAuthToken(data.token);
+	const data = res.data as AuthResponse;
+	if (data?.access_token) setAuthToken(data.access_token);
 	return data;
 }
 
 export async function login(payload: { email: string; password: string }) {
 	const res = await api.post('/auth/login', payload);
-	const data = res.data?.data as AuthResponse;
-	if (data?.token) setAuthToken(data.token);
+	const data = res.data as AuthResponse;
+	if (data?.access_token) setAuthToken(data.access_token);
 	return data;
 }
 
 export async function profile() {
-	const res = await api.get('/auth/profile');
-	return res.data?.data?.user as AuthUser;
+	const res = await api.get('/users/me');
+	return res.data as AuthUser;
 }
 
 export async function logout() {
@@ -48,8 +48,8 @@ export async function refresh() {
 			return null;
 		}
 
-		const data = res.data?.data as AuthResponse;
-		if (data?.token) setAuthToken(data.token);
+		const data = (res.data?.data ?? res.data) as Partial<AuthResponse>;
+		if (data?.access_token) setAuthToken(data.access_token);
 		return data;
 	} catch {
 		return null;

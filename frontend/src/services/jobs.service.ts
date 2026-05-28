@@ -47,13 +47,35 @@ export type CreateJobPayload = {
 	salaryMax?: number | string;
 };
 
-export async function getJobs(params?: { search?: string; location?: string }) {
-	const res = await api.get('/jobs', { params });
-	if (Array.isArray(res.data)) {
-		return res.data as JobSummary[];
+export async function getJobs(params?: {
+	search?: string;
+	location?: string;
+	page?: number;
+	perPage?: number;
+	jobType?: string;
+	skillId?: string;
+	skillIds?: string[];
+	skillMatch?: 'any' | 'all';
+}) {
+	const sendParams: any = { ...(params || {}) };
+	if (params?.skillIds && Array.isArray(params.skillIds)) {
+		sendParams.skillIds = params.skillIds.join(',');
 	}
 
-	return (res.data?.data?.jobs ?? res.data?.jobs ?? []) as JobSummary[];
+	const res = await api.get('/jobs', { params: sendParams });
+	if (res.data?.data?.jobs || res.data?.jobs) {
+		const jobs = (res.data?.data?.jobs ?? res.data?.jobs) as JobSummary[];
+		const total = res.data?.data?.total ?? res.data?.total ?? jobs.length;
+		return { jobs, total } as { jobs: JobSummary[]; total: number };
+	}
+
+	if (Array.isArray(res.data)) {
+		return { jobs: res.data as JobSummary[], total: res.data.length };
+	}
+
+	const jobs = (res.data?.data?.jobs ?? res.data?.jobs ?? []) as JobSummary[];
+	const total = res.data?.data?.total ?? res.data?.total ?? jobs.length;
+	return { jobs, total } as { jobs: JobSummary[]; total: number };
 }
 
 export async function getJobById(id: string) {
@@ -77,4 +99,13 @@ export async function getApplications() {
 	}
 
 	return (res.data?.data?.applications ?? res.data?.applications ?? []) as JobApplication[];
+}
+
+export type SkillWithCount = { id: string; name: string; tag?: string | null; count: number };
+
+export async function getSkills() {
+  const res = await api.get('/skills');
+  const data = res.data?.data ?? res.data;
+  if (Array.isArray(data)) return data as SkillWithCount[];
+  return (data.skills ?? data) as SkillWithCount[];
 }

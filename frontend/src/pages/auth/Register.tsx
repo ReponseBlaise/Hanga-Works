@@ -38,7 +38,7 @@ export default function Register() {
           const role = (data.user.role ?? '').toLowerCase();
           if (role === 'employer') navigate('/employer');
           else if (role === 'admin') navigate('/admin');
-          else navigate('/dashboard');
+          else navigate('/jobs');
         }
       })
       .catch((err) => {

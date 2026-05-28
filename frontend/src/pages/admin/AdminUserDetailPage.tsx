@@ -1,12 +1,12 @@
 import { useParams } from 'react-router-dom';
-import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Card, CardMeta, CardTitle } from '../../components/ui/Card';
 
 export default function AdminUserDetailPage() {
   const { id } = useParams<{ id: string }>();
 
   return (
-    <DashboardLayout>
+    <SiteLayout>
       <div className="page-shell">
         <Card>
           <CardTitle>User Details</CardTitle>
@@ -14,6 +14,6 @@ export default function AdminUserDetailPage() {
           <CardMeta>Detailed admin profile view placeholder.</CardMeta>
         </Card>
       </div>
-    </DashboardLayout>
+    </SiteLayout>
   );
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Card, CardTitle, CardMeta } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import api from '../../services/api';
@@ -28,7 +28,7 @@ export default function AdminPanelPage() {
   }, []);
 
   return (
-    <DashboardLayout>
+    <SiteLayout>
       <section>
         <header className="page-header">
           <h2>Admin Panel</h2>
@@ -77,6 +77,6 @@ export default function AdminPanelPage() {
           )}
         </section>
       </section>
-    </DashboardLayout>
+    </SiteLayout>
   );
 }

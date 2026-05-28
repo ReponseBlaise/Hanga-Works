@@ -1,5 +1,5 @@
 import api from './api';
-import type { CreateJobPayload, JobSummary, JobType } from './jobs.service';
+import type { CreateJobPayload, JobSummary } from './jobs.service';
 
 export type EmployerStats = {
 	totalJobs: number;
@@ -32,7 +32,7 @@ export async function getEmployerAnalytics() {
 }
 
 export async function getEmployerJobs() {
-	const res = await api.get('/jobs');
+	const res = await api.get('/employer/jobs');
 	if (Array.isArray(res.data)) {
 		return res.data as EmployerJob[];
 	}
