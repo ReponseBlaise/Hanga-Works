@@ -98,6 +98,8 @@ model User {
   notifications  Notification[]
   auditLogs      AuditLog[]
   refreshTokens  RefreshToken[]
+  mentorProfile  MentorProfile?
+  mentorSessions MentorSession[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -153,13 +155,13 @@ model Skill {
 }
 
 model UserSkill {
-  id      String           @id @default(uuid())
-  userId  String
-  user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  skillId String
-  skill   Skill            @relation(fields: [skillId], references: [id])
-  level   ProficiencyLevel @default(BEGINNER)
-  verified Boolean         @default(false)
+  id       String           @id @default(uuid())
+  userId   String
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skillId  String
+  skill    Skill            @relation(fields: [skillId], references: [id])
+  level    ProficiencyLevel @default(BEGINNER)
+  verified Boolean          @default(false)
 
   createdAt DateTime @default(now())
 
@@ -171,11 +173,11 @@ model UserSkill {
 // ============================================================
 
 model Course {
-  id          String  @id @default(uuid())
-  title       String
-  slug        String  @unique
-  description String
-  published   Boolean @default(false)
+  id           String  @id @default(uuid())
+  title        String
+  slug         String  @unique
+  description  String
+  published    Boolean @default(false)
   thumbnailUrl String?
 
   // Relations
@@ -230,12 +232,12 @@ model Enrollment {
 // ============================================================
 
 model Certification {
-  id       String  @id @default(uuid())
-  code     String  @unique @default(uuid())
+  id       String        @id @default(uuid())
+  code     String        @unique @default(uuid())
   userId   String
-  user     User    @relation(fields: [userId], references: [id])
+  user     User          @relation(fields: [userId], references: [id])
   courseId String?
-  course   Course? @relation(fields: [courseId], references: [id])
+  course   Course?       @relation(fields: [courseId], references: [id])
   issuerId String?
   issuer   Organization? @relation(fields: [issuerId], references: [id])
   pdfUrl   String?
@@ -268,8 +270,8 @@ model Job {
   skills       JobSkill[]
   applications Application[]
 
-  postedAt  DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  postedAt  DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   expiresAt DateTime?
 
   @@index([isActive])
@@ -344,4 +346,62 @@ model AuditLog {
   createdAt DateTime @default(now())
 
   @@index([actorId])
+}
+
+// ============================================================
+// MENTORSHIP SYSTEM
+// ============================================================
+
+model MentorProfile {
+  id           String  @id @default(uuid())
+  userId       String  @unique
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expertise    String
+  bio          String?
+  hourlyRate   Int?    @default(0)
+  availability String?
+
+  sessions MentorSession[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum SessionStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  COMPLETED
+  CANCELLED
+}
+
+model MentorSession {
+  id              String        @id @default(uuid())
+  mentorId        String
+  mentor          MentorProfile @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  menteeId        String
+  mentee          User          @relation(fields: [menteeId], references: [id], onDelete: Cascade)
+  status          SessionStatus @default(PENDING)
+  scheduledAt     DateTime
+  durationMinutes Int           @default(60)
+  meetingLink     String?
+  notes           String?
+
+  review SessionReview?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([mentorId])
+  @@index([menteeId])
+}
+
+model SessionReview {
+  id        String        @id @default(uuid())
+  sessionId String        @unique
+  session   MentorSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  rating    Int // 1-5
+  feedback  String?
+
+  createdAt DateTime @default(now())
 }

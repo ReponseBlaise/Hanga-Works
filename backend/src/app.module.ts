@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { PrismaService } from './prisma/prisma.service';
 import { RedisService } from './redis/redis.service';
 import { CoursesModule } from './lms/courses/courses.module';
@@ -11,8 +11,10 @@ import { JobsModule } from './jobs/jobs.module';
 import { CertificationsModule } from './certifications/certifications.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { EmployerModule } from './employer/employer.module';
+import { AuditInterceptor } from './common/interceptors/audit.interceptor';
 
 @Module({
   imports: [
@@ -31,6 +33,7 @@ import { EmployerModule } from './employer/employer.module';
     AnalyticsModule,
     NotificationsModule,
     AuthModule,
+    UsersModule,
     EmployerModule,
   ],
   providers: [
@@ -39,6 +42,10 @@ import { EmployerModule } from './employer/employer.module';
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: AuditInterceptor,
     },
   ],
 })
