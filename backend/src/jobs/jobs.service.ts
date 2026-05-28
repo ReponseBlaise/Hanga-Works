@@ -55,7 +55,7 @@ export class JobsService {
 
   // ── GET /jobs (with filters) ──────────────────────────────────────────────
   async findAll(filters: FilterJobsDto) {
-    const { search, location, jobType, skillId, page = 1, perPage = 20 } = filters as any;
+    const { search, location, jobType, skillId, skillIds, page = 1, perPage = 20 } = filters as any;
 
     const where: any = {
       isActive: true,
@@ -67,8 +67,14 @@ export class JobsService {
           { description: { contains: search, mode: 'insensitive' } },
         ],
       }),
-      ...(skillId && { skills: { some: { skillId } } }),
     };
+
+    // prefer multiple skillIds if provided, otherwise single skillId
+    if (skillIds && Array.isArray(skillIds) && skillIds.length) {
+      where.skills = { some: { skillId: { in: skillIds } } };
+    } else if (skillId) {
+      where.skills = { some: { skillId } };
+    }
 
     const total = await this.prisma.job.count({ where });
 

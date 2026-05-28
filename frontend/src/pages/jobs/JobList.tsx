@@ -30,7 +30,7 @@ export default function JobList() {
 	const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
 	const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
 	const [skills, setSkills] = useState<SkillWithCount[]>([]);
-	const [selectedSkillId, setSelectedSkillId] = useState<string | null>(null);
+	const [selectedSkillIds, setSelectedSkillIds] = useState<string[]>([]);
 	const [salaryMin, setSalaryMin] = useState<number | undefined>(undefined);
 	const [salaryMax, setSalaryMax] = useState<number | undefined>(undefined);
 
@@ -50,7 +50,7 @@ export default function JobList() {
 			jobType: filters.jobType === 'ALL' ? undefined : filters.jobType,
 			page,
 			perPage,
-			skillId: selectedSkillId ?? undefined,
+			skillIds: selectedSkillIds.length ? selectedSkillIds : undefined,
 		})
 			.then((resp) => {
 				if (!active) return;
@@ -68,7 +68,7 @@ export default function JobList() {
 		return () => {
 			active = false;
 		};
-	}, [filters.search, filters.location, filters.jobType, filters.remoteOnly, page, perPage, selectedSkillId]);
+	}, [filters.search, filters.location, filters.jobType, filters.remoteOnly, page, perPage, selectedSkillIds]);
 
 	// load skills
 	useEffect(() => {
@@ -235,15 +235,21 @@ export default function JobList() {
 								<p className="filter-section__title">Industry / Skills</p>
 								<div className="filter-checkbox-list">
 									<label>
-										<input type="radio" name="skill" checked={!selectedSkillId} onChange={() => { setSelectedSkillId(null); setPage(1); }} /> All
+										<input type="checkbox" checked={selectedSkillIds.length === 0} onChange={() => { setSelectedSkillIds([]); setPage(1); }} /> All
 									</label>
 									{skills.map((s) => (
 										<label key={s.id}>
 											<input
-												type="radio"
-												name="skill"
-												checked={selectedSkillId === s.id}
-												onChange={() => { setSelectedSkillId(s.id); setPage(1); }}
+												type="checkbox"
+												checked={selectedSkillIds.includes(s.id)}
+												onChange={() => {
+												if (selectedSkillIds.includes(s.id)) {
+													setSelectedSkillIds((prev) => prev.filter((id) => id !== s.id));
+												} else {
+													setSelectedSkillIds((prev) => [...prev, s.id]);
+												}
+												setPage(1);
+											}}
 											/>
 											{s.name} <small>({s.count})</small>
 										</label>
