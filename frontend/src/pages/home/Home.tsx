@@ -46,6 +46,9 @@ export default function Home() {
   const { isAuthenticated } = useAuth();
   const [featuredJobs, setFeaturedJobs] = useState<JobSummary[]>([]);
   const [courses, setCourses] = useState<BackendCourse[]>([]);
+  const [search, setSearch] = useState('');
+  const [location, setLocation] = useState('');
+  const [roleType, setRoleType] = useState('ALL');
 
   useEffect(() => {
     let active = true;
@@ -88,6 +91,25 @@ export default function Home() {
       .map(([location, count]) => ({ location, count }));
   }, [featuredJobs]);
 
+  const filteredJobs = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    const locationQuery = location.trim().toLowerCase();
+
+    return featuredJobs.filter((job) => {
+      const matchesQuery =
+        !query ||
+        job.title.toLowerCase().includes(query) ||
+        job.description.toLowerCase().includes(query) ||
+        job.employer.name.toLowerCase().includes(query) ||
+        (job.skills ?? []).some((skill) => skill.skill.name.toLowerCase().includes(query));
+      const matchesLocation = !locationQuery || formatLocation(job.location).toLowerCase().includes(locationQuery);
+      const matchesType = roleType === 'ALL' || job.jobType === roleType;
+      return matchesQuery && matchesLocation && matchesType;
+    });
+  }, [featuredJobs, location, roleType, search]);
+
+  const quickChips = ['React', 'TypeScript', 'Node.js', 'Python', 'Data Analysis'];
+
   return (
     <div className="landing-page">
       <Navbar />
@@ -100,24 +122,73 @@ export default function Home() {
               HANGA WORKS connects learners and employers through live jobs, published courses, and a backend-driven hiring pipeline.
             </p>
 
-            <div className="landing-searchbar" role="search" aria-label="Search jobs">
-              <div className="landing-searchbar__field">Industry <span>⌄</span></div>
-              <div className="landing-searchbar__field">Location <span>⌄</span></div>
-              <div className="landing-searchbar__field landing-searchbar__field--wide">Your keyword...</div>
-              <Button href="#jobs-of-the-day" variant="primary" className="landing-searchbar__button">
-                Search
-              </Button>
+            <div className="landing-filter-card card" role="search" aria-label="Search jobs">
+              <div className="landing-filter-card__grid">
+                <label className="landing-filter-card__field landing-filter-card__field--wide">
+                  <span>Keyword</span>
+                  <input
+                    type="search"
+                    placeholder="Search by title, company, or skill"
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                  />
+                </label>
+
+                <label className="landing-filter-card__field">
+                  <span>Location</span>
+                  <input
+                    type="text"
+                    placeholder="Kigali, remote..."
+                    value={location}
+                    onChange={(event) => setLocation(event.target.value)}
+                  />
+                </label>
+
+                <label className="landing-filter-card__field">
+                  <span>Role type</span>
+                  <select value={roleType} onChange={(event) => setRoleType(event.target.value)}>
+                    <option value="ALL">All roles</option>
+                    <option value="FULL_TIME">Full time</option>
+                    <option value="PART_TIME">Part time</option>
+                    <option value="REMOTE">Remote</option>
+                    <option value="HYBRID">Hybrid</option>
+                    <option value="INTERNSHIP">Internship</option>
+                    <option value="FREELANCE">Freelance</option>
+                  </select>
+                </label>
+
+                <Button
+                  type="button"
+                  variant="primary"
+                  className="landing-filter-card__button"
+                  onClick={() => {
+                    const firstMatch = filteredJobs[0];
+                    if (firstMatch) {
+                      window.location.hash = '#jobs-of-the-day';
+                    }
+                  }}
+                >
+                  Find jobs
+                </Button>
+              </div>
+
+              <div className="landing-filter-card__chips">
+                <span className="landing-filter-card__chips-label">Quick filters</span>
+                {quickChips.map((chip) => (
+                  <button key={chip} type="button" className="landing-filter-card__chip" onClick={() => setSearch(chip)}>
+                    {chip}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="landing-popular-searches">
               <span>Popular Searches:</span>
-              <Link to="#">Designer</Link>
-              <Link to="#">Web</Link>
-              <Link to="#">iOS</Link>
-              <Link to="#">Developer</Link>
-              <Link to="#">PHP</Link>
-              <Link to="#">Senior</Link>
-              <Link to="#">Engineer</Link>
+              {['Designer', 'Web', 'iOS', 'Developer', 'PHP', 'Senior', 'Engineer'].map((item) => (
+                <button key={item} type="button" onClick={() => setSearch(item)}>
+                  {item}
+                </button>
+              ))}
             </div>
 
             <div className="landing-hero__actions">
@@ -173,16 +244,19 @@ export default function Home() {
               <p className="section-head__eyebrow">Jobs of the day</p>
               <h2>Open roles from the live database.</h2>
             </div>
+            <div className="landing-section__meta">
+              <span>{filteredJobs.length} matching job{filteredJobs.length === 1 ? '' : 's'}</span>
+            </div>
           </div>
 
           <div className="landing-job-grid">
-            {featuredJobs.length === 0 ? (
+            {filteredJobs.length === 0 ? (
               <Card className="landing-job-card">
-                <CardTitle>No live jobs yet</CardTitle>
-                <CardMeta>The backend job feed will appear here once employers post listings.</CardMeta>
+                <CardTitle>No jobs match this filter</CardTitle>
+                <CardMeta>Adjust the keyword, location, or role type to see more live openings.</CardMeta>
               </Card>
             ) : (
-              featuredJobs.map((job) => (
+              filteredJobs.map((job) => (
                 <Card key={job.id} className="landing-job-card">
                   <CardEyebrow>{job.employer.name}</CardEyebrow>
                   <CardTitle>{job.title}</CardTitle>
@@ -270,7 +344,7 @@ export default function Home() {
 
           <div className="landing-newsletter__form">
             <input type="email" placeholder="Enter your email here" aria-label="Email address" />
-            <Button href="#" variant="primary">
+            <Button type="button" variant="primary">
               Subscribe
             </Button>
           </div>
