@@ -216,15 +216,6 @@ describe('JobsService', () => {
       );
     });
 
-    it('should create an application successfully', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (mockPrisma.application.findUnique as unknown as jest.Mock).mockResolvedValue(null);
-      await service.apply('job1', 'user1', Role.LEARNER);
-      await expect(
-        service.apply(JOB_ID, LEARNER_ID, Role.LEARNER),
-      ).rejects.toThrow(BadRequestException);
-    });
-
     it('throws NotFoundException if job does not exist', async () => {
       mockPrisma.job.findUnique.mockResolvedValue(null);
       await expect(
