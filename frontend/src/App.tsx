@@ -18,6 +18,8 @@ import PostJob from './pages/employer/PostJob';
 import Applicants from './pages/employer/Applicants';
 import AdminPanelPage from './pages/admin/AdminPanelPage';
 import { useAuth } from './context/AuthContext';
+import CertificationList from './pages/certifications/CertificationList';
+import CertificationVerify from './pages/certifications/CertificationVerify';
 
 export default function App() {
   return (
@@ -39,7 +41,8 @@ export default function App() {
           <Route path="/applications" element={<MyApplications />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/profile/:username" element={<Profile />} />
-          <Route path="/certifications" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/certifications" element={<CertificationList />} />
+          <Route path="/certifications/verify/:token" element={<CertificationVerify />} />
           <Route path="/employer" element={<EmployerRoute><EmployerDashboard /></EmployerRoute>} />
           <Route path="/employer/post-job" element={<EmployerRoute><PostJob /></EmployerRoute>} />
           <Route path="/employer/applicants" element={<EmployerRoute><Applicants /></EmployerRoute>} />
