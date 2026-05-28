@@ -41,20 +41,20 @@ export type BackendCourse = {
 
 export async function getCourses() {
 	const res = await api.get('/courses');
-	return res.data?.data?.courses as BackendCourse[];
+	return res.data as BackendCourse[];
 }
 
 export async function getCourseById(id: string) {
 	const res = await api.get(`/courses/${id}`);
-	return res.data?.data?.course as BackendCourse;
+	return res.data as BackendCourse;
 }
 
 export async function enrollInCourse(courseId: string) {
-	const res = await api.post('/courses/enroll', { courseId });
-	return res.data?.data?.enrollment;
+	const res = await api.post('/enrollments', { courseId });
+	return res.data;
 }
 
 export async function updateLessonProgress(enrollmentId: string, progress?: number, completed?: boolean) {
-	const res = await api.post('/courses/progress', { enrollmentId, progress, completed });
-	return res.data?.data;
+	const res = await api.patch(`/progress/${enrollmentId}`, { progress, completed });
+	return res.data;
 }
