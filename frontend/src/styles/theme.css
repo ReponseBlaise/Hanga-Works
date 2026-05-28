@@ -1311,6 +1311,76 @@ select {
     align-items: start;
   }
 
+  .job-market-toolbar {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    padding: 18px;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(219, 228, 243, 0.95);
+    box-shadow: 0 18px 38px rgba(13, 47, 103, 0.08);
+  }
+
+  .job-market-toolbar label,
+  .job-market-toolbar__toggle {
+    display: grid;
+    gap: 8px;
+  }
+
+  .job-market-toolbar__toggle {
+    align-items: flex-start;
+    color: var(--text);
+    font-weight: 700;
+  }
+
+  .job-market-toolbar__toggle input {
+    width: auto;
+    margin: 0;
+    accent-color: var(--accent);
+  }
+
+  .courses-search,
+  .courses-filter {
+    display: grid;
+    gap: 6px;
+  }
+
+  .courses-search__label {
+    color: var(--text-soft);
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .courses-search input,
+  .courses-filter select,
+  .filter-section input,
+  .filter-section select {
+    width: 100%;
+    min-height: 52px;
+    padding: 0 16px;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.98);
+    color: var(--text);
+    outline: none;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
+
+  .courses-search input:focus,
+  .courses-filter select:focus,
+  .filter-section input:focus,
+  .filter-section select:focus {
+    border-color: var(--accent);
+  }
+
+  .filter-section label {
+    display: block;
+    width: 100%;
+  }
+
   .advance-filter {
     padding: 18px;
     display: grid;
@@ -1461,12 +1531,20 @@ select {
       grid-template-columns: 1fr;
     }
 
+    .job-market-toolbar {
+      grid-template-columns: 1fr 1fr;
+    }
+
     .job-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 
   @media (max-width: 640px) {
+    .job-market-toolbar {
+      grid-template-columns: 1fr;
+    }
+
     .job-grid {
       grid-template-columns: 1fr;
     }
@@ -2194,6 +2272,11 @@ select {
   grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
   gap: 22px;
   align-items: stretch;
+}
+
+/* When the right-hand stats column is intentionally removed, collapse to single column */
+.job-market-hero.no-stats {
+  grid-template-columns: 1fr;
 }
 
 .job-market-hero__stats {
