@@ -16,6 +16,7 @@ export const publicNavItems: NavItem[] = [
 	{ label: 'Home', href: '/' },
 	{ label: 'Courses', href: '/courses' },
 	{ label: 'Jobs', href: '/jobs' },
+	{ label: 'Mentors', href: '/mentors' },
 	{ label: 'For Employers', href: '/employer' },
 	{ label: 'Contact', href: '/contact' },
 ];
@@ -25,6 +26,7 @@ export const dashboardNavItems: NavItem[] = [
 	{ label: 'Dashboard', href: '/dashboard' },
 	{ label: 'Courses', href: '/courses' },
 	{ label: 'Job Marketplace', href: '/jobs' },
+	{ label: 'Mentors', href: '/mentors' },
 	{ label: 'My Applications', href: '/applications' },
 	{ label: 'Skill Profile', href: '/profile' },
 	{ label: 'Certifications', href: '/certifications' },

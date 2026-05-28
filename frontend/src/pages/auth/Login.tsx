@@ -24,6 +24,10 @@ export default function Login() {
             navigate('/employer');
             return;
           }
+          if (role === 'admin') {
+            navigate('/admin');
+            return;
+          }
           navigate('/dashboard');
         }
       })

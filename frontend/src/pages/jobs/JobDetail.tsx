@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
@@ -11,6 +12,9 @@ export default function JobDetail() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState('');
 	const [status, setStatus] = useState('');
+	const { isAuthenticated } = useAuth();
+	const navigate = useNavigate();
+	const location = useLocation();
 	const [similarJobs, setSimilarJobs] = useState<JobSummary[]>([]);
 
 	useEffect(() => {
@@ -49,13 +53,18 @@ export default function JobDetail() {
 
 	async function handleApply() {
 		if (!job) return;
+		if (!isAuthenticated) {
+			// redirect to login and return here after auth
+			navigate('/login', { state: { from: location.pathname } });
+			return;
+		}
 		setStatus('Applying...');
 		try {
 			await applyForJob(job.id);
 			setStatus('Application submitted successfully.');
 		} catch (applyError) {
 			console.error(applyError);
-			setStatus('Could not submit application. Please sign in and try again.');
+			setStatus('Could not submit application.');
 		}
 	}
 
@@ -84,8 +93,16 @@ export default function JobDetail() {
 										<p>{job.employer.website ?? 'Employer branding ready for preview'}</p>
 									</div>
 								</div>
-								<Button type="button" variant="primary" onClick={handleApply}>One-click apply</Button>
-								<Button to={`/jobs/${job.id}`} variant="secondary">Save role</Button>
+								{isAuthenticated ? (
+									<Button type="button" variant="primary" onClick={handleApply}>One-click apply</Button>
+								) : (
+									<Button to="/login" variant="primary">Sign in to apply</Button>
+								)}
+								{isAuthenticated ? (
+									<Button type="button" variant="secondary" onClick={handleApply}>Save role</Button>
+								) : (
+									<Button to="/login" variant="secondary">Sign in to save</Button>
+								)}
 								{status ? <p className="course-detail__quiz-note">{status}</p> : null}
 							</div>
 						</section>
