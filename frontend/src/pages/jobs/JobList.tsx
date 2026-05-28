@@ -178,24 +178,13 @@ export default function JobList() {
 	return (
 		<SiteLayout>
 			<section className="job-market-page">
-				<header className="job-market-hero card">
+				<header className="job-market-hero card no-stats">
 					<div>
 						<p className="section-head__eyebrow">Job marketplace</p>
 						<h2>Explore roles that fit your next move</h2>
 						<p className="card-meta">Search by title, employer, location, or role type. Open each posting for branding, details, and one-click apply.</p>
 					</div>
-					<div className="job-market-hero__stats">
-						<div className="hero-stat">
-							<span>Open roles</span>
-							<strong>{jobs.length}</strong>
-							<p>Loaded from the NestJS jobs endpoint.</p>
-						</div>
-						<div className="hero-stat">
-							<span>Visible now</span>
-							<strong>{filteredJobs.length}</strong>
-							<p>Match your current filters.</p>
-						</div>
-					</div>
+					{/* hero stats removed per request */}
 				</header>
 
 				<section className="job-market-toolbar card">
