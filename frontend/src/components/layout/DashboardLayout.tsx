@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
 import Footer from './Footer';
 import Navbar from './Topbar';
-import { Topbar } from './Topbar';
+import { DashboardTopbar } from './Topbar';
 import { useAuth } from '../../context/AuthContext';
 
 type DashboardLayoutProps = {
@@ -49,7 +49,7 @@ function DashboardFrame({ children }: DashboardLayoutProps) {
 			/>
 
 			<div className="dashboard-main">
-				<Topbar
+				<DashboardTopbar
 					userName={user?.name}
 					role={userRole}
 					unreadCount={4}

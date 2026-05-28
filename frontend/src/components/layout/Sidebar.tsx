@@ -21,7 +21,7 @@ export function Sidebar({ isOpen, onClose, brand, userName, userRole, userEmail 
 		.join('');
 
 	return (
-		<aside className={`sidebar ${isOpen ? 'sidebar-open' : ''}`.trim()} aria-label="Sidebar navigation">
+		<aside className={`sidebar ${isOpen ? 'sidebar-open' : ''}`.trim()} aria-label="Dashboard sidebar navigation">
 			<div className="sidebar__header">
 				{brand}
 				<button className="sidebar__close" type="button" onClick={onClose} aria-label="Close navigation">

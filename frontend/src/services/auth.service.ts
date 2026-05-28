@@ -39,10 +39,21 @@ export async function logout() {
 }
 
 export async function refresh() {
-	const res = await api.post('/auth/refresh');
-	const data = res.data?.data as AuthResponse;
-	if (data?.token) setAuthToken(data.token);
-	return data;
+	try {
+		const res = await api.post('/auth/refresh', null, {
+			validateStatus: () => true,
+		});
+
+		if (res.status < 200 || res.status >= 300) {
+			return null;
+		}
+
+		const data = res.data?.data as AuthResponse;
+		if (data?.token) setAuthToken(data.token);
+		return data;
+	} catch {
+		return null;
+	}
 }
 
 export default { register, login, profile, logout, refresh };

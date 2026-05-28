@@ -49,20 +49,32 @@ export type CreateJobPayload = {
 
 export async function getJobs(params?: { search?: string; location?: string }) {
 	const res = await api.get('/jobs', { params });
-	return res.data?.data?.jobs as JobSummary[];
+	if (Array.isArray(res.data)) {
+		return res.data as JobSummary[];
+	}
+
+	return (res.data?.data?.jobs ?? res.data?.jobs ?? []) as JobSummary[];
 }
 
 export async function getJobById(id: string) {
 	const res = await api.get(`/jobs/${id}`);
-	return res.data?.data?.job as JobSummary;
+	if (res.data?.data?.job) {
+		return res.data.data.job as JobSummary;
+	}
+
+	return (res.data?.job ?? res.data) as JobSummary;
 }
 
 export async function applyForJob(jobId: string) {
 	const res = await api.post(`/jobs/${jobId}/apply`, {});
-	return res.data?.data?.application;
+	return res.data?.data?.application ?? res.data?.application ?? res.data;
 }
 
 export async function getApplications() {
 	const res = await api.get('/applications');
-	return res.data?.data?.applications as JobApplication[];
+	if (Array.isArray(res.data)) {
+		return res.data as JobApplication[];
+	}
+
+	return (res.data?.data?.applications ?? res.data?.applications ?? []) as JobApplication[];
 }

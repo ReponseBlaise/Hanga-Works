@@ -65,6 +65,10 @@ select {
   min-height: 100vh;
 }
 
+.dashboard-page {
+  --dashboard-navbar-offset: 60px;
+}
+
 .dashboard-shell {
   width: min(100%, var(--content-width));
   margin: 0 auto;
@@ -82,9 +86,9 @@ select {
 
 .sidebar {
   position: sticky;
-  top: 0;
+  top: var(--dashboard-navbar-offset);
   align-self: start;
-  height: 100vh;
+  height: calc(100vh - var(--dashboard-navbar-offset));
   padding: 24px 20px 28px;
   background: rgba(255, 255, 255, 0.7);
   border-right: 1px solid rgba(219, 228, 243, 0.9);
@@ -243,9 +247,11 @@ select {
   margin-bottom: 28px;
   padding: 20px 22px;
   border-radius: 28px;
-  background: rgba(255, 255, 255, 0.74);
-  border: 1px solid rgba(219, 228, 243, 0.9);
-  box-shadow: var(--shadow);
+  background:
+    linear-gradient(135deg, rgba(37, 71, 202, 0.1), rgba(255, 255, 255, 0.78) 44%, rgba(255, 255, 255, 0.9)),
+    rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(219, 228, 243, 0.92);
+  box-shadow: 0 20px 48px rgba(13, 47, 103, 0.12);
   backdrop-filter: blur(18px);
 }
 
@@ -1411,6 +1417,10 @@ select {
 }
 
 @media (max-width: 980px) {
+  .dashboard-page {
+    --dashboard-navbar-offset: 72px;
+  }
+
   .landing-hero,
   .landing-section--split,
   .landing-category-row,
@@ -1895,6 +1905,21 @@ select {
   border-radius: 10px;
   background: linear-gradient(135deg, var(--accent), var(--accent-strong));
   box-shadow: 0 4px 14px rgba(37, 71, 202, 0.22);
+}
+
+.public-navbar__signin,
+.public-navbar__register,
+.public-navbar__dashboard {
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 150ms, color 150ms, border-color 150ms, box-shadow 150ms;
+  font: inherit;
+  font-size: 0.88rem;
+}
+
+.public-navbar__signin {
+  appearance: none;
+  border: none;
 }
 
 .public-navbar__dashboard {

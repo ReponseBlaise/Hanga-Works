@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { publicNavItems } from '../../constants/routes';
 import { useAuth } from '../../context/AuthContext';
 
-export function Topbar({ userName, role, unreadCount, onMenuToggle }: { userName?: string; role?: string; unreadCount?: number; onMenuToggle?: () => void }) {
+export function DashboardTopbar({ userName, role, unreadCount, onMenuToggle }: { userName?: string; role?: string; unreadCount?: number; onMenuToggle?: () => void }) {
 	const initials = (userName ?? 'User')
 		.split(' ')
 		.filter(Boolean)
@@ -50,7 +50,7 @@ export function Topbar({ userName, role, unreadCount, onMenuToggle }: { userName
 
 export default function Navbar() {
 	const location = useLocation();
-	const { user, isAuthenticated } = useAuth();
+	const { user, isAuthenticated, signOut } = useAuth();
 	const [hovered, setHovered] = useState<string | null>(null);
 	const [menuOpen, setMenuOpen] = useState(false);
 
@@ -64,14 +64,6 @@ export default function Navbar() {
 		if (role === 'ADMIN') return '/admin';
 		return '/dashboard';
 	}, [user?.role]);
-
-	const profileHref = useMemo(() => {
-		const username = user?.username?.trim();
-		if (username) {
-			return `/profile/${username}`;
-		}
-		return '/profile';
-	}, [user?.username]);
 
 	function isNavActive(href: string) {
 		if (href === '/') return location.pathname === '/';
@@ -126,14 +118,21 @@ export default function Navbar() {
 							<Link to={dashboardHref} className="public-navbar__dashboard" onClick={() => setMenuOpen(false)}>
 								Dashboard
 							</Link>
-							<Link to={profileHref} className="public-navbar__signin" onClick={() => setMenuOpen(false)}>
-								Profile
-							</Link>
+							<button
+								type="button"
+								className="public-navbar__signin"
+								onClick={() => {
+									setMenuOpen(false);
+									signOut();
+								}}
+							>
+								Sign Out
+							</button>
 						</>
 					) : (
 						<>
 							<Link to="/register" className="public-navbar__register" onClick={() => setMenuOpen(false)}>
-								Register
+								Sign Up
 							</Link>
 							<Link to="/login" className="public-navbar__signin" onClick={() => setMenuOpen(false)}>
 								Sign In

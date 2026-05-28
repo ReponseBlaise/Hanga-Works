@@ -14,7 +14,7 @@ export type NavItem = {
 /** Public marketing navbar (auth / landing pages) */
 export const publicNavItems: NavItem[] = [
 	{ label: 'Home', href: '/' },
-	{ label: 'Find a Job', href: '/jobs' },
+	{ label: 'Find Job', href: '/jobs' },
 	{ label: 'Recruiters', href: '/employer' },
 	{ label: 'Candidates', href: '/candidates' },
 	{ label: 'Pages', href: '/pricing' },

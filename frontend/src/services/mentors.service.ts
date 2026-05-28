@@ -54,7 +54,11 @@ function saveBooking(mentorId: string, payload: { date: string; notes?: string }
 export async function getMentors() {
   try {
     const res = await api.get('/mentors');
-    return res.data?.data?.mentors as MentorSummary[];
+    if (Array.isArray(res.data)) {
+      return res.data as MentorSummary[];
+    }
+
+    return (res.data?.data?.mentors ?? res.data?.mentors ?? []) as MentorSummary[];
   } catch (e) {
     return fallbackMentors;
   }
@@ -63,7 +67,7 @@ export async function getMentors() {
 export async function getMentorById(id: string) {
   try {
     const res = await api.get(`/mentors/${id}`);
-    return res.data?.data?.mentor as MentorSummary | null;
+    return (res.data?.data?.mentor ?? res.data?.mentor ?? res.data) as MentorSummary | null;
   } catch (e) {
     return fallbackMentors.find((mentor) => mentor.id === id) ?? null;
   }
@@ -72,7 +76,7 @@ export async function getMentorById(id: string) {
 export async function bookSession(mentorId: string, payload: { date: string; notes?: string }) {
   try {
     const res = await api.post(`/mentors/${mentorId}/book`, payload);
-    return res.data;
+    return res.data?.data ?? res.data;
   } catch (e) {
     saveBooking(mentorId, payload);
     return { data: { booking: { mentorId, ...payload, status: 'confirmed-local' } } };
