@@ -1,21 +1,52 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import * as authService from '../../services/auth.service';
 
 const ROLES = [
-  { value: 'job_seeker', label: 'Job Seeker' },
-  { value: 'employer', label: 'Employer' },
-  { value: 'trainer', label: 'Trainer' },
+  { value: 'LEARNER', label: 'Job Seeker' },
+  { value: 'EMPLOYER', label: 'Employer' },
+  { value: 'INSTITUTION', label: 'Institution' },
+  { value: 'MENTOR', label: 'Mentor' },
+
 ];
 
 export default function Register() {
   const [form, setForm] = useState({
-    name: '', email: '', username: '', password: '', confirmPassword: '', role: '', agreed: false,
+    name: '', email: '', password: '', role: '' as '' | 'LEARNER' | 'EMPLOYER' | 'INSTITUTION' | 'MENTOR',
   });
+  const navigate = useNavigate();
+  const { signIn } = useAuth();
 
   const focus = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) =>
     (e.target.style.borderColor = 'var(--accent)');
   const blur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) =>
     (e.target.style.borderColor = 'var(--border)');
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    authService.register({ name: form.name, email: form.email, password: form.password, role: form.role || undefined })
+      .then((data) => {
+        if (data?.user) {
+          signIn(data.user);
+          const role = (data.user.role ?? '').toLowerCase();
+          if (role === 'employer') navigate('/employer');
+          else if (role === 'admin') navigate('/admin');
+          else navigate('/dashboard');
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        setError(err?.response?.data?.message || err.message || 'Registration failed');
+      })
+      .finally(() => setLoading(false));
+  };
 
   return (
     <div style={{
@@ -34,10 +65,10 @@ export default function Register() {
         Start for free Today
       </h1>
       <p style={{ margin: '0 0 24px', fontSize: '0.85rem', color: 'var(--text-soft)' }}>
-        Access to all features. No credit card required.
+        Create your account with the same fields used by the backend: name, email, password, and role.
       </p>
 
-      <form onSubmit={e => e.preventDefault()} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
         <Field label="Full Name *">
           <input type="text" placeholder="Enter full name" required
             value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
@@ -50,19 +81,20 @@ export default function Register() {
             style={inputStyle} onFocus={focus} onBlur={blur} />
         </Field>
 
-        <Field label="Username *">
-          <input type="text" placeholder="username" required
-            value={form.username} onChange={e => setForm({ ...form, username: e.target.value })}
-            style={inputStyle} onFocus={focus} onBlur={blur} />
-        </Field>
-
-        <Field label="Role *">
-          <select required value={form.role}
-            onChange={e => setForm({ ...form, role: e.target.value })}
-            style={{ ...inputStyle, appearance: 'none' } as React.CSSProperties}
-            onFocus={focus} onBlur={blur}>
-            <option value="" disabled>Select your role</option>
-            {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+        <Field label="Role">
+          <select
+            value={form.role}
+            onChange={(e) => setForm({ ...form, role: e.target.value as any })}
+            style={inputStyle}
+            onFocus={focus}
+            onBlur={blur}
+          >
+            <option value="">Select role</option>
+            {ROLES.map((r) => (
+              <option key={r.value} value={r.value}>
+                {r.label}
+              </option>
+            ))}
           </select>
         </Field>
 
@@ -72,25 +104,8 @@ export default function Register() {
             style={inputStyle} onFocus={focus} onBlur={blur} />
         </Field>
 
-        <Field label="Re-Password *">
-          <input type="password" placeholder="••••••••" required
-            value={form.confirmPassword} onChange={e => setForm({ ...form, confirmPassword: e.target.value })}
-            style={inputStyle} onFocus={focus} onBlur={blur} />
-        </Field>
-
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--text-soft)', cursor: 'pointer' }}>
-            <input type="checkbox" required checked={form.agreed}
-              onChange={e => setForm({ ...form, agreed: e.target.checked })}
-              style={{ accentColor: 'var(--accent)', width: '15px', height: '15px' }} />
-            Agree our terms and policy
-          </label>
-          <Link to="/terms" style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--accent)' }}>
-            Learn more
-          </Link>
-        </div>
-
-        <button type="submit" style={btnStyle}>Submit &amp; Register</button>
+        <button type="submit" style={{ ...btnStyle, opacity: loading ? 0.7 : 1 }} disabled={loading}>{loading ? 'Creating…' : 'Submit & Register'}</button>
+        {error && <p style={{ color: 'var(--danger)', fontSize: '0.9rem' }}>{error}</p>}
       </form>
 
       <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '0.88rem', color: 'var(--text-soft)' }}>
