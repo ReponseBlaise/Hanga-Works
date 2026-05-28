@@ -51,7 +51,7 @@ export default function CertificationVerify() {
           <p>Issued: {new Date(cert.issuedAt).toLocaleDateString()}</p>
           {cert.pdfUrl ? (
             <p>
-              <Button to={cert.pdfUrl} variant="ghost" external>Download PDF</Button>
+              <Button href={cert.pdfUrl} variant="ghost" target="_blank" rel="noreferrer">Download PDF</Button>
             </p>
           ) : null}
           <p>Certificate ID: {cert.id}</p>

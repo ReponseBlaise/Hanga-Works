@@ -64,7 +64,7 @@ export default function CertificationList() {
                 <CardMeta>
                   <div className="cert-actions">
                     {c.pdfUrl ? (
-                      <Button to={c.pdfUrl} variant="ghost" external>
+                      <Button href={c.pdfUrl} variant="ghost" target="_blank" rel="noreferrer">
                         Download PDF
                       </Button>
                     ) : null}

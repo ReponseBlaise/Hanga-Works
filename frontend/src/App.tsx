@@ -17,9 +17,16 @@ import EmployerDashboard from './pages/employer/EmployerDashboard';
 import PostJob from './pages/employer/PostJob';
 import Applicants from './pages/employer/Applicants';
 import AdminPanelPage from './pages/admin/AdminPanelPage';
+import AdminExportPage from './pages/admin/AdminExportPage';
+import AdminModerationPage from './pages/admin/AdminModerationPage';
+import AdminUserDetailPage from './pages/admin/AdminUserDetailPage';
 import { useAuth } from './context/AuthContext';
 import CertificationList from './pages/certifications/CertificationList';
 import CertificationVerify from './pages/certifications/CertificationVerify';
+import MentorList from './pages/mentors/MentorList';
+import MentorProfile from './pages/mentors/MentorProfile';
+import MentorBooking from './pages/mentors/MentorBooking';
+import Contact from './pages/contact/Contact';
 
 export default function App() {
   return (
@@ -43,11 +50,17 @@ export default function App() {
           <Route path="/profile/:username" element={<Profile />} />
           <Route path="/certifications" element={<CertificationList />} />
           <Route path="/certifications/verify/:token" element={<CertificationVerify />} />
+          <Route path="/mentors" element={<MentorList />} />
+          <Route path="/mentors/:id" element={<MentorProfile />} />
+          <Route path="/mentors/:id/book" element={<MentorBooking />} />
           <Route path="/employer" element={<EmployerRoute><EmployerDashboard /></EmployerRoute>} />
           <Route path="/employer/post-job" element={<EmployerRoute><PostJob /></EmployerRoute>} />
           <Route path="/employer/applicants" element={<EmployerRoute><Applicants /></EmployerRoute>} />
-          <Route path="/contact" element={<Navigate to="/#contact" replace />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="/admin" element={<AdminRoute><AdminPanelPage /></AdminRoute>} />
+          <Route path="/admin/export" element={<AdminRoute><AdminExportPage /></AdminRoute>} />
+          <Route path="/admin/moderation" element={<AdminRoute><AdminModerationPage /></AdminRoute>} />
+          <Route path="/admin/users/:id" element={<AdminRoute><AdminUserDetailPage /></AdminRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
