@@ -87,3 +87,12 @@ export async function getApplications() {
 
 	return (res.data?.data?.applications ?? res.data?.applications ?? []) as JobApplication[];
 }
+
+export type SkillWithCount = { id: string; name: string; tag?: string | null; count: number };
+
+export async function getSkills() {
+  const res = await api.get('/skills');
+  const data = res.data?.data ?? res.data;
+  if (Array.isArray(data)) return data as SkillWithCount[];
+  return (data.skills ?? data) as SkillWithCount[];
+}

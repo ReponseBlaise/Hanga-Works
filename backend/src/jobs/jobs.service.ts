@@ -182,6 +182,31 @@ export class JobsService {
       .slice(0, 10);
   }
 
+  // ── GET /skills (with counts for active jobs) ─────────────────────────────
+  async getSkills() {
+    // group jobSkills by skillId for active jobs
+    const groups = await this.prisma.jobSkill.groupBy({
+      by: ['skillId'],
+      where: { job: { isActive: true } },
+      _count: { _all: true },
+    } as any);
+
+    const skillIds = groups.map((g) => g.skillId);
+
+    if (skillIds.length === 0) return [];
+
+    const skills = await this.prisma.skill.findMany({
+      where: { id: { in: skillIds } },
+      select: { id: true, name: true, tag: true },
+    });
+
+    const countsMap = new Map(groups.map((g) => [g.skillId, g._count?._all ?? 0]));
+
+    return skills
+      .map((s) => ({ id: s.id, name: s.name, tag: s.tag, count: countsMap.get(s.id) ?? 0 }))
+      .sort((a, b) => (b.count ?? 0) - (a.count ?? 0));
+  }
+
   // ── GET /applications ─────────────────────────────────────────────────────
   async getApplications(userId: string, userRole: string) {
     if (userRole === Role.LEARNER) {

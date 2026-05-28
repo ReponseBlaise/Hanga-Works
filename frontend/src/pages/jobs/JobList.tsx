@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
-import { getJobs, type JobSummary, type JobType } from '../../services/jobs.service';
+import { getJobs, getSkills, type SkillWithCount, type JobSummary, type JobType } from '../../services/jobs.service';
 import type { JobFilterState } from '../../types/job.types';
 
 const filterOptions: Array<{ label: string; value: JobFilterState['jobType'] }> = [
@@ -29,6 +29,8 @@ export default function JobList() {
 	// additional filters
 	const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
 	const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
+	const [skills, setSkills] = useState<SkillWithCount[]>([]);
+	const [selectedSkillId, setSelectedSkillId] = useState<string | null>(null);
 	const [salaryMin, setSalaryMin] = useState<number | undefined>(undefined);
 	const [salaryMax, setSalaryMax] = useState<number | undefined>(undefined);
 
@@ -48,6 +50,7 @@ export default function JobList() {
 			jobType: filters.jobType === 'ALL' ? undefined : filters.jobType,
 			page,
 			perPage,
+			skillId: selectedSkillId ?? undefined,
 		})
 			.then((resp) => {
 				if (!active) return;
@@ -65,7 +68,22 @@ export default function JobList() {
 		return () => {
 			active = false;
 		};
-	}, [filters.search, filters.location, filters.jobType, filters.remoteOnly, page, perPage]);
+	}, [filters.search, filters.location, filters.jobType, filters.remoteOnly, page, perPage, selectedSkillId]);
+
+	// load skills
+	useEffect(() => {
+		let active = true;
+		getSkills()
+			.then((list) => {
+				if (!active) return;
+				setSkills(list ?? []);
+			})
+			.catch((err) => console.error('Failed to load skills', err));
+
+		return () => {
+			active = false;
+		};
+	}, []);
 
 	const filteredJobs = useMemo(() => {
 		const query = filters.search.trim().toLowerCase();
@@ -213,15 +231,25 @@ export default function JobList() {
 							<input value={filters.location} onChange={(e) => setFilters((p) => ({ ...p, location: e.target.value }))} placeholder="New York, US" />
 						</div>
 
-						<div className="filter-section">
-							<p className="filter-section__title">Industry</p>
-							<div className="filter-checkbox-list">
-								<label><input type="checkbox" /> All</label>
-								<label><input type="checkbox" /> Software</label>
-								<label><input type="checkbox" /> Finance</label>
-								<label><input type="checkbox" /> Recruiting</label>
+							<div className="filter-section">
+								<p className="filter-section__title">Industry / Skills</p>
+								<div className="filter-checkbox-list">
+									<label>
+										<input type="radio" name="skill" checked={!selectedSkillId} onChange={() => { setSelectedSkillId(null); setPage(1); }} /> All
+									</label>
+									{skills.map((s) => (
+										<label key={s.id}>
+											<input
+												type="radio"
+												name="skill"
+												checked={selectedSkillId === s.id}
+												onChange={() => { setSelectedSkillId(s.id); setPage(1); }}
+											/>
+											{s.name} <small>({s.count})</small>
+										</label>
+									))}
+								</div>
 							</div>
-						</div>
 
 						<div className="filter-section">
 							<label>Salary Range</label>
