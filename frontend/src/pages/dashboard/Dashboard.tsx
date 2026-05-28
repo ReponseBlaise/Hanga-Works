@@ -68,9 +68,9 @@ export function Dashboard() {
 		let active = true;
 
 		Promise.all([getJobs(), getCourses(), getApplications(), getMyCertificates()])
-			.then(([jobItems, courseItems, applicationItems, certificateItems]) => {
+			.then(([jobsResponse, courseItems, applicationItems, certificateItems]) => {
 				if (!active) return;
-				setJobs(jobItems ?? []);
+				setJobs(jobsResponse?.jobs ?? []);
 				setCourses(courseItems ?? []);
 				setApplications(applicationItems ?? []);
 				setCertificates(certificateItems ?? []);

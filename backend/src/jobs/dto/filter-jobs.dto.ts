@@ -1,4 +1,4 @@
-import { IsOptional, IsEnum, IsString, IsUUID, IsInt, Min, IsArray } from 'class-validator';
+import { IsOptional, IsEnum, IsString, IsUUID, IsInt, Min, IsArray, IsIn } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { JobType } from '@prisma/client';
 
@@ -29,6 +29,10 @@ export class FilterJobsDto {
     return value;
   })
   skillIds?: string[];
+
+  @IsOptional()
+  @IsIn(['any', 'all'])
+  skillMatch?: 'any' | 'all';
 
   @IsOptional()
   @Type(() => Number)

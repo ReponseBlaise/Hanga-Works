@@ -55,7 +55,7 @@ export class JobsService {
 
   // ── GET /jobs (with filters) ──────────────────────────────────────────────
   async findAll(filters: FilterJobsDto) {
-    const { search, location, jobType, skillId, skillIds, page = 1, perPage = 20 } = filters as any;
+    const { search, location, jobType, skillId, skillIds, skillMatch = 'any', page = 1, perPage = 20 } = filters as any;
 
     const where: any = {
       isActive: true,
@@ -71,7 +71,11 @@ export class JobsService {
 
     // prefer multiple skillIds if provided, otherwise single skillId
     if (skillIds && Array.isArray(skillIds) && skillIds.length) {
-      where.skills = { some: { skillId: { in: skillIds } } };
+      if (skillMatch === 'all') {
+        where.AND = skillIds.map((id: string) => ({ skills: { some: { skillId: id } } }));
+      } else {
+        where.skills = { some: { skillId: { in: skillIds } } };
+      }
     } else if (skillId) {
       where.skills = { some: { skillId } };
     }

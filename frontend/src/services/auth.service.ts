@@ -48,8 +48,8 @@ export async function refresh() {
 			return null;
 		}
 
-		const data = res.data?.data as AuthResponse;
-		if (data?.token) setAuthToken(data.token);
+		const data = (res.data?.data ?? res.data) as Partial<AuthResponse>;
+		if (data?.access_token) setAuthToken(data.access_token);
 		return data;
 	} catch {
 		return null;

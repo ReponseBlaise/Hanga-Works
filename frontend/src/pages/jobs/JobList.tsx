@@ -31,6 +31,7 @@ export default function JobList() {
 	const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
 	const [skills, setSkills] = useState<SkillWithCount[]>([]);
 	const [selectedSkillIds, setSelectedSkillIds] = useState<string[]>([]);
+	const [skillMatch, setSkillMatch] = useState<'any' | 'all'>('any');
 	const [salaryMin, setSalaryMin] = useState<number | undefined>(undefined);
 	const [salaryMax, setSalaryMax] = useState<number | undefined>(undefined);
 
@@ -51,6 +52,7 @@ export default function JobList() {
 			page,
 			perPage,
 			skillIds: selectedSkillIds.length ? selectedSkillIds : undefined,
+			skillMatch,
 		})
 			.then((resp) => {
 				if (!active) return;
@@ -68,7 +70,7 @@ export default function JobList() {
 		return () => {
 			active = false;
 		};
-	}, [filters.search, filters.location, filters.jobType, filters.remoteOnly, page, perPage, selectedSkillIds]);
+	}, [filters.search, filters.location, filters.jobType, filters.remoteOnly, page, perPage, selectedSkillIds, skillMatch]);
 
 	// load skills
 	useEffect(() => {
@@ -225,6 +227,8 @@ export default function JobList() {
 						<h3>Advance Filter</h3>
 						<button className="button button-ghost" onClick={() => {
 							setFilters({ search: '', location: '', jobType: 'ALL', remoteOnly: false });
+							setSelectedSkillIds([]);
+							setSkillMatch('any');
 						}}>Reset</button>
 						<div className="filter-section">
 							<label>Location</label>
@@ -232,7 +236,26 @@ export default function JobList() {
 						</div>
 
 							<div className="filter-section">
-								<p className="filter-section__title">Industry / Skills</p>
+								<div className="filter-section__header">
+									<p className="filter-section__title">Industry / Skills</p>
+									<div className="skill-match-toggle" role="group" aria-label="Skill match mode">
+										<button
+											type="button"
+											className={`skill-match-toggle__btn ${skillMatch === 'any' ? 'is-active' : ''}`}
+											onClick={() => { setSkillMatch('any'); setPage(1); }}
+										>
+											Any
+										</button>
+										<button
+											type="button"
+											className={`skill-match-toggle__btn ${skillMatch === 'all' ? 'is-active' : ''}`}
+											onClick={() => { setSkillMatch('all'); setPage(1); }}
+										>
+											All
+										</button>
+									</div>
+								</div>
+								<p className="filter-section__hint">Choose whether jobs must match any selected skill or all selected skills.</p>
 								<div className="filter-checkbox-list">
 									<label>
 										<input type="checkbox" checked={selectedSkillIds.length === 0} onChange={() => { setSelectedSkillIds([]); setPage(1); }} /> All

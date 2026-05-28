@@ -22,5 +22,6 @@ export async function getMyCertificates() {
 
 export async function verifyCertificate(token: string) {
 	const res = await api.get(`/certificates/verify/${token}`);
-	return res.data?.data?.certificate as LearnerCertificate;
+	return res.data as LearnerCertificate;
+	return (res.data?.data?.certificate ?? res.data?.certificate ?? res.data) as LearnerCertificate;
 }
