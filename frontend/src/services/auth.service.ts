@@ -15,22 +15,26 @@ type AuthResponse = {
 };
 
 export async function register(payload: { name: string; email: string; password: string; role?: 'LEARNER' | 'EMPLOYER' | 'INSTITUTION' | 'MENTOR' }) {
-	const res = await api.post('/auth/register', payload);
-	const data = res.data?.data as AuthResponse;
-	if (data?.token) setAuthToken(data.token);
-	return data;
+	// Create the account
+	await api.post('/auth/register', payload);
+	// Immediately log in to get the token
+	return await login({ email: payload.email, password: payload.password });
 }
 
 export async function login(payload: { email: string; password: string }) {
 	const res = await api.post('/auth/login', payload);
-	const data = res.data?.data as AuthResponse;
-	if (data?.token) setAuthToken(data.token);
-	return data;
+	const data = res.data;
+	
+	if (data?.access_token) {
+		setAuthToken(data.access_token);
+		return { token: data.access_token, user: data.user } as AuthResponse;
+	}
+	throw new Error("Invalid response from server");
 }
 
 export async function profile() {
-	const res = await api.get('/auth/profile');
-	return res.data?.data?.user as AuthUser;
+	const res = await api.get('/users/me');
+	return res.data as AuthUser;
 }
 
 export async function logout() {
@@ -40,9 +44,12 @@ export async function logout() {
 
 export async function refresh() {
 	const res = await api.post('/auth/refresh');
-	const data = res.data?.data as AuthResponse;
-	if (data?.token) setAuthToken(data.token);
-	return data;
+	const data = res.data;
+	if (data?.access_token) {
+		setAuthToken(data.access_token);
+		return { token: data.access_token, user: data.user } as AuthResponse;
+	}
+	throw new Error("Failed to refresh token");
 }
 
 export default { register, login, profile, logout, refresh };
