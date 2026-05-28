@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Navigate, Link } from 'react-router-dom';
-import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import { SiteLayout } from '../../components/layout/SiteLayout';
 import { getMyCertificates, LearnerCertificate } from '../../services/certificates.service';
 import { useAuth } from '../../context/AuthContext';
 import { Card, CardEyebrow, CardTitle, CardMeta } from '../../components/ui/Card';
@@ -37,7 +37,7 @@ export default function CertificationList() {
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 
   return (
-    <DashboardLayout>
+    <SiteLayout>
       <div className="page-shell">
         <header className="page-head">
           <h1>Certificates</h1>
@@ -81,6 +81,6 @@ export default function CertificationList() {
           </div>
         )}
       </div>
-    </DashboardLayout>
+    </SiteLayout>
   );
 }

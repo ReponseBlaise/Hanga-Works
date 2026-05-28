@@ -53,9 +53,9 @@ export default function Home() {
   useEffect(() => {
     let active = true;
     Promise.all([getJobs(), getCourses()])
-      .then(([jobs, courseItems]) => {
+      .then(([jobResult, courseItems]) => {
         if (!active) return;
-        setFeaturedJobs(jobs.slice(0, 6));
+        setFeaturedJobs(jobResult.jobs.slice(0, 6));
         setCourses(courseItems.slice(0, 6));
       })
       .catch((error) => console.error('Failed to load home data', error));
@@ -192,8 +192,8 @@ export default function Home() {
             </div>
 
             <div className="landing-hero__actions">
-              <Link to={isAuthenticated ? '/dashboard' : '/register'} className="button button-primary">
-                {isAuthenticated ? 'Go to dashboard' : 'Create account'}
+              <Link to={isAuthenticated ? '/jobs' : '/register'} className="button button-primary">
+                {isAuthenticated ? 'Browse jobs' : 'Create account'}
               </Link>
               <Link to="/login" className="button button-secondary">
                 Sign in

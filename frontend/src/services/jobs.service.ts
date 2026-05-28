@@ -47,22 +47,65 @@ export type CreateJobPayload = {
 	salaryMax?: number | string;
 };
 
-export async function getJobs(params?: { search?: string; location?: string }) {
-	const res = await api.get('/jobs', { params });
-	return res.data?.data?.jobs as JobSummary[];
+export async function getJobs(params?: {
+	search?: string;
+	location?: string;
+	page?: number;
+	perPage?: number;
+	jobType?: string;
+	skillId?: string;
+	skillIds?: string[];
+	skillMatch?: 'any' | 'all';
+}) {
+	const sendParams: any = { ...(params || {}) };
+	if (params?.skillIds && Array.isArray(params.skillIds)) {
+		sendParams.skillIds = params.skillIds.join(',');
+	}
+
+	const res = await api.get('/jobs', { params: sendParams });
+	if (res.data?.data?.jobs || res.data?.jobs) {
+		const jobs = (res.data?.data?.jobs ?? res.data?.jobs) as JobSummary[];
+		const total = res.data?.data?.total ?? res.data?.total ?? jobs.length;
+		return { jobs, total } as { jobs: JobSummary[]; total: number };
+	}
+
+	if (Array.isArray(res.data)) {
+		return { jobs: res.data as JobSummary[], total: res.data.length };
+	}
+
+	const jobs = (res.data?.data?.jobs ?? res.data?.jobs ?? []) as JobSummary[];
+	const total = res.data?.data?.total ?? res.data?.total ?? jobs.length;
+	return { jobs, total } as { jobs: JobSummary[]; total: number };
 }
 
 export async function getJobById(id: string) {
 	const res = await api.get(`/jobs/${id}`);
-	return res.data?.data?.job as JobSummary;
+	if (res.data?.data?.job) {
+		return res.data.data.job as JobSummary;
+	}
+
+	return (res.data?.job ?? res.data) as JobSummary;
 }
 
 export async function applyForJob(jobId: string) {
 	const res = await api.post(`/jobs/${jobId}/apply`, {});
-	return res.data?.data?.application;
+	return res.data?.data?.application ?? res.data?.application ?? res.data;
 }
 
 export async function getApplications() {
 	const res = await api.get('/applications');
-	return res.data?.data?.applications as JobApplication[];
+	if (Array.isArray(res.data)) {
+		return res.data as JobApplication[];
+	}
+
+	return (res.data?.data?.applications ?? res.data?.applications ?? []) as JobApplication[];
+}
+
+export type SkillWithCount = { id: string; name: string; tag?: string | null; count: number };
+
+export async function getSkills() {
+  const res = await api.get('/skills');
+  const data = res.data?.data ?? res.data;
+  if (Array.isArray(data)) return data as SkillWithCount[];
+  return (data.skills ?? data) as SkillWithCount[];
 }

@@ -41,7 +41,7 @@ export type BackendCourse = {
 
 export async function getCourses() {
 	const res = await api.get('/courses');
-	return res.data?.data?.courses as BackendCourse[];
+	return res.data as BackendCourse[];
 }
 
 export async function getCourseById(id: string) {

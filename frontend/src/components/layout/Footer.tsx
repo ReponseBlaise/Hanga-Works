@@ -15,7 +15,6 @@ const columns = [
     links: [
       { label: 'Mentors', href: '/mentors' },
       { label: 'Certifications', href: '/certifications' },
-      { label: 'Dashboard', href: '/dashboard' },
       { label: 'Login', href: '/login' },
     ],
   },
@@ -25,7 +24,6 @@ const columns = [
       { label: 'Register', href: '/register' },
       { label: 'Profile', href: '/profile' },
       { label: 'Applications', href: '/applications' },
-      { label: 'Employer', href: '/employer' },
     ],
   },
   {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Card, CardEyebrow, CardTitle, CardMeta } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { getMentorById, MentorSummary } from '../../services/mentors.service';
@@ -21,7 +21,7 @@ export default function MentorProfile() {
   }, [id]);
 
   return (
-    <DashboardLayout>
+    <SiteLayout>
       <div className="page-shell">
         <Link to="/mentors" className="link">← Back to mentors</Link>
         {loading ? <p>Loading mentor…</p> : null}
@@ -38,6 +38,6 @@ export default function MentorProfile() {
           <Card className="courses-empty"><CardTitle>Mentor not found</CardTitle><CardMeta>Try another mentor or return to the list.</CardMeta></Card>
         )}
       </div>
-    </DashboardLayout>
+    </SiteLayout>
   );
 }
