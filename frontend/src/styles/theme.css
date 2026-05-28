@@ -2675,6 +2675,53 @@ select {
   margin-bottom: 18px;
 }
 
+.pricing-grid,
+.faq-grid,
+.candidate-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.pricing-card,
+.faq-card,
+.candidate-card {
+  display: grid;
+  gap: 14px;
+}
+
+.pricing-card--featured {
+  border-color: rgba(37, 71, 202, 0.34);
+  box-shadow: var(--shadow-strong);
+}
+
+.pricing-card__price {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  color: var(--accent);
+}
+
+.pricing-card__price span {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.pricing-card__list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text-soft);
+  line-height: 1.7;
+}
+
+.candidate-card .job-card__tags {
+  margin-top: 2px;
+}
+
 @media (max-width: 980px) {
   .courses-hero,
   .courses-filters,
@@ -2686,7 +2733,10 @@ select {
   .job-detail-grid,
   .profile-grid,
   .profile-form-grid,
-  .onboarding-wizard__steps {
+  .onboarding-wizard__steps,
+  .pricing-grid,
+  .faq-grid,
+  .candidate-grid {
     grid-template-columns: 1fr;
   }
 }
