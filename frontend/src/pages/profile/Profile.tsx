@@ -81,18 +81,26 @@ export default function Profile() {
 	return (
 		<SiteLayout>
 			<section className="profile-page">
-				<header className="job-market-hero card">
-					<div>
+				<header className="profile-hero card">
+					<div className="profile-hero__main">
 						<p className="section-head__eyebrow">Profile</p>
 						<h2>{authUser?.name ?? 'Your profile'} · {userName}</h2>
 						<p className="card-meta">Manage skills, experiences, certificates, and your public share link.</p>
-					</div>
-					<div className="job-market-hero__stats">
-						<div className="hero-stat">
-							<span>Certificates</span>
-							<strong>{certificates.length}</strong>
-							<p>Issued by completed learning paths.</p>
+						<div className="profile-hero__actions">
+							<Button to={publicProfileLink} variant="primary">Open public view</Button>
+							<Button to="/courses" variant="secondary">Continue learning</Button>
 						</div>
+					</div>
+					<div className="profile-hero__side">
+						<Card className="profile-hero__card">
+							<CardEyebrow>Profile health</CardEyebrow>
+							<CardTitle>At a glance</CardTitle>
+							<div className="dashboard-trend-list">
+								<div className="dashboard-trend-row"><span>Certificates</span><strong>{certificates.length}</strong></div>
+								<div className="dashboard-trend-row"><span>Skills</span><strong>{skills.length}</strong></div>
+								<div className="dashboard-trend-row"><span>Experiences</span><strong>{experience.length}</strong></div>
+							</div>
+						</Card>
 					</div>
 				</header>
 
