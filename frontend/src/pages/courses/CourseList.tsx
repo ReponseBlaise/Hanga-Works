@@ -56,6 +56,18 @@ export function CourseList() {
 						<h2 className="courses-hero__title">Browse courses</h2>
 						<p className="card-meta">Search database-backed courses by title, description, institution, or skill.</p>
 					</div>
+					<div className="courses-hero__visual">
+						<img
+							src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80"
+							alt="People collaborating on learning goals"
+							className="courses-hero__image"
+							loading="lazy"
+						/>
+						<div className="courses-hero__visual-caption">
+							<strong>Live learning feed</strong>
+							<span>Courses are loaded directly from the LMS database.</span>
+						</div>
+					</div>
 					<div className="courses-hero__stats">
 						<div className="hero-stat">
 							<span>Published courses</span>

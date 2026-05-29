@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
-import { getJobs, getSkills, type SkillWithCount, type JobSummary, type JobType } from '../../services/jobs.service';
+import { getJobs, type JobSummary, type JobType } from '../../services/jobs.service';
 import type { JobFilterState } from '../../types/job.types';
 
 const filterOptions: Array<{ label: string; value: JobFilterState['jobType'] }> = [
@@ -26,59 +26,11 @@ export default function JobList() {
 		remoteOnly: false,
 	});
 
-	// additional filters
-	const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
-	const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
-	const [skills, setSkills] = useState<SkillWithCount[]>([]);
-	const [selectedSkillIds, setSelectedSkillIds] = useState<string[]>([]);
-	const [skillMatch, setSkillMatch] = useState<'any' | 'all'>('any');
-	const [salaryMin, setSalaryMin] = useState<number | undefined>(undefined);
-	const [salaryMax, setSalaryMax] = useState<number | undefined>(undefined);
-
 	// pagination + sorting
 	const [page, setPage] = useState(1);
 	const [perPage, setPerPage] = useState(12);
 	const [sortBy, setSortBy] = useState<'newest' | 'relevance' | 'salary-desc' | 'salary-asc'>('newest');
 	const [totalResults, setTotalResults] = useState(0);
-
-	const industryOptions = [
-		{ label: 'All', count: totalResults || 180 },
-		{ label: 'Software', count: 12 },
-		{ label: 'Finance', count: 23 },
-		{ label: 'Recruiting', count: 43 },
-		{ label: 'Management', count: 46 },
-		{ label: 'Advertising', count: 76 },
-	];
-
-	const salaryOptions = [
-		{ label: 'All', count: totalResults || 145 },
-		{ label: '$0k - $20k', count: 56 },
-		{ label: '$20k - $40k', count: 37 },
-		{ label: '$40k - $60k', count: 75 },
-		{ label: '$60k - $80k', count: 86 },
-		{ label: '$80k - $100k', count: 14 },
-		{ label: '$100k - $200k', count: 25 },
-	];
-
-	const positionOptions = [
-		{ label: 'Senior', count: 12 },
-		{ label: 'Junior', count: 35 },
-		{ label: 'Fresher', count: 56 },
-	];
-
-	const experienceOptions = [
-		{ label: 'Internship', count: 56 },
-		{ label: 'Entry Level', count: 87 },
-		{ label: 'Associate', count: 24 },
-		{ label: 'Mid Level', count: 45 },
-		{ label: 'Director', count: 76 },
-		{ label: 'Executive', count: 89 },
-	];
-
-	const remoteOptions = [
-		{ label: 'On-site', count: 12 },
-		{ label: 'Remote', count: 65 },
-	];
 
 	useEffect(() => {
 		let active = true;
@@ -90,8 +42,6 @@ export default function JobList() {
 			jobType: filters.jobType === 'ALL' ? undefined : filters.jobType,
 			page,
 			perPage,
-			skillIds: selectedSkillIds.length ? selectedSkillIds : undefined,
-			skillMatch,
 		})
 			.then((resp) => {
 				if (!active) return;
@@ -109,22 +59,7 @@ export default function JobList() {
 		return () => {
 			active = false;
 		};
-	}, [filters.search, filters.location, filters.jobType, filters.remoteOnly, page, perPage, selectedSkillIds, skillMatch]);
-
-	// load skills
-	useEffect(() => {
-		let active = true;
-		getSkills()
-			.then((list) => {
-				if (!active) return;
-				setSkills(list ?? []);
-			})
-			.catch((err) => console.error('Failed to load skills', err));
-
-		return () => {
-			active = false;
-		};
-	}, []);
+	}, [filters.search, filters.location, filters.jobType, filters.remoteOnly, page, perPage]);
 
 	const filteredJobs = useMemo(() => {
 		const query = filters.search.trim().toLowerCase();
@@ -139,60 +74,13 @@ export default function JobList() {
 			const matchesType = filters.jobType === 'ALL' || job.jobType === filters.jobType;
 			const matchesRemote = !filters.remoteOnly || job.jobType === 'REMOTE';
 
-			// industry filter (best-effort: match industry label in description)
-			const matchesIndustry =
-				selectedIndustries.length === 0 ||
-				selectedIndustries.some((ind) => (job.description ?? '').toLowerCase().includes(ind.toLowerCase()));
-
-			// keyword filter: any selected keyword contained in title/description/employer
-			const matchesKeywords =
-				selectedKeywords.length === 0 ||
-				selectedKeywords.some((kw) => {
-					const k = kw.toLowerCase();
-					return (
-						job.title.toLowerCase().includes(k) ||
-						job.description.toLowerCase().includes(k) ||
-						job.employer.name.toLowerCase().includes(k)
-					);
-				});
-
-			// salary filter (best-effort using min/max bounds)
-			const salaryOk = (() => {
-				if (!salaryMin && !salaryMax) return true;
-				const min = job.salaryMin ?? 0;
-				const max = job.salaryMax ?? min;
-				if (salaryMin && max < salaryMin) return false;
-				if (salaryMax && min > salaryMax) return false;
-				return true;
-			})();
-
 			return matchesQuery && matchesLocation && matchesType && matchesRemote;
 		});
-	}, [filters, jobs]);
-
-	// apply additional filters
-	const fullyFilteredJobs = useMemo(() => {
-		return filteredJobs.filter((job) => {
-			const industryOk = selectedIndustries.length === 0 || selectedIndustries.some((ind) => (job.description ?? '').toLowerCase().includes(ind.toLowerCase()));
-			const keywordsOk = selectedKeywords.length === 0 || selectedKeywords.some((kw) => {
-				const k = kw.toLowerCase();
-				return job.title.toLowerCase().includes(k) || job.description.toLowerCase().includes(k) || job.employer.name.toLowerCase().includes(k);
-			});
-			const salaryOk = (() => {
-				if (!salaryMin && !salaryMax) return true;
-				const min = job.salaryMin ?? 0;
-				const max = job.salaryMax ?? min;
-				if (salaryMin && max < salaryMin) return false;
-				if (salaryMax && min > salaryMax) return false;
-				return true;
-			})();
-			return industryOk && keywordsOk && salaryOk;
-		});
-	}, [filteredJobs, selectedIndustries, selectedKeywords, salaryMin, salaryMax]);
+	}, [filters.search, filters.location, filters.jobType, filters.remoteOnly, jobs]);
 
 	// sorting
 	const sortedJobs = useMemo(() => {
-		const copy = [...fullyFilteredJobs];
+		const copy = [...filteredJobs];
 		switch (sortBy) {
 			case 'salary-desc':
 				return copy.sort((a, b) => (b.salaryMax ?? b.salaryMin ?? 0) - (a.salaryMax ?? a.salaryMin ?? 0));
@@ -208,7 +96,7 @@ export default function JobList() {
 					return db - da;
 				});
 		}
-	}, [fullyFilteredJobs, sortBy]);
+	}, [filteredJobs, sortBy]);
 
 	// pagination (server provides paginated results; `jobs` is the current page)
 	const totalPages = Math.max(1, Math.ceil(totalResults / perPage));
@@ -249,233 +137,99 @@ export default function JobList() {
 					</label>
 				</section>
 
-				{/* Main body: left filter column + results grid */}
-				<div className="job-market-body">
-					<aside className="advance-filter card">
-						<div className="advance-filter__header">
-							<h3>Advance Filter</h3>
-							<button className="button button-ghost advance-filter__reset" onClick={() => {
-							setFilters({ search: '', location: '', jobType: 'ALL', remoteOnly: false });
-							setSelectedSkillIds([]);
-							setSkillMatch('any');
-							}}>Reset</button>
+				<section className="job-market-results">
+					<div className="job-market-controls">
+						<div className="job-market-counts">Showing {Math.min((page - 1) * perPage + 1, totalResults)}-{Math.min(page * perPage, totalResults)} of {totalResults} jobs</div>
+						<div className="job-market-sorting">
+							<label>
+								Sort by
+								<select value={sortBy} onChange={(e) => { setSortBy(e.target.value as any); setPage(1); }}>
+									<option value="newest">Newest</option>
+									<option value="relevance">Relevance</option>
+									<option value="salary-desc">Salary (high → low)</option>
+									<option value="salary-asc">Salary (low → high)</option>
+								</select>
+							</label>
+							<label>
+								Per page
+								<select value={perPage} onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1); }}>
+									<option value={6}>6</option>
+									<option value={12}>12</option>
+									<option value={24}>24</option>
+								</select>
+							</label>
 						</div>
-						<div className="filter-section">
-							<label>Location</label>
-							<input value={filters.location} onChange={(e) => setFilters((p) => ({ ...p, location: e.target.value }))} placeholder="New York, US" />
-						</div>
-
-							<div className="filter-section">
-								<div className="filter-section__header">
-									<p className="filter-section__title">Industry / Skills</p>
-									<div className="skill-match-toggle" role="group" aria-label="Skill match mode">
-										<button
-											type="button"
-											className={`skill-match-toggle__btn ${skillMatch === 'any' ? 'is-active' : ''}`}
-											onClick={() => { setSkillMatch('any'); setPage(1); }}
-										>
-											Any
-										</button>
-										<button
-											type="button"
-											className={`skill-match-toggle__btn ${skillMatch === 'all' ? 'is-active' : ''}`}
-											onClick={() => { setSkillMatch('all'); setPage(1); }}
-										>
-											All
-										</button>
-									</div>
-								</div>
-								<p className="filter-section__hint">Choose whether jobs must match any selected skill or all selected skills.</p>
-								<div className="filter-checkbox-list">
-									<label>
-										<input type="checkbox" checked={selectedSkillIds.length === 0} onChange={() => { setSelectedSkillIds([]); setPage(1); }} /> All
-									</label>
-									{skills.map((s) => (
-										<label key={s.id}>
-											<input
-												type="checkbox"
-												checked={selectedSkillIds.includes(s.id)}
-												onChange={() => {
-												if (selectedSkillIds.includes(s.id)) {
-													setSelectedSkillIds((prev) => prev.filter((id) => id !== s.id));
-												} else {
-													setSelectedSkillIds((prev) => [...prev, s.id]);
-												}
-												setPage(1);
-											}}
-											/>
-											{s.name} <small>({s.count})</small>
-										</label>
-									))}
-								</div>
-							</div>
-
-						<div className="filter-section">
-							<label>Salary Range</label>
-							<div className="salary-range">
-								<input type="number" placeholder="$0" />
-								<input type="number" placeholder="$500" />
-							</div>
-						</div>
-
-						<div className="filter-section">
-							<p className="filter-section__title">Industry</p>
-							<div className="filter-checkbox-list">
-								{industryOptions.map((option) => (
-									<label key={option.label} className="filter-row">
-										<span className="filter-row__left">
-											<input type="checkbox" checked={option.label === 'All'} readOnly />
-											{option.label}
-										</span>
-										<span className="filter-row__count">{option.count}</span>
-									</label>
-								))}
-							</div>
-						</div>
-
-						<div className="filter-section">
-							<p className="filter-section__title">Position</p>
-							<div className="filter-checkbox-list">
-								{positionOptions.map((option) => (
-									<label key={option.label} className="filter-row">
-										<span className="filter-row__left"><input type="radio" name="position" /> {option.label}</span>
-										<span className="filter-row__count">{option.count}</span>
-									</label>
-								))}
-							</div>
-						</div>
-
-						<div className="filter-section">
-							<p className="filter-section__title">Experience Level</p>
-							<div className="filter-checkbox-list">
-								{experienceOptions.map((option) => (
-									<label key={option.label} className="filter-row">
-										<span className="filter-row__left"><input type="checkbox" /> {option.label}</span>
-										<span className="filter-row__count">{option.count}</span>
-									</label>
-								))}
-							</div>
-						</div>
-
-						<div className="filter-section">
-							<p className="filter-section__title">Onsite/Remote</p>
-							<div className="filter-checkbox-list">
-								{remoteOptions.map((option) => (
-									<label key={option.label} className="filter-row">
-										<span className="filter-row__left">
-											<input
-												type="checkbox"
-												checked={option.label === 'Remote' ? filters.remoteOnly : false}
-												onChange={(e) => {
-													if (option.label === 'Remote') {
-														setFilters((p) => ({ ...p, remoteOnly: e.target.checked }));
-													}
-												}}
-											/>
-											{option.label}
-										</span>
-										<span className="filter-row__count">{option.count}</span>
-									</label>
-								))}
-							</div>
-						</div>
-					</aside>
-
-					<section className="job-market-results">
-						<div className="job-market-controls">
-							<div className="job-market-counts">Showing {Math.min((page - 1) * perPage + 1, totalResults)}-{Math.min(page * perPage, totalResults)} of {totalResults} jobs</div>
-							<div className="job-market-sorting">
-								<label>
-									Sort by
-									<select value={sortBy} onChange={(e) => { setSortBy(e.target.value as any); setPage(1); }}>
-										<option value="newest">Newest</option>
-										<option value="relevance">Relevance</option>
-										<option value="salary-desc">Salary (high → low)</option>
-										<option value="salary-asc">Salary (low → high)</option>
-									</select>
-								</label>
-								<label>
-									Per page
-									<select value={perPage} onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1); }}>
-										<option value={6}>6</option>
-										<option value={12}>12</option>
-										<option value={24}>24</option>
-									</select>
-								</label>
-							</div>
-						</div>
-						{loading ? <p>Loading jobs…</p> : null}
-						{!loading && totalResults === 0 ? (
+					</div>
+					{loading ? <p>Loading jobs…</p> : null}
+					{!loading && totalResults === 0 ? (
 						<Card className="courses-empty">
 							<CardTitle>No jobs match your filters</CardTitle>
 							<CardMeta>Broaden your search or clear a filter to view more openings.</CardMeta>
 						</Card>
-						) : null}
-							<div className="job-grid">
-								{paginatedJobs.map((job) => (
-									<Card key={job.id} className="job-card job-card--marketplace">
-										<div className="job-card__top">
-											<div className="job-card__avatar">
-												<div className="avatar avatar-sm" aria-hidden>
-													{job.employer.name.split(' ').map((p) => p[0]).join('').slice(0,2).toUpperCase()}
-												</div>
-											</div>
-											<div className="job-card__titlewrap">
-												<CardEyebrow>{job.employer.name}</CardEyebrow>
-												<CardTitle><Link to={`/jobs/${job.id}`}>{job.title}</Link></CardTitle>
-											</div>
-											<div className="job-card__match">{job.jobType.replace('_', ' ')}</div>
+					) : null}
+					<div className="job-grid">
+						{paginatedJobs.map((job) => (
+							<Card key={job.id} className="job-card job-card--marketplace">
+								<div className="job-card__top">
+									<div className="job-card__avatar">
+										<div className="avatar avatar-sm" aria-hidden>
+											{job.employer.name.split(' ').map((p) => p[0]).join('').slice(0,2).toUpperCase()}
 										</div>
+									</div>
+									<div className="job-card__titlewrap">
+										<CardEyebrow>{job.employer.name}</CardEyebrow>
+										<CardTitle><Link to={`/jobs/${job.id}`}>{job.title}</Link></CardTitle>
+									</div>
+									<div className="job-card__match">{job.jobType.replace('_', ' ')}</div>
+								</div>
 
-										<CardMeta>
-											<span className="job-card__metaitem">
-												<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-													<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-													<circle cx="12" cy="9" r="2.2" fill="currentColor" />
+								<CardMeta>
+									<span className="job-card__metaitem">
+										<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+											<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+											<circle cx="12" cy="9" r="2.2" fill="currentColor" />
+										</svg>
+										{job.location ?? 'Remote friendly'}
+									</span>
+									<span className="job-card__metaitem">
+										<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+											<path d="M12 1v22" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+											<path d="M6 6h12v6H6z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+										</svg>
+										{formatSalary(job.salaryMin, job.salaryMax)}
+									</span>
+								</CardMeta>
+
+								{job.skills && job.skills.length ? (
+									<div className="job-card__tags">
+										{job.skills.slice(0,6).map((js) => (
+											<span key={js.id} title={js.skill.name} className="job-tag">
+												<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+													<path d="M5 12h14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+													<path d="M12 5v14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
 												</svg>
-												{job.location ?? 'Remote friendly'}
+												{js.skill.name}
 											</span>
-											<span className="job-card__metaitem">
-												<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-													<path d="M12 1v22" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-													<path d="M6 6h12v6H6z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-												</svg>
-												{formatSalary(job.salaryMin, job.salaryMax)}
-											</span>
-										</CardMeta>
+										))}
+									</div>
+								) : null}
 
-										{job.skills && job.skills.length ? (
-											<div className="job-card__tags">
-												{job.skills.slice(0,6).map((js) => (
-													<span key={js.id} title={js.skill.name} className="job-tag">
-														<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-															<path d="M5 12h14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-															<path d="M12 5v14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-														</svg>
-														{js.skill.name}
-													</span>
-												))}
-											</div>
-										) : null}
-
-										<p className="job-card__description">{job.description}</p>
-										<div className="job-card__actions">
-											<Button to={`/jobs/${job.id}`} variant="secondary">Open details</Button>
-											<Button to={`/jobs/${job.id}`} variant="primary">Apply now</Button>
-										</div>
-									</Card>
-								))}
-							</div>
-						{/* pagination controls */}
-						{totalResults > perPage && (
-							<div className="job-market-pagination">
-								<button className="button" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Previous</button>
-								<div className="pagination-pages">Page {page} / {totalPages}</div>
-								<button className="button" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>Next</button>
-							</div>
-						)}
-					</section>
+								<p className="job-card__description">{job.description}</p>
+								<div className="job-card__actions">
+									<Button to={`/jobs/${job.id}`} variant="secondary">Open details</Button>
+									<Button to={`/jobs/${job.id}`} variant="primary">Apply now</Button>
+								</div>
+							</Card>
+						))}
 					</div>
+					{totalResults > perPage && (
+						<div className="job-market-pagination">
+							<button className="button" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Previous</button>
+							<div className="pagination-pages">Page {page} / {totalPages}</div>
+							<button className="button" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>Next</button>
+						</div>
+					)}
+				</section>
 			</section>
 		</SiteLayout>
 	);
