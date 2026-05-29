@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Card, CardMeta, CardTitle } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
@@ -92,75 +93,77 @@ export default function Applicants() {
   }
 
   return (
-    <section>
-      <header className="page-header">
-        <h2>Applicants</h2>
-        <div>
-          <Button to="/employer/post-job">Post Job</Button>
-          <Button variant="secondary" onClick={() => navigate('/employer')}>Overview</Button>
-        </div>
-      </header>
-
-      <div className="form-stack" style={{ marginBottom: 16 }}>
-        <label>
-          Job
-          <select value={selectedJobId} onChange={(e) => setSelectedJobId(e.target.value)}>
-            {jobs.length === 0 ? (
-              <option value="">No jobs available</option>
-            ) : jobs.map((job) => (
-              <option key={job.id} value={job.id}>{job.title}</option>
-            ))}
-          </select>
-        </label>
-      </div>
-
-      {loading ? <p>Loading applicants…</p> : null}
-      <div className="kanban">
-        {pipelineStages.map((stage) => (
-          <div className="kanban-column" key={stage}>
-            <h3 className="kanban-title">{stageLabels[stage]}</h3>
-            <div className="kanban-list">
-              {grouped[stage].map((c) => (
-                <article key={c.id} className="kanban-card" onClick={() => setActive(c)}>
-                  <Card>
-                    <CardTitle>{c.name}</CardTitle>
-                    <CardMeta>{c.email}</CardMeta>
-                    {c.jobTitle ? <CardMeta>{c.jobTitle}</CardMeta> : null}
-                  </Card>
-                </article>
-              ))}
-            </div>
-            <div className="kanban-actions">
-              {stage !== 'HIRED' && stage !== 'REJECTED' && (
-                <Button variant="ghost" onClick={() => {
-                  const nextIndex = pipelineStages.indexOf(stage) + 1;
-                  const next = pipelineStages[nextIndex];
-                  grouped[stage].forEach((c) => moveCandidate(c.id, next));
-                }}>Move all →</Button>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <Modal open={!!active} onClose={() => setActive(null)} title={active?.name} variant="drawer" actions={
-        <div style={{ display: 'flex', gap: 8 }}>
-          {active && active.stage !== 'HIRED' && active.stage !== 'REJECTED' && (
-            <Button onClick={() => moveCandidate(active.id, pipelineStages[pipelineStages.indexOf(active.stage) + 1])}>Move to next</Button>
-          )}
-          <Button variant="secondary" onClick={() => setActive(null)}>Close</Button>
-        </div>
-      }>
-        {active ? (
+    <SiteLayout>
+      <section>
+        <header className="page-header">
+          <h2>Applicants</h2>
           <div>
-            <p><strong>Email:</strong> {active.email}</p>
-            <p><strong>Stage:</strong> {stageLabels[active.stage]}</p>
-            {active.jobTitle ? <p><strong>Job:</strong> {active.jobTitle}</p> : null}
-            <p>{active.summary}</p>
+            <Button to="/employer/post-job">Post Job</Button>
+            <Button variant="secondary" onClick={() => navigate('/employer')}>Overview</Button>
           </div>
-        ) : null}
-      </Modal>
-    </section>
+        </header>
+
+        <div className="form-stack" style={{ marginBottom: 16 }}>
+          <label>
+            Job
+            <select value={selectedJobId} onChange={(e) => setSelectedJobId(e.target.value)}>
+              {jobs.length === 0 ? (
+                <option value="">No jobs available</option>
+              ) : jobs.map((job) => (
+                <option key={job.id} value={job.id}>{job.title}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        {loading ? <p>Loading applicants…</p> : null}
+        <div className="kanban">
+          {pipelineStages.map((stage) => (
+            <div className="kanban-column" key={stage}>
+              <h3 className="kanban-title">{stageLabels[stage]}</h3>
+              <div className="kanban-list">
+                {grouped[stage].map((c) => (
+                  <article key={c.id} className="kanban-card" onClick={() => setActive(c)}>
+                    <Card>
+                      <CardTitle>{c.name}</CardTitle>
+                      <CardMeta>{c.email}</CardMeta>
+                      {c.jobTitle ? <CardMeta>{c.jobTitle}</CardMeta> : null}
+                    </Card>
+                  </article>
+                ))}
+              </div>
+              <div className="kanban-actions">
+                {stage !== 'HIRED' && stage !== 'REJECTED' && (
+                  <Button variant="ghost" onClick={() => {
+                    const nextIndex = pipelineStages.indexOf(stage) + 1;
+                    const next = pipelineStages[nextIndex];
+                    grouped[stage].forEach((c) => moveCandidate(c.id, next));
+                  }}>Move all →</Button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <Modal open={!!active} onClose={() => setActive(null)} title={active?.name} variant="drawer" actions={
+          <div style={{ display: 'flex', gap: 8 }}>
+            {active && active.stage !== 'HIRED' && active.stage !== 'REJECTED' && (
+              <Button onClick={() => moveCandidate(active.id, pipelineStages[pipelineStages.indexOf(active.stage) + 1])}>Move to next</Button>
+            )}
+            <Button variant="secondary" onClick={() => setActive(null)}>Close</Button>
+          </div>
+        }>
+          {active ? (
+            <div>
+              <p><strong>Email:</strong> {active.email}</p>
+              <p><strong>Stage:</strong> {stageLabels[active.stage]}</p>
+              {active.jobTitle ? <p><strong>Job:</strong> {active.jobTitle}</p> : null}
+              <p>{active.summary}</p>
+            </div>
+          ) : null}
+        </Modal>
+      </section>
+    </SiteLayout>
   );
 }
 
