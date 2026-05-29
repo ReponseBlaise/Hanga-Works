@@ -11,6 +11,7 @@ import { CourseDetail } from './pages/courses/CourseDetail';
 import JobList from './pages/jobs/JobList';
 import JobDetail from './pages/jobs/JobDetail';
 import MyApplications from './pages/jobs/MyApplications';
+import Dashboard from './pages/dashboard/Dashboard';
 import Profile from './pages/profile/Profile';
 import EmployerDashboard from './pages/employer/EmployerDashboard';
 import PostJob from './pages/employer/PostJob';
@@ -44,6 +45,7 @@ export default function App() {
           </Route>
           <Route path="/courses" element={<CourseList />} />
           <Route path="/courses/:id" element={<CourseDetail />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/jobs" element={<JobList />} />
           <Route path="/jobs/:id" element={<JobDetail />} />
           <Route path="/applications" element={<MyApplications />} />

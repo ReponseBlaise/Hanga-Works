@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Card, CardMeta, CardTitle } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { useAuth } from '../../context/AuthContext';
@@ -35,62 +36,64 @@ export default function EmployerDashboard() {
   }, [jobs, user?.organizationId]);
 
   return (
-    <section>
-      <header className="page-header">
-        <h2>Employer Dashboard</h2>
-        <div>
-          <Button to="/employer/post-job">Post Job</Button>
-          <Button variant="secondary" to="/employer/applicants">View Applicants</Button>
-        </div>
-      </header>
-
-      <div className="grid-columns">
-        <Card>
-          <CardTitle>Active Jobs</CardTitle>
-          <CardMeta>{stats?.totalJobs ?? ownJobs.length}</CardMeta>
-        </Card>
-        <Card>
-          <CardTitle>New Applicants</CardTitle>
-          <CardMeta>{stats?.totalApplicants ?? 0}</CardMeta>
-        </Card>
-        <Card>
-          <CardTitle>Hires</CardTitle>
-          <CardMeta>{stats?.breakdown.HIRED ?? 0}</CardMeta>
-        </Card>
-      </div>
-
-      <section className="dashboard-section">
-        <div className="section-head">
+    <SiteLayout>
+      <section>
+        <header className="page-header">
+          <h2>Employer Dashboard</h2>
           <div>
-            <p className="section-head__eyebrow">Backend data</p>
-            <h2>Your posted jobs</h2>
+            <Button to="/employer/post-job">Post Job</Button>
+            <Button variant="secondary" to="/employer/applicants">View Applicants</Button>
           </div>
+        </header>
+
+        <div className="grid-columns">
+          <Card>
+            <CardTitle>Active Jobs</CardTitle>
+            <CardMeta>{stats?.totalJobs ?? ownJobs.length}</CardMeta>
+          </Card>
+          <Card>
+            <CardTitle>New Applicants</CardTitle>
+            <CardMeta>{stats?.totalApplicants ?? 0}</CardMeta>
+          </Card>
+          <Card>
+            <CardTitle>Hires</CardTitle>
+            <CardMeta>{stats?.breakdown.HIRED ?? 0}</CardMeta>
+          </Card>
         </div>
 
-        <div className="job-grid">
-          {ownJobs.length === 0 ? (
-            <Card>
-              <CardTitle>No jobs yet</CardTitle>
-              <CardMeta>Use the backend job creation form to publish your first listing.</CardMeta>
-            </Card>
-          ) : (
-            ownJobs.map((job) => (
-              <Card key={job.id}>
-                <CardTitle>{job.title}</CardTitle>
-                <CardMeta>
-                  {job.location ?? 'Remote'} · {job.jobType}
-                </CardMeta>
-                <CardMeta>
-                  {job.salaryMin || job.salaryMax
-                    ? `Salary: ${job.salaryMin ?? 0} - ${job.salaryMax ?? 0}`
-                    : 'Salary not specified'}
-                </CardMeta>
-                <Button to="/employer/applicants" variant="ghost">Review applicants</Button>
+        <section className="dashboard-section">
+          <div className="section-head">
+            <div>
+              <p className="section-head__eyebrow">Backend data</p>
+              <h2>Your posted jobs</h2>
+            </div>
+          </div>
+
+          <div className="job-grid">
+            {ownJobs.length === 0 ? (
+              <Card>
+                <CardTitle>No jobs yet</CardTitle>
+                <CardMeta>Use the backend job creation form to publish your first listing.</CardMeta>
               </Card>
-            ))
-          )}
-        </div>
+            ) : (
+              ownJobs.map((job) => (
+                <Card key={job.id}>
+                  <CardTitle>{job.title}</CardTitle>
+                  <CardMeta>
+                    {job.location ?? 'Remote'} · {job.jobType}
+                  </CardMeta>
+                  <CardMeta>
+                    {job.salaryMin || job.salaryMax
+                      ? `Salary: ${job.salaryMin ?? 0} - ${job.salaryMax ?? 0}`
+                      : 'Salary not specified'}
+                  </CardMeta>
+                  <Button to="/employer/applicants" variant="ghost">Review applicants</Button>
+                </Card>
+              ))
+            )}
+          </div>
+        </section>
       </section>
-    </section>
+    </SiteLayout>
   );
 }

@@ -67,6 +67,11 @@ export function CourseList() {
 							<strong>{totalEnrollments}</strong>
 							<p>Counted from the LMS tables</p>
 						</div>
+						<div className="hero-stat">
+							<span>Paid learning</span>
+							<strong>Pricing</strong>
+							<p>See plan details for premium courses and team access.</p>
+						</div>
 					</div>
 				</section>
 
@@ -87,6 +92,11 @@ export function CourseList() {
 						{filteredCourses.length} course{filteredCourses.length === 1 ? '' : 's'} found
 					</p>
 					{loading ? <p>Loading courses…</p> : null}
+					<div className="courses-results__actions">
+						<Button to="/pricing" variant="secondary">
+							View pricing
+						</Button>
+					</div>
 
 					{filteredCourses.length === 0 ? (
 						<Card className="courses-empty">
