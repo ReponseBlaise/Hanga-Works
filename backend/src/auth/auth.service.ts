@@ -23,8 +23,23 @@ export class AuthService {
     if (existing) throw new ConflictException('Email already in use');
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
+    const userRole = (dto.role || 'LEARNER') as Role;
+    
+    let organizationId = undefined;
+    if (userRole === Role.EMPLOYER) {
+      const org = await this.prisma.organization.create({
+        data: { name: `${dto.name} Company`, type: 'EMPLOYER' }
+      });
+      organizationId = org.id;
+    } else if (userRole === Role.INSTITUTION) {
+      const org = await this.prisma.organization.create({
+        data: { name: `${dto.name} Institution`, type: 'INSTITUTION' }
+      });
+      organizationId = org.id;
+    }
+
     const user = await this.prisma.user.create({
-      data: { name: dto.name, email: dto.email, passwordHash, role: (dto.role || 'LEARNER') as Role },
+      data: { name: dto.name, email: dto.email, passwordHash, role: userRole, organizationId },
     });
 
     await this.notifications.sendRegistrationConfirmation(user.email, user.name);

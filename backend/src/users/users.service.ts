@@ -19,8 +19,9 @@ export class UsersService {
         location: true,
         createdAt: true,
         skills: {
-          include: {
+          select: {
             skill: true,
+            level: true,
           },
         },
       },
