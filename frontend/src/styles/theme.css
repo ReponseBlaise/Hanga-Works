@@ -16,10 +16,10 @@
   --border: #dbe4f3;
   --shadow: 0 24px 60px rgba(13, 47, 103, 0.12);
   --shadow-strong: 0 28px 60px rgba(13, 47, 103, 0.18);
-  --radius-xl: 32px;
-  --radius-lg: 24px;
-  --radius-md: 18px;
-  --radius-sm: 14px;
+  --radius-xl: 28px;
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 12px;
   --content-width: 1360px;
 }
 
@@ -34,10 +34,7 @@ body,
 }
 
 html {
-  background:
-    radial-gradient(circle at top left, rgba(63, 102, 244, 0.16), transparent 26%),
-    radial-gradient(circle at top right, rgba(13, 47, 103, 0.08), transparent 22%),
-    linear-gradient(180deg, #f8fbff 0%, var(--bg) 40%, var(--bg-deep) 100%);
+  background: var(--bg);
   scroll-behavior: smooth;
 }
 
@@ -75,13 +72,13 @@ select {
 /* sidebar brand-lockup variant removed */
 
 .brand-mark {
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   display: grid;
   place-items: center;
-  border-radius: 16px;
-  background: linear-gradient(145deg, #6f8fff, var(--accent));
-  box-shadow: 0 14px 28px rgba(63, 102, 244, 0.28);
+  border-radius: 12px;
+  background: var(--accent);
+  color: #fff;
   overflow: hidden;
 }
 
@@ -135,6 +132,44 @@ select {
   min-width: 0;
 }
 
+.dashboard-shell {
+  display: grid;
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.dashboard-main {
+  display: grid;
+  gap: 22px;
+  min-width: 0;
+}
+
+.dashboard-sidebar {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+  position: sticky;
+  top: 92px;
+}
+
+.dashboard-sidebar__panel {
+  display: grid;
+  gap: 12px;
+}
+
+.dashboard-sidebar__course {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.dashboard-sidebar__links {
+  display: grid;
+  gap: 10px;
+}
+
 .dashboard-grid {
   display: grid;
   gap: 22px;
@@ -149,7 +184,7 @@ select {
 }
 
 .card {
-  padding: 24px;
+  padding: 18px;
 }
 
 .card-title {
@@ -166,9 +201,7 @@ select {
   grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
   gap: 22px;
   align-items: stretch;
-  background:
-    radial-gradient(circle at top right, rgba(63, 102, 244, 0.14), transparent 26%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(241, 246, 255, 0.92));
+  background: var(--surface-strong);
 }
 
 .dashboard-hero__stats {
@@ -267,37 +300,59 @@ select {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--accent), #6e8ff8);
+  background: var(--accent);
 }
 
 .job-grid,
 .course-stack {
   display: grid;
-  gap: 16px;
+  gap: 12px;
+}
+
+.job-grid {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
 }
 
 .job-card,
 .course-card {
   display: grid;
-  gap: 14px;
+  gap: 8px;
 }
 
 .job-card__top,
 .course-card__top {
   display: flex;
-  align-items: start;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
+  gap: 10px;
+}
+
+.job-card__avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+}
+
+.job-card__titlewrap {
+  min-width: 0;
+  flex: 1;
 }
 
 .job-card__match {
-  padding: 10px 12px;
+  padding: 6px 8px;
   border-radius: 999px;
-  background: rgba(63, 102, 244, 0.12);
+  background: rgba(63, 102, 244, 0.06);
   color: var(--accent-strong);
-  font-size: 0.82rem;
+  font-size: 0.72rem;
   font-weight: 800;
   white-space: nowrap;
+}
+
+.job-card__metaitem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 10px;
 }
 
 .job-card__tags {
@@ -306,20 +361,54 @@ select {
   gap: 8px;
 }
 
-.job-card__tags span {
-  padding: 8px 10px;
-  border-radius: 999px;
-  background: var(--surface-muted);
-  color: var(--text-soft);
-  font-size: 0.84rem;
+.job-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 10px;
+  background: #f3f7ff;
+  color: var(--accent);
+  font-size: 0.72rem;
   font-weight: 700;
+  border: 1px solid var(--border);
+}
+
+.job-card__description {
+  margin: 0 0 6px 0;
+  color: var(--text-soft);
+  line-height: 1.45;
+  line-clamp: 2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .job-card__actions,
 .course-card__actions {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
+}
+
+.job-card__actions .button {
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+}
+
+@media (min-width: 960px) {
+  .job-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1600px) {
+  .job-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 .info-card {
@@ -343,9 +432,9 @@ select {
 }
 
 .button-primary {
-  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  background: var(--accent);
   color: #ffffff;
-  box-shadow: 0 18px 32px rgba(63, 102, 244, 0.24);
+  box-shadow: none;
 }
 
 .button-secondary {
@@ -366,7 +455,7 @@ select {
   flex: none;
   overflow: hidden;
   border-radius: 999px;
-  background: linear-gradient(135deg, #6f8fff, var(--accent));
+  background: var(--accent);
   color: #ffffff;
   font-weight: 800;
   letter-spacing: 0.05em;
@@ -517,9 +606,7 @@ select {
   height: 100%;
   display: grid;
   gap: 18px;
-  background:
-    radial-gradient(circle at top right, rgba(63, 102, 244, 0.16), transparent 30%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(241, 246, 255, 0.95));
+  background: var(--surface-strong);
 }
 
 .landing-metric-grid {
@@ -592,7 +679,7 @@ select {
 }
 
 .landing-panel--accent {
-  background: linear-gradient(180deg, rgba(37, 71, 202, 0.08), rgba(255, 255, 255, 0.92));
+  background: var(--surface-muted);
 }
 
 .landing-stakeholder-grid {
@@ -649,9 +736,7 @@ select {
 .landing-hero {
   padding: 28px;
   border-radius: 36px;
-  background:
-    radial-gradient(circle at top right, rgba(63, 102, 244, 0.14), transparent 28%),
-    linear-gradient(180deg, rgba(247, 250, 255, 0.98), rgba(235, 242, 255, 0.96));
+  background: var(--surface-strong);
   border: 1px solid rgba(219, 228, 243, 0.95);
   box-shadow: 0 24px 60px rgba(13, 47, 103, 0.08);
 }
@@ -692,9 +777,7 @@ select {
   padding: 22px;
   margin-top: 8px;
   border-radius: 28px;
-  background:
-    radial-gradient(circle at top right, rgba(37, 71, 202, 0.14), transparent 30%),
-    rgba(255, 255, 255, 0.94);
+  background: var(--surface-strong);
   border: 1px solid rgba(219, 228, 243, 0.95);
   box-shadow: 0 18px 38px rgba(13, 47, 103, 0.08);
 }
@@ -812,7 +895,7 @@ select {
   gap: 14px;
   padding: 18px;
   overflow: hidden;
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(239, 245, 255, 0.94));
+  background: var(--surface-strong);
 }
 
 .hero-visual-card__badge {
@@ -889,7 +972,7 @@ select {
   display: grid;
   place-items: center;
   border-radius: 14px;
-  background: rgba(63, 102, 244, 0.12);
+  background: var(--accent-soft);
   color: var(--accent);
   font-size: 1.2rem;
   font-weight: 800;
@@ -907,7 +990,7 @@ select {
   gap: 18px;
   padding: 26px 28px;
   border-radius: 22px;
-  background: linear-gradient(135deg, rgba(245, 250, 255, 0.98), rgba(227, 239, 255, 0.95));
+  background: var(--surface-strong);
   border: 1px solid rgba(219, 228, 243, 0.95);
   box-shadow: 0 16px 40px rgba(13, 47, 103, 0.08);
 }
@@ -995,7 +1078,7 @@ select {
   display: grid;
   place-items: center;
   border-radius: 14px;
-  background: linear-gradient(135deg, rgba(37, 71, 202, 0.18), rgba(63, 102, 244, 0.08));
+  background: var(--accent-soft);
   color: var(--accent);
   font-size: 0.82rem;
   font-weight: 800;
@@ -1105,7 +1188,7 @@ select {
   margin: 0 18px;
   padding: 4px 8px;
   border-radius: 8px;
-  background: rgba(63, 102, 244, 0.08);
+  background: var(--accent-soft);
   color: var(--accent);
   font-size: 0.72rem;
   font-weight: 800;
@@ -1148,7 +1231,7 @@ select {
   gap: 18px;
   padding: 30px;
   border-radius: 28px;
-  background: linear-gradient(135deg, #456cf0, #3b5fe6);
+  background: var(--accent);
   color: #ffffff;
   box-shadow: 0 24px 50px rgba(37, 71, 202, 0.26);
 }
@@ -1299,24 +1382,24 @@ select {
     display: block;
     width: min(100%, var(--content-width));
     margin: 0 auto;
-    padding: 8px 0 40px;
+    padding: 6px 0 36px;
     display: grid;
-    gap: 18px;
+    gap: 14px;
   }
 
   .job-market-body {
     display: grid;
-    grid-template-columns: 300px 1fr;
-    gap: 22px;
+    grid-template-columns: 282px minmax(0, 1fr);
+    gap: 14px;
     align-items: start;
   }
 
   .job-market-toolbar {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 16px;
-    padding: 18px;
-    border-radius: 22px;
+    gap: 12px;
+    padding: 16px 18px;
+    border-radius: 18px;
     background: rgba(255, 255, 255, 0.96);
     border: 1px solid rgba(219, 228, 243, 0.95);
     box-shadow: 0 18px 38px rgba(13, 47, 103, 0.08);
@@ -1385,20 +1468,22 @@ select {
     padding: 18px;
     display: grid;
     gap: 12px;
-    border-radius: 22px;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(243, 248, 255, 0.92));
+    border-radius: 14px;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    box-shadow: none;
   }
 
   .advance-filter h3 {
-    margin: 0 0 8px;
-    font-size: 1.02rem;
+    margin: 0;
+    font-size: 1rem;
   }
 
   .filter-section {
     display: grid;
     gap: 8px;
-    padding: 10px 12px;
-    border-radius: 14px;
+    padding: 10px 10px;
+    border-radius: 12px;
     background: rgba(255, 255, 255, 0.9);
     border: 1px solid rgba(219, 228, 243, 0.8);
   }
@@ -1415,6 +1500,88 @@ select {
     font-weight: 800;
     color: var(--text-soft);
   }
+
+  .filter-checkbox-list {
+    display: grid;
+    gap: 8px;
+  }
+
+  .filter-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    color: var(--text);
+    font-size: 0.88rem;
+  }
+
+  .filter-row__left {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .filter-row__count {
+    min-width: 30px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: rgba(37, 71, 202, 0.08);
+    color: var(--accent-strong);
+    font-size: 0.74rem;
+    font-weight: 800;
+    text-align: center;
+  }
+
+  .advance-filter__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .advance-filter__reset {
+    min-height: 30px;
+    padding: 0 10px;
+    border-radius: 10px;
+    font-size: 0.78rem;
+  }
+
+.advance-filter h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.advance-filter {
+  border: 1px solid rgba(219, 228, 243, 0.92);
+  box-shadow: 0 12px 28px rgba(13, 47, 103, 0.06);
+  position: sticky;
+  top: 96px;
+  height: fit-content;
+}
+
+/* results grid on desktop */
+.job-market-results .job-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 1100px) {
+  .job-market-body {
+    grid-template-columns: 1fr;
+  }
+  .advance-filter {
+    position: static;
+    top: auto;
+    width: 100%;
+  }
+  .job-market-results .job-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 
   .filter-section__hint {
     margin: 0;
@@ -1523,7 +1690,7 @@ select {
   .job-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 18px;
+    gap: 14px;
   }
 
   @media (max-width: 980px) {
@@ -1802,8 +1969,8 @@ select {
   text-decoration: none;
   padding: 7px 18px;
   border-radius: 10px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
-  box-shadow: 0 4px 14px rgba(37, 71, 202, 0.22);
+  background: var(--accent);
+  box-shadow: none;
 }
 
 .public-navbar__signin,
@@ -1836,23 +2003,18 @@ select {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    height: 44px;
+    width: 42px;
+    height: 40px;
     margin-left: auto;
-    border-radius: 12px;
+    border-radius: 10px;
     border: 1px solid var(--border);
-    background: rgba(255, 255, 255, 0.92);
-    box-shadow: 0 8px 18px rgba(13, 47, 103, 0.08);
+    background: #ffffff;
     cursor: pointer;
+    color: var(--accent);
   }
 
-  .public-navbar__menu span {
+  .public-navbar__menu svg {
     display: block;
-    width: 18px;
-    height: 2px;
-    border-radius: 999px;
-    background: var(--accent);
-    margin: 2px 0;
   }
 
   .public-navbar__panel {
@@ -1911,6 +2073,40 @@ select {
   grid-template-columns: minmax(0, 1.4fr) minmax(240px, 0.8fr);
   gap: 22px;
   align-items: stretch;
+}
+
+.courses-hero__visual {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.courses-hero__image {
+  width: 100%;
+  min-height: 220px;
+  object-fit: cover;
+  border-radius: 22px;
+  border: 1px solid var(--border);
+  box-shadow: 0 18px 40px rgba(13, 47, 103, 0.12);
+}
+
+.courses-hero__visual-caption {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid var(--border);
+}
+
+.courses-hero__visual-caption strong {
+  font-size: 0.95rem;
+}
+
+.courses-hero__visual-caption span {
+  color: var(--text-soft);
+  font-size: 0.88rem;
+  line-height: 1.45;
 }
 
 .courses-hero__title {
@@ -1974,6 +2170,12 @@ select {
   color: var(--text-soft);
   font-size: 0.9rem;
   font-weight: 700;
+}
+
+@media (max-width: 960px) {
+  .courses-hero {
+    grid-template-columns: 1fr;
+  }
 }
 
 .courses-grid {
@@ -2092,7 +2294,7 @@ select {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--accent), #6e8ff8);
+  background: var(--accent);
 }
 
 .course-detail__back {
@@ -2234,7 +2436,7 @@ select {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, var(--accent), #6e8ff8);
+  background: var(--accent);
   color: #ffffff;
   box-shadow: 0 18px 32px rgba(63, 102, 244, 0.24);
 }
@@ -2317,6 +2519,29 @@ select {
   gap: 16px;
 }
 
+.profile-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.75fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.profile-hero__main {
+  display: grid;
+  gap: 14px;
+}
+
+.profile-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.profile-hero__card {
+  display: grid;
+  gap: 12px;
+}
+
 .job-detail-grid,
 .profile-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2343,7 +2568,7 @@ select {
   display: grid;
   place-items: center;
   border-radius: 18px;
-  background: linear-gradient(145deg, #6f8fff, var(--accent));
+  background: var(--accent);
   color: #ffffff;
   font-weight: 800;
   letter-spacing: 0.06em;
@@ -2376,7 +2601,7 @@ select {
   place-items: center;
   margin: 14px 0;
   border-radius: 28px;
-  background: linear-gradient(145deg, rgba(63, 102, 244, 0.14), rgba(255, 255, 255, 0.96));
+  background: var(--surface-muted);
   border: 1px solid var(--border);
   color: var(--accent);
   font-size: 2rem;
@@ -2638,6 +2863,8 @@ select {
 }
 
 @media (max-width: 980px) {
+  .dashboard-shell,
+  .profile-hero,
   .courses-hero,
   .courses-filters,
   .courses-grid,
@@ -2653,6 +2880,10 @@ select {
   .faq-grid,
   .candidate-grid {
     grid-template-columns: 1fr;
+  }
+
+  .dashboard-sidebar {
+    position: static;
   }
 }
 

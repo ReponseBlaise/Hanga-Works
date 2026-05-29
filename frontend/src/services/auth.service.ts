@@ -1,4 +1,4 @@
-import api, { setAuthToken } from './api';
+import api, { AUTH_TOKEN_KEY, setAuthToken } from './api';
 
 export type AuthUser = {
 	id?: string;
@@ -14,6 +14,8 @@ type AuthResponse = {
 	user: AuthUser;
 };
 
+type RegisterResponse = AuthUser | AuthResponse;
+
 export async function register(payload: { name: string; email: string; password: string; role?: 'LEARNER' | 'EMPLOYER' | 'INSTITUTION' | 'MENTOR' }) {
 	// Create the account
 	await api.post('/auth/register', payload);
@@ -23,13 +25,12 @@ export async function register(payload: { name: string; email: string; password:
 
 export async function login(payload: { email: string; password: string }) {
 	const res = await api.post('/auth/login', payload);
-	const data = res.data;
-	
+	const data = res.data as AuthResponse;
 	if (data?.access_token) {
 		setAuthToken(data.access_token);
-		return { access_token: data.access_token, user: data.user } as AuthResponse;
+		window.localStorage.setItem(AUTH_TOKEN_KEY, data.access_token);
 	}
-	throw new Error("Invalid response from server");
+	return data;
 }
 
 export async function profile() {
@@ -40,6 +41,7 @@ export async function profile() {
 export async function logout() {
 	await api.post('/auth/logout');
 	setAuthToken(null);
+	window.localStorage.removeItem(AUTH_TOKEN_KEY);
 }
 
 export async function refresh() {
@@ -54,6 +56,7 @@ export async function refresh() {
 
 		const data = (res.data?.data ?? res.data) as Partial<AuthResponse>;
 		if (data?.access_token) setAuthToken(data.access_token);
+		if (data?.access_token) window.localStorage.setItem(AUTH_TOKEN_KEY, data.access_token);
 		return data;
 	} catch {
 		return null;

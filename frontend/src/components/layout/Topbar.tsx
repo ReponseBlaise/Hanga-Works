@@ -15,9 +15,14 @@ export default function Navbar() {
 
 	const userRole = (user?.role ?? 'LEARNER').toUpperCase();
 
-	const authLinks = useMemo(() => {
+	const navLinks = useMemo(() => {
+		if (!isAuthenticated) {
+			return publicNavItems;
+		}
+
 		if (userRole === 'EMPLOYER') {
 			return [
+				{ label: 'Home', href: '/' },
 				{ label: 'Employer Home', href: '/employer' },
 				{ label: 'Post a Job', href: '/employer/post-job' },
 				{ label: 'Applicants', href: '/employer/applicants' },
@@ -26,12 +31,15 @@ export default function Navbar() {
 		}
 		if (userRole === 'ADMIN') {
 			return [
+				{ label: 'Home', href: '/' },
 				{ label: 'Admin Home', href: '/admin' },
 				{ label: 'Exports', href: '/admin/export' },
 				{ label: 'Moderation', href: '/admin/moderation' },
 			];
 		}
 		return [
+			{ label: 'Home', href: '/' },
+			{ label: 'Dashboard', href: '/dashboard' },
 			{ label: 'Jobs', href: '/jobs' },
 			{ label: 'Courses', href: '/courses' },
 			{ label: 'Mentors', href: '/mentors' },
@@ -39,7 +47,7 @@ export default function Navbar() {
 			{ label: 'Profile', href: '/profile' },
 			{ label: 'Certifications', href: '/certifications' },
 		];
-	}, [userRole]);
+	}, [isAuthenticated, userRole]);
 
 	function isNavActive(href: string) {
 		if (href === '/') return location.pathname === '/';
@@ -60,14 +68,16 @@ export default function Navbar() {
 					aria-expanded={menuOpen}
 					onClick={() => setMenuOpen((value) => !value)}
 				>
-					<span />
-					<span />
-					<span />
+					<svg width="20" height="14" viewBox="0 0 20 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+						<rect x="0" y="1" width="20" height="2" rx="1" fill="currentColor" />
+						<rect x="0" y="6" width="20" height="2" rx="1" fill="currentColor" />
+						<rect x="0" y="11" width="20" height="2" rx="1" fill="currentColor" />
+					</svg>
 				</button>
 
 				<div className={`public-navbar__panel ${menuOpen ? 'is-open' : ''}`}>
 					<div className="public-navbar__links">
-						{publicNavItems.map((link) => {
+						{navLinks.map((link) => {
 							const active = isNavActive(link.href);
 							return (
 								<Link
@@ -87,24 +97,6 @@ export default function Navbar() {
 							);
 						})}
 					</div>
-
-					{isAuthenticated && (
-						<div className="public-navbar__links public-navbar__links--auth">
-							{authLinks.map((link) => {
-								const active = isNavActive(link.href);
-								return (
-									<Link
-										key={link.href}
-										to={link.href}
-										className={`public-navbar__link ${active ? 'is-active' : ''}`.trim()}
-										onClick={() => setMenuOpen(false)}
-									>
-										{link.label}
-									</Link>
-								);
-							})}
-						</div>
-					)}
 
 					<div className="public-navbar__auth">
 						{isAuthenticated ? (
