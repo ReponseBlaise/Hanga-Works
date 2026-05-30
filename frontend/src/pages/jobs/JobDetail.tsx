@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
+import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
-import { applyForJob, getJobById, getJobs, type JobSummary } from '../../services/jobs.service';
+import { applyForJob, getApplications, getJobById, getJobs, type JobSummary } from '../../services/jobs.service';
+import type { JobApplication } from '../../types/job.types';
 
 export default function JobDetail() {
 	const { id } = useParams<{ id: string }>();
@@ -12,6 +14,8 @@ export default function JobDetail() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState('');
 	const [status, setStatus] = useState('');
+	const [applying, setApplying] = useState(false);
+	const [application, setApplication] = useState<JobApplication | null>(null);
 	const { isAuthenticated } = useAuth();
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -22,11 +26,15 @@ export default function JobDetail() {
 		let active = true;
 		setLoading(true);
 		setError('');
-		Promise.all([getJobById(id), getJobs()])
-			.then(([foundJob, allJobs]) => {
+		Promise.all([getJobById(id), getJobs(), getApplications()])
+			.then(([foundJob, allJobs, items]) => {
 				if (!active) return;
 				setJob(foundJob ?? null);
 				setSimilarJobs((allJobs.jobs ?? []).filter((item) => item.id !== id).slice(0, 4));
+				setApplication(items.find((item) => item.job.id === id) ?? null);
+				if (items.find((item) => item.job.id === id)) {
+					setStatus('Application already submitted. Use the applications page to track its status.');
+				}
 			})
 			.catch((fetchError) => {
 				console.error(fetchError);
@@ -53,18 +61,30 @@ export default function JobDetail() {
 
 	async function handleApply() {
 		if (!job) return;
+		if (applying) return;
+		if (application) {
+			setStatus('You already applied for this role. Open the applications page to view the current status and avoid duplicate submissions.');
+			return;
+		}
 		if (!isAuthenticated) {
 			// redirect to login and return here after auth
 			navigate('/login', { state: { from: location.pathname } });
 			return;
 		}
-		setStatus('Applying...');
+		setApplying(true);
+		setStatus('Submitting your application. The request is sent once and the button is locked to prevent duplicate submissions.');
 		try {
 			await applyForJob(job.id);
-			setStatus('Application submitted successfully.');
+			setStatus('Application submitted successfully. The employer can now review your profile and submission.');
 		} catch (applyError) {
 			console.error(applyError);
-			setStatus('Could not submit application.');
+			if (axios.isAxiosError(applyError) && applyError.response?.status === 409) {
+				setStatus('You already applied for this job. The platform blocks duplicate applications so the employer sees one clean submission.');
+			} else {
+				setStatus('Could not submit application right now. Try again later or check your connection.');
+			}
+		} finally {
+			setApplying(false);
 		}
 	}
 
@@ -94,15 +114,22 @@ export default function JobDetail() {
 									</div>
 								</div>
 								{isAuthenticated ? (
-									<Button type="button" variant="primary" onClick={handleApply}>One-click apply</Button>
+									<Button type="button" variant="primary" onClick={handleApply} disabled={applying}>One-click apply</Button>
 								) : (
 									<Button to="/login" variant="primary">Sign in to apply</Button>
 								)}
-								{isAuthenticated ? (
-									<Button type="button" variant="secondary" onClick={handleApply}>Save role</Button>
+								{application ? (
+									<Button to="/applications" variant="secondary">View application status</Button>
+								) : isAuthenticated ? (
+									<Button type="button" variant="secondary" onClick={handleApply} disabled={applying}>Save role</Button>
 								) : (
 									<Button to="/login" variant="secondary">Sign in to save</Button>
 								)}
+								{application ? (
+									<div className="course-detail__quiz-note">
+										<strong>Application status:</strong> {application.status.toLowerCase()} · Updated {new Date(application.updatedAt).toLocaleDateString()}
+									</div>
+								) : null}
 								{status ? <p className="course-detail__quiz-note">{status}</p> : null}
 							</div>
 						</section>

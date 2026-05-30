@@ -19,6 +19,7 @@ const filterOptions: Array<{ label: string; value: JobFilterState['jobType'] }> 
 export default function JobList() {
 	const [jobs, setJobs] = useState<JobSummary[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
 	const [filters, setFilters] = useState<JobFilterState>({
 		search: '',
 		location: '',
@@ -35,6 +36,7 @@ export default function JobList() {
 	useEffect(() => {
 		let active = true;
 		setLoading(true);
+		setError(null);
 
 		getJobs({
 			search: filters.search,
@@ -48,9 +50,12 @@ export default function JobList() {
 				setJobs(resp.jobs ?? []);
 				setTotalResults(resp.total ?? (resp.jobs?.length ?? 0));
 			})
-			.catch((error) => {
-				console.error('Failed to load jobs', error);
-				if (active) setJobs([]);
+			.catch((err) => {
+				console.error('Failed to load jobs', err);
+				if (active) {
+					setJobs([]);
+					setError((err && (err.message || String(err))) || 'Unable to reach the jobs API.');
+				}
 			})
 			.finally(() => {
 				if (active) setLoading(false);
@@ -160,11 +165,24 @@ export default function JobList() {
 							</label>
 						</div>
 					</div>
-					{loading ? <p>Loading jobs…</p> : null}
-					{!loading && totalResults === 0 ? (
+					{loading ? (
+						<Card className="courses-empty">
+							<CardTitle>Loading jobs</CardTitle>
+							<CardMeta>Fetching the latest openings — please wait. If this takes too long, check your connection or try again.</CardMeta>
+						</Card>
+					) : null}
+
+					{error ? (
+						<Card className="courses-empty">
+							<CardTitle>Unable to load jobs</CardTitle>
+							<CardMeta>{error}. Try refreshing the page or adjusting your filters.</CardMeta>
+						</Card>
+					) : null}
+
+					{!loading && !error && totalResults === 0 ? (
 						<Card className="courses-empty">
 							<CardTitle>No jobs match your filters</CardTitle>
-							<CardMeta>Broaden your search or clear a filter to view more openings.</CardMeta>
+							<CardMeta>Try a broader keyword, clear filters, or remove the location to see more openings.</CardMeta>
 						</Card>
 					) : null}
 					<div className="job-grid">
