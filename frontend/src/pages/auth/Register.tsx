@@ -32,14 +32,11 @@ export default function Register() {
     setLoading(true);
     setError('');
     authService.register({ name: form.name, email: form.email, password: form.password, role: form.role || undefined })
-      .then((data) => {
-        if (data?.user) {
-          signIn(data.user);
-          const role = (data.user.role ?? '').toLowerCase();
-          if (role === 'employer') navigate('/employer');
-          else if (role === 'admin') navigate('/admin');
-          else navigate('/dashboard');
-        }
+        .then((user) => {
+          if (user) {
+            signIn(user);
+            navigate('/');
+          }
       })
       .catch((err) => {
         console.error(err);

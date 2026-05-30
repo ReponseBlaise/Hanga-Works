@@ -17,7 +17,9 @@ import {
   CurrentUser,
   CurrentUserPayload,
 } from '../auth/decorators/current-user.decorator';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @Controller()
 export class JobsController {
   constructor(private readonly jobsService: JobsService) {}
@@ -36,6 +38,11 @@ export class JobsController {
   @Get('jobs')
   findAll(@Query() filters: FilterJobsDto) {
     return this.jobsService.findAll(filters);
+  }
+
+  @Get('skills')
+  findSkills() {
+    return this.jobsService.getSkills();
   }
 
   @Get('jobs/recommended')

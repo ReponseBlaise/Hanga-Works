@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Card, CardTitle, CardMeta } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { getMentorById, bookSession } from '../../services/mentors.service';
@@ -36,11 +36,13 @@ export default function MentorBooking() {
   }
 
   return (
-    <DashboardLayout>
+    <SiteLayout>
       <div className="page-shell">
         <Card>
-          <CardTitle>Book a session with {mentorName || 'mentor'}</CardTitle>
-          <CardMeta>Choose a date and add notes for the session.</CardMeta>
+          <div className="mentor-booking__header">
+            <CardTitle>Book a session with {mentorName || 'mentor'}</CardTitle>
+            <CardMeta>Choose a date and add notes for the session.</CardMeta>
+          </div>
           <form onSubmit={handleSubmit} className="form-stack">
             <label>
               Date & time
@@ -57,6 +59,6 @@ export default function MentorBooking() {
           </form>
         </Card>
       </div>
-    </DashboardLayout>
+    </SiteLayout>
   );
 }

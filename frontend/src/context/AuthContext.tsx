@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import * as authService from '../services/auth.service';
+import { AUTH_TOKEN_KEY, setAuthToken } from '../services/api';
+import authService from '../services/auth.service';
 
 export type AuthUser = {
   id?: string;
@@ -53,30 +54,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   useEffect(() => {
-    let active = true;
-
     if (!user) {
-      authService.refresh()
-        .then((data) => {
-          if (active && data?.user) {
-            setUser(data.user);
-          }
-        })
-        .catch(() => {
-          // No active refresh cookie yet; stay signed out.
-        });
+      return;
     }
 
-    return () => {
-      active = false;
-    };
+    const storedToken = window.localStorage.getItem(AUTH_TOKEN_KEY);
+
+    if (storedToken) {
+      return;
+    }
+
+    void authService.refresh().then((data) => {
+      if (!data?.access_token) {
+        setAuthToken(null);
+        setUser(null);
+        return;
+      }
+
+      if (data.user) {
+        setUser(data.user);
+      }
+    });
   }, [user]);
 
   const value: AuthContextValue = {
     user,
     isAuthenticated: user !== null,
-    signIn: (nextUser) => setUser(nextUser),
-    signOut: () => setUser(null),
+    signIn: (nextUser) => {
+      setUser(nextUser);
+    },
+    signOut: () => {
+      setAuthToken(null);
+      window.localStorage.removeItem(AUTH_TOKEN_KEY);
+      setUser(null);
+    },
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

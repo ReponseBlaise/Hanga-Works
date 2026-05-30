@@ -55,24 +55,42 @@ export class JobsService {
 
   // ── GET /jobs (with filters) ──────────────────────────────────────────────
   async findAll(filters: FilterJobsDto) {
-    const { search, location, jobType, skillId } = filters;
+    const { search, location, jobType, skillId, skillIds, skillMatch = 'any', page = 1, perPage = 20 } = filters as any;
 
-    return this.prisma.job.findMany({
-      where: {
-        isActive: true,
-        ...(location && { location: { contains: location, mode: 'insensitive' } }),
-        ...(jobType && { jobType }),
-        ...(search && {
-          OR: [
-            { title: { contains: search, mode: 'insensitive' } },
-            { description: { contains: search, mode: 'insensitive' } },
-          ],
-        }),
-        ...(skillId && { skills: { some: { skillId } } }),
-      },
+    const where: any = {
+      isActive: true,
+      ...(location && { location: { contains: location, mode: 'insensitive' } }),
+      ...(jobType && { jobType }),
+      ...(search && {
+        OR: [
+          { title: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } },
+        ],
+      }),
+    };
+
+    // prefer multiple skillIds if provided, otherwise single skillId
+    if (skillIds && Array.isArray(skillIds) && skillIds.length) {
+      if (skillMatch === 'all') {
+        where.AND = skillIds.map((id: string) => ({ skills: { some: { skillId: id } } }));
+      } else {
+        where.skills = { some: { skillId: { in: skillIds } } };
+      }
+    } else if (skillId) {
+      where.skills = { some: { skillId } };
+    }
+
+    const total = await this.prisma.job.count({ where });
+
+    const jobs = await this.prisma.job.findMany({
+      where,
       include: jobInclude,
       orderBy: { postedAt: 'desc' },
+      skip: (page - 1) * perPage,
+      take: perPage,
     });
+
+    return { jobs, total };
   }
 
   // ── GET /jobs/:id ─────────────────────────────────────────────────────────
@@ -172,6 +190,31 @@ export class JobsService {
       })
       .sort((a, b) => b.matchScore - a.matchScore)
       .slice(0, 10);
+  }
+
+  // ── GET /skills (with counts for active jobs) ─────────────────────────────
+  async getSkills() {
+    // group jobSkills by skillId for active jobs
+    const groups = await this.prisma.jobSkill.groupBy({
+      by: ['skillId'],
+      where: { job: { isActive: true } },
+      _count: { _all: true },
+    } as any);
+
+    const skillIds = groups.map((g) => g.skillId);
+
+    if (skillIds.length === 0) return [];
+
+    const skills = await this.prisma.skill.findMany({
+      where: { id: { in: skillIds } },
+      select: { id: true, name: true, tag: true },
+    });
+
+    const countsMap = new Map(groups.map((g) => [g.skillId, g._count?._all ?? 0]));
+
+    return skills
+      .map((s) => ({ id: s.id, name: s.name, tag: s.tag, count: countsMap.get(s.id) ?? 0 }))
+      .sort((a, b) => (b.count ?? 0) - (a.count ?? 0));
   }
 
   // ── GET /applications ─────────────────────────────────────────────────────
