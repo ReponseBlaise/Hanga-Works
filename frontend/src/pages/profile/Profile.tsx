@@ -4,6 +4,7 @@ import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
 import { useAuth } from '../../context/AuthContext';
+import authService, { updateProfile, type AuthUser as RemoteAuthUser } from '../../services/auth.service';
 import { getMyCertificates, type LearnerCertificate } from '../../services/certificates.service';
 import type { ProfileExperience, ProfileSkill, Proficiency } from '../../types/user.types';
 
@@ -14,8 +15,11 @@ const proficiencyLabels: Record<Proficiency, string> = {
 };
 
 export default function Profile() {
-	const { user: authUser } = useAuth();
+	const { user: authUser, signIn } = useAuth();
 	const params = useParams<{ username?: string }>();
+	const [loadingProfile, setLoadingProfile] = useState(true);
+	const [savingProfile, setSavingProfile] = useState(false);
+	const [profileMessage, setProfileMessage] = useState('');
 	const [skills, setSkills] = useState<ProfileSkill[]>([
 		{ id: 's1', name: 'React', proficiency: 'ADVANCED' },
 		{ id: 's2', name: 'TypeScript', proficiency: 'INTERMEDIATE' },
@@ -30,17 +34,45 @@ export default function Profile() {
 	const [newProficiency, setNewProficiency] = useState<Proficiency>('BEGINNER');
 	const [skillSearch, setSkillSearch] = useState('');
 	const [previewUrl, setPreviewUrl] = useState('');
+	const [name, setName] = useState(authUser?.name ?? 'Frontend learner');
+	const [location, setLocation] = useState('Kigali, Rwanda');
+	const [avatarUrl, setAvatarUrl] = useState('');
 	const [headline, setHeadline] = useState('Frontend learner and product-minded builder');
 	const [bio, setBio] = useState('Focused on matching real skills with real opportunities through UX, data, and thoughtful product flow.');
 	const [onboardingStep, setOnboardingStep] = useState(1);
 
 	useEffect(() => {
 		let active = true;
-		getMyCertificates()
-			.then((items) => {
-				if (active) setCertificates(items ?? []);
+		authService.profile()
+			.then((profile) => {
+				if (!active) return;
+				const remoteProfile = profile as RemoteAuthUser;
+				if (remoteProfile.name) setName(remoteProfile.name);
+				if (remoteProfile.location) setLocation(remoteProfile.location);
+				if (remoteProfile.avatarUrl) setAvatarUrl(remoteProfile.avatarUrl);
+				if (remoteProfile.bio) setBio(remoteProfile.bio);
+				if (remoteProfile.skills?.length) {
+					setSkills(
+						remoteProfile.skills.map((skill, index) => ({
+							id: skill.id ?? `skill-${index}`,
+							name: skill.skill.name,
+							proficiency: (skill.level as Proficiency) ?? 'BEGINNER',
+						})),
+					);
+				}
 			})
 			.catch((error) => {
+				console.error('Failed to load profile', error);
+			})
+			.finally(() => {
+				if (active) setLoadingProfile(false);
+			});
+
+		getMyCertificates()
+			.then((items: LearnerCertificate[]) => {
+				if (active) setCertificates(items ?? []);
+			})
+			.catch((error: unknown) => {
 				console.error('Failed to load certificates', error);
 				if (active) setCertificates([]);
 			})
@@ -78,17 +110,48 @@ export default function Profile() {
 		]);
 	}
 
+	async function handleSaveProfile() {
+		setSavingProfile(true);
+		setProfileMessage('Saving your profile so employers can see the latest version of your details.');
+		try {
+			const updated = await updateProfile({
+				name,
+				bio,
+				avatarUrl: avatarUrl || undefined,
+				location,
+				skills: skills.map((skill) => ({ skillName: skill.name, level: skill.proficiency })),
+			});
+			signIn({ ...(authUser ?? {}), ...updated });
+			setProfileMessage('Profile saved successfully. The page now reflects your updated public information.');
+			if (updated?.name) {
+				// keep the page stable even before a full auth refresh
+				setName(updated.name);
+			}
+		} catch (saveError) {
+			console.error('Failed to save profile', saveError);
+			setProfileMessage('Profile could not be saved right now. Check your connection and try again.');
+		} finally {
+			setSavingProfile(false);
+		}
+	}
+
 	return (
 		<SiteLayout>
 			<section className="profile-page">
 				<header className="profile-hero card">
 					<div className="profile-hero__main">
 						<p className="section-head__eyebrow">Profile</p>
-						<h2>{authUser?.name ?? 'Your profile'} · {userName}</h2>
+						<h2>{name} · {userName}</h2>
 						<p className="card-meta">Manage skills, experiences, certificates, and your public share link.</p>
 						<div className="profile-hero__actions">
 							<Button to={publicProfileLink} variant="primary">Open public view</Button>
 							<Button to="/courses" variant="secondary">Continue learning</Button>
+						</div>
+						<div className="profile-hero__actions">
+							<Button type="button" variant="primary" onClick={handleSaveProfile} disabled={savingProfile || loadingProfile}>
+								{savingProfile ? 'Saving profile…' : 'Save profile'}
+							</Button>
+							{profileMessage ? <CardMeta>{profileMessage}</CardMeta> : null}
 						</div>
 					</div>
 					<div className="profile-hero__side">
@@ -118,6 +181,10 @@ export default function Profile() {
 						<CardTitle>Profile photo</CardTitle>
 						<CardMeta>Local preview is enabled now; backend presigned uploads can be wired in next.</CardMeta>
 						{previewUrl ? <img src={previewUrl} alt="Profile preview" className="profile-avatar-preview" /> : <div className="profile-avatar-fallback">{(authUser?.name ?? 'HW').slice(0, 2).toUpperCase()}</div>}
+						<label>
+							Avatar URL
+							<input value={avatarUrl} onChange={(e) => setAvatarUrl(e.target.value)} placeholder="https://example.com/avatar.jpg" />
+						</label>
 						<input type="file" accept="image/*" onChange={(e) => {
 							const file = e.target.files?.[0];
 							if (!file) return;
@@ -236,6 +303,14 @@ export default function Profile() {
 						<CardTitle>Headline and summary</CardTitle>
 						<div className="profile-form-grid">
 							<label>
+								Name
+								<input value={name} onChange={(e) => setName(e.target.value)} />
+							</label>
+							<label>
+								Location
+								<input value={location} onChange={(e) => setLocation(e.target.value)} />
+							</label>
+							<label>
 								Headline
 								<textarea value={headline} onChange={(e) => setHeadline(e.target.value)} rows={2} />
 							</label>
@@ -243,6 +318,11 @@ export default function Profile() {
 								Bio
 								<textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={4} />
 							</label>
+						</div>
+						<div className="job-card__actions">
+							<Button type="button" variant="primary" onClick={handleSaveProfile} disabled={savingProfile || loadingProfile}>
+								Save changes
+							</Button>
 						</div>
 						<p className="card-meta">{headline}</p>
 						<p className="card-meta">{bio}</p>

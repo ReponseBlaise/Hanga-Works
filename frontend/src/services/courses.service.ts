@@ -39,6 +39,19 @@ export type BackendCourse = {
 	};
 };
 
+export type CourseEnrollment = {
+	id: string;
+	progress: number;
+	status: 'ENROLLED' | 'IN_PROGRESS' | 'COMPLETED' | 'DROPPED';
+	startedAt: string;
+	completedAt?: string | null;
+	course: {
+		id: string;
+		title: string;
+		slug: string;
+	};
+};
+
 export async function getCourses() {
 	const res = await api.get('/courses');
 	return res.data as BackendCourse[];
@@ -50,11 +63,20 @@ export async function getCourseById(id: string) {
 }
 
 export async function enrollInCourse(courseId: string) {
-	const res = await api.post('/courses/enroll', { courseId });
-	return res.data?.data?.enrollment;
+	const res = await api.post('/enrollments', { courseId });
+	return (res.data?.data?.enrollment ?? res.data?.enrollment ?? res.data) as CourseEnrollment;
 }
 
 export async function updateLessonProgress(enrollmentId: string, progress?: number, completed?: boolean) {
-	const res = await api.post('/courses/progress', { enrollmentId, progress, completed });
-	return res.data?.data;
+	const res = await api.patch(`/progress/${enrollmentId}`, { progress, completed });
+	return (res.data?.data ?? res.data) as CourseEnrollment;
+}
+
+export async function getMyProgress() {
+	const res = await api.get('/progress');
+	if (Array.isArray(res.data)) {
+		return res.data as CourseEnrollment[];
+	}
+
+	return (res.data?.data?.progress ?? res.data?.progress ?? []) as CourseEnrollment[];
 }
