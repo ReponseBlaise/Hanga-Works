@@ -1,4 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { AUTH_TOKEN_KEY, setAuthToken } from '../services/api';
+import authService from '../services/auth.service';
 
 export type AuthUser = {
   id?: string;
@@ -51,6 +53,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     window.localStorage.removeItem(AUTH_STORAGE_KEY);
   }, [user]);
 
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    const storedToken = window.localStorage.getItem(AUTH_TOKEN_KEY);
+
+    if (storedToken) {
+      return;
+    }
+
+    void authService.refresh().then((data) => {
+      if (!data?.access_token) {
+        setAuthToken(null);
+        setUser(null);
+        return;
+      }
+
+      if (data.user) {
+        setUser(data.user);
+      }
+    });
+  }, [user]);
+
   const value: AuthContextValue = {
     user,
     isAuthenticated: user !== null,
@@ -58,6 +84,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(nextUser);
     },
     signOut: () => {
+      setAuthToken(null);
+      window.localStorage.removeItem(AUTH_TOKEN_KEY);
       setUser(null);
     },
   };

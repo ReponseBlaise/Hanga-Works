@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Card, CardMeta, CardTitle } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { createEmployerJob, type EmployerJob } from '../../services/employer.service';
@@ -37,66 +38,68 @@ export default function PostJob() {
   }
 
   return (
-    <section>
-      <header className="page-header">
-        <h2>Post a Job</h2>
-      </header>
+    <SiteLayout>
+      <section>
+        <header className="page-header">
+          <h2>Post a Job</h2>
+        </header>
 
-      <form onSubmit={onSubmit} className="form-stack">
-        <label>
-          Job Title
-          <input value={title} onChange={(e) => setTitle(e.target.value)} required />
-        </label>
-        <label>
-          Description
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={6} required />
-        </label>
-        <label>
-          Location
-          <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Kigali, Rwanda" />
-        </label>
-        <label>
-          Job Type
-          <select value={jobType} onChange={(e) => setJobType(e.target.value as typeof jobType)}>
-            {JOB_TYPES.map((type) => (
-              <option key={type} value={type}>{type}</option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Salary Min
-          <input type="number" value={salaryMin} onChange={(e) => setSalaryMin(e.target.value)} placeholder="0" />
-        </label>
-        <label>
-          Salary Max
-          <input type="number" value={salaryMax} onChange={(e) => setSalaryMax(e.target.value)} placeholder="0" />
-        </label>
+        <form onSubmit={onSubmit} className="form-stack">
+          <label>
+            Job Title
+            <input value={title} onChange={(e) => setTitle(e.target.value)} required />
+          </label>
+          <label>
+            Description
+            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={6} required />
+          </label>
+          <label>
+            Location
+            <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Kigali, Rwanda" />
+          </label>
+          <label>
+            Job Type
+            <select value={jobType} onChange={(e) => setJobType(e.target.value as typeof jobType)}>
+              {JOB_TYPES.map((type) => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Salary Min
+            <input type="number" value={salaryMin} onChange={(e) => setSalaryMin(e.target.value)} placeholder="0" />
+          </label>
+          <label>
+            Salary Max
+            <input type="number" value={salaryMax} onChange={(e) => setSalaryMax(e.target.value)} placeholder="0" />
+          </label>
 
-        <div>
-          <Button type="submit" disabled={loading}>{loading ? 'Publishing…' : 'Publish'}</Button>
-          <Button variant="secondary" type="button" onClick={() => {
-            setTitle('');
-            setDescription('');
-            setLocation('');
-            setJobType('FULL_TIME');
-            setSalaryMin('');
-            setSalaryMax('');
-            setPublishedJob(null);
-            setError('');
-          }}>Reset</Button>
-        </div>
-        {error && <p style={{ color: 'var(--danger)' }}>{error}</p>}
-      </form>
+          <div>
+            <Button type="submit" disabled={loading}>{loading ? 'Publishing…' : 'Publish'}</Button>
+            <Button variant="secondary" type="button" onClick={() => {
+              setTitle('');
+              setDescription('');
+              setLocation('');
+              setJobType('FULL_TIME');
+              setSalaryMin('');
+              setSalaryMax('');
+              setPublishedJob(null);
+              setError('');
+            }}>Reset</Button>
+          </div>
+          {error && <p style={{ color: 'var(--danger)' }}>{error}</p>}
+        </form>
 
-      {publishedJob && (
-        <Card>
-          <CardTitle>{publishedJob.title}</CardTitle>
-          <CardMeta>
-            {publishedJob.location ?? 'No location'} · {publishedJob.jobType}
-          </CardMeta>
-          <p>{publishedJob.description}</p>
-        </Card>
-      )}
-    </section>
+        {publishedJob && (
+          <Card>
+            <CardTitle>{publishedJob.title}</CardTitle>
+            <CardMeta>
+              {publishedJob.location ?? 'No location'} · {publishedJob.jobType}
+            </CardMeta>
+            <p>{publishedJob.description}</p>
+          </Card>
+        )}
+      </section>
+    </SiteLayout>
   );
 }
