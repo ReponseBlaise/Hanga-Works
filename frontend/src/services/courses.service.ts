@@ -67,8 +67,8 @@ export async function enrollInCourse(courseId: string) {
 	return (res.data?.data?.enrollment ?? res.data?.enrollment ?? res.data) as CourseEnrollment;
 }
 
-export async function updateLessonProgress(enrollmentId: string, progress?: number, completed?: boolean) {
-	const res = await api.patch(`/progress/${enrollmentId}`, { progress, completed });
+export async function updateLessonProgress(enrollmentId: string, progress?: number) {
+	const res = await api.patch(`/progress/${enrollmentId}`, { progress });
 	return (res.data?.data ?? res.data) as CourseEnrollment;
 }
 
