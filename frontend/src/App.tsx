@@ -50,7 +50,7 @@ export default function App() {
           <Route path="/jobs/:id" element={<JobDetail />} />
           <Route path="/applications" element={<MyApplications />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/profile/:username" element={<Profile />} />
+          <Route path="/profile/:id" element={<Profile />} />
           <Route path="/certifications" element={<CertificationList />} />
           <Route path="/certifications/verify/:token" element={<CertificationVerify />} />
           <Route path="/mentors" element={<MentorList />} />

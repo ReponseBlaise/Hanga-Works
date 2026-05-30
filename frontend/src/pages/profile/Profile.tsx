@@ -4,6 +4,7 @@ import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
 import { useAuth } from '../../context/AuthContext';
+import api from '../../services/api';
 import authService, { updateProfile, type AuthUser as RemoteAuthUser } from '../../services/auth.service';
 import { getMyCertificates, type LearnerCertificate } from '../../services/certificates.service';
 import type { ProfileExperience, ProfileSkill, Proficiency } from '../../types/user.types';
@@ -16,7 +17,8 @@ const proficiencyLabels: Record<Proficiency, string> = {
 
 export default function Profile() {
 	const { user: authUser, signIn } = useAuth();
-	const params = useParams<{ username?: string }>();
+	const params = useParams<{ id?: string }>();
+	const isPublicView = !!params.id && params.id !== authUser?.id;
 	const [loadingProfile, setLoadingProfile] = useState(true);
 	const [savingProfile, setSavingProfile] = useState(false);
 	const [profileMessage, setProfileMessage] = useState('');
@@ -43,8 +45,9 @@ export default function Profile() {
 
 	useEffect(() => {
 		let active = true;
-		authService.profile()
-			.then((profile) => {
+		const fetchProfile = isPublicView ? api.get(`/users/${params.id}`).then(res => res.data) : authService.profile();
+		fetchProfile
+			.then((profile: any) => {
 				if (!active) return;
 				const remoteProfile = profile as RemoteAuthUser;
 				if (remoteProfile.name) setName(remoteProfile.name);
@@ -85,8 +88,8 @@ export default function Profile() {
 		};
 	}, []);
 
-	const userName = params.username ?? authUser?.username ?? authUser?.name ?? 'learner';
-	const publicProfileLink = useMemo(() => `/profile/${userName.toLowerCase().replace(/\s+/g, '-')}`, [userName]);
+	const userName = isPublicView ? name : (authUser?.name ?? 'learner');
+	const publicProfileLink = useMemo(() => `/profile/${authUser?.id ?? ''}`, [authUser]);
 	const filteredSkills = useMemo(() => skills.filter((skill) => skill.name.toLowerCase().includes(skillSearch.toLowerCase())), [skillSearch, skills]);
 
 	function addSkill() {
@@ -143,16 +146,20 @@ export default function Profile() {
 						<p className="section-head__eyebrow">Profile</p>
 						<h2>{name} · {userName}</h2>
 						<p className="card-meta">Manage skills, experiences, certificates, and your public share link.</p>
-						<div className="profile-hero__actions">
-							<Button to={publicProfileLink} variant="primary">Open public view</Button>
-							<Button to="/courses" variant="secondary">Continue learning</Button>
-						</div>
-						<div className="profile-hero__actions">
-							<Button type="button" variant="primary" onClick={handleSaveProfile} disabled={savingProfile || loadingProfile}>
-								{savingProfile ? 'Saving profile…' : 'Save profile'}
-							</Button>
-							{profileMessage ? <CardMeta>{profileMessage}</CardMeta> : null}
-						</div>
+						{!isPublicView && (
+							<>
+								<div className="profile-hero__actions">
+									<Button to={publicProfileLink} variant="primary">Open public view</Button>
+									<Button to="/courses" variant="secondary">Continue learning</Button>
+								</div>
+								<div className="profile-hero__actions">
+									<Button type="button" variant="primary" onClick={handleSaveProfile} disabled={savingProfile || loadingProfile}>
+										{savingProfile ? 'Saving profile…' : 'Save profile'}
+									</Button>
+									{profileMessage ? <CardMeta>{profileMessage}</CardMeta> : null}
+								</div>
+							</>
+						)}
 					</div>
 					<div className="profile-hero__side">
 						<Card className="profile-hero__card">
@@ -167,12 +174,13 @@ export default function Profile() {
 					</div>
 				</header>
 
+				{!isPublicView && (
 				<div className="profile-grid">
 					<Card>
 						<CardEyebrow>Public profile</CardEyebrow>
 						<CardTitle>Shareable link</CardTitle>
-						<CardMeta>{publicProfileLink}</CardMeta>
-						<p className="card-meta">This route is ready for public profile rendering and social sharing previews.</p>
+						<CardMeta>{window.location.origin + publicProfileLink}</CardMeta>
+						<p className="card-meta">Copy this link to share your public profile with employers.</p>
 						<Button to={publicProfileLink} variant="secondary">Open public view</Button>
 					</Card>
 
@@ -192,7 +200,9 @@ export default function Profile() {
 						}} />
 					</Card>
 				</div>
+				)}
 
+				{!isPublicView && (
 				<section className="dashboard-section">
 					<div className="section-head">
 						<div>
@@ -216,6 +226,7 @@ export default function Profile() {
 						</div>
 					</div>
 				</section>
+				)}
 
 				<section className="dashboard-section">
 					<div className="section-head">
@@ -225,28 +236,32 @@ export default function Profile() {
 						</div>
 					</div>
 					<Card>
-						<div className="profile-form-grid">
-							<label>
-								Search skills
-								<input value={skillSearch} onChange={(e) => setSkillSearch(e.target.value)} placeholder="Search your skills" />
-							</label>
-							<label>
-								Add skill
-								<input value={newSkill} onChange={(e) => setNewSkill(e.target.value)} placeholder="React, design systems, mentoring..." />
-							</label>
-							<label>
-								Proficiency
-								<select value={newProficiency} onChange={(e) => setNewProficiency(e.target.value as Proficiency)}>
-									<option value="BEGINNER">Beginner</option>
-									<option value="INTERMEDIATE">Intermediate</option>
-									<option value="ADVANCED">Expert</option>
-								</select>
-							</label>
-						</div>
-						<div className="job-card__actions">
-							<Button type="button" onClick={addSkill}>Add skill</Button>
-							<Button type="button" variant="secondary" onClick={() => setSkills([])}>Clear skills</Button>
-						</div>
+						{!isPublicView && (
+							<>
+								<div className="profile-form-grid">
+									<label>
+										Search skills
+										<input value={skillSearch} onChange={(e) => setSkillSearch(e.target.value)} placeholder="Search your skills" />
+									</label>
+									<label>
+										Add skill
+										<input value={newSkill} onChange={(e) => setNewSkill(e.target.value)} placeholder="React, design systems, mentoring..." />
+									</label>
+									<label>
+										Proficiency
+										<select value={newProficiency} onChange={(e) => setNewProficiency(e.target.value as Proficiency)}>
+											<option value="BEGINNER">Beginner</option>
+											<option value="INTERMEDIATE">Intermediate</option>
+											<option value="ADVANCED">Expert</option>
+										</select>
+									</label>
+								</div>
+								<div className="job-card__actions">
+									<Button type="button" onClick={addSkill}>Add skill</Button>
+									<Button type="button" variant="secondary" onClick={() => setSkills([])}>Clear skills</Button>
+								</div>
+							</>
+						)}
 						<div className="job-card__tags profile-tags">
 							{filteredSkills.map((skill) => <span key={skill.id}>{skill.name} · {proficiencyLabels[skill.proficiency]}</span>)}
 						</div>
@@ -269,9 +284,11 @@ export default function Profile() {
 							</Card>
 						))}
 					</div>
+					{!isPublicView && (
 					<div className="job-card__actions">
 						<Button type="button" onClick={addExperience}>Add timeline entry</Button>
 					</div>
+					)}
 				</section>
 
 				<section className="dashboard-section">
@@ -301,31 +318,35 @@ export default function Profile() {
 					<Card>
 						<CardEyebrow>About</CardEyebrow>
 						<CardTitle>Headline and summary</CardTitle>
-						<div className="profile-form-grid">
-							<label>
-								Name
-								<input value={name} onChange={(e) => setName(e.target.value)} />
-							</label>
-							<label>
-								Location
-								<input value={location} onChange={(e) => setLocation(e.target.value)} />
-							</label>
-							<label>
-								Headline
-								<textarea value={headline} onChange={(e) => setHeadline(e.target.value)} rows={2} />
-							</label>
-							<label>
-								Bio
-								<textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={4} />
-							</label>
-						</div>
-						<div className="job-card__actions">
-							<Button type="button" variant="primary" onClick={handleSaveProfile} disabled={savingProfile || loadingProfile}>
-								Save changes
-							</Button>
-						</div>
-						<p className="card-meta">{headline}</p>
+						<p className="card-meta" style={{ fontSize: '1.2rem', color: 'var(--text)' }}>{headline}</p>
 						<p className="card-meta">{bio}</p>
+						{!isPublicView && (
+							<>
+								<div className="profile-form-grid" style={{ marginTop: 24 }}>
+									<label>
+										Name
+										<input value={name} onChange={(e) => setName(e.target.value)} />
+									</label>
+									<label>
+										Location
+										<input value={location} onChange={(e) => setLocation(e.target.value)} />
+									</label>
+									<label>
+										Headline
+										<textarea value={headline} onChange={(e) => setHeadline(e.target.value)} rows={2} />
+									</label>
+									<label>
+										Bio
+										<textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={4} />
+									</label>
+								</div>
+								<div className="job-card__actions">
+									<Button type="button" variant="primary" onClick={handleSaveProfile} disabled={savingProfile || loadingProfile}>
+										Save changes
+									</Button>
+								</div>
+							</>
+						)}
 					</Card>
 				</section>
 			</section>

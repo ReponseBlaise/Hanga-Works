@@ -24,7 +24,7 @@ type AuthResponse = {
 
 type RegisterResponse = AuthUser | AuthResponse;
 
-export async function register(payload: { name: string; email: string; password: string; role?: 'LEARNER' | 'EMPLOYER' | 'INSTITUTION' | 'MENTOR' }) {
+export async function register(payload: { name: string; email: string; password: string; role?: 'LEARNER' | 'EMPLOYER' }) {
 	// Create the account
 	await api.post('/auth/register', payload);
 	// Immediately log in to get the token
