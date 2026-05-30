@@ -7,6 +7,14 @@ export type AuthUser = {
 	username?: string;
 	role?: string;
 	organizationId?: string | null;
+	bio?: string | null;
+	location?: string | null;
+	avatarUrl?: string | null;
+	skills?: Array<{
+		id: string;
+		skill: { id: string; name: string };
+		level?: string;
+	}>;
 };
 
 type AuthResponse = {
@@ -38,7 +46,18 @@ export async function login(payload: { email: string; password: string }) {
 
 export async function profile() {
 	const res = await api.get('/users/me');
-	return res.data as AuthUser;
+	return (res.data?.data ?? res.data) as AuthUser;
+}
+
+export async function updateProfile(payload: {
+	name?: string;
+	bio?: string;
+	avatarUrl?: string;
+	location?: string;
+	skills?: Array<{ skillName: string; level: string }>;
+}) {
+	const res = await api.patch('/users/me', payload);
+	return (res.data?.data ?? res.data) as AuthUser;
 }
 
 export async function logout() {
@@ -66,4 +85,4 @@ export async function refresh() {
 	}
 }
 
-export default { register, login, profile, logout, refresh };
+export default { register, login, profile, updateProfile, logout, refresh };
