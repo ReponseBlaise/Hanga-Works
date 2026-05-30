@@ -117,7 +117,7 @@ export function CourseDetail() {
 		setSavingProgress(true);
 		setTrackingMessage(forceComplete ? 'Marking the course complete so the certificate can be issued.' : 'Saving your study progress.');
 		try {
-			const updated = await updateLessonProgress(currentEnrollment.id, nextProgress, nextProgress >= 100);
+			const updated = await updateLessonProgress(currentEnrollment.id, nextProgress);
 			setEnrollments((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
 			setProgressValue(updated.progress ?? nextProgress);
 			if ((updated.progress ?? nextProgress) >= 100) {
