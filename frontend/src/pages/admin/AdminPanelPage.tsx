@@ -3,24 +3,34 @@ import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Card, CardTitle, CardMeta } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import api from '../../services/api';
+import { getAnalyticsOverview, type AnalyticsOverview } from '../../services/analytics.service';
 
 type UserSummary = { id: string; name: string; email: string; role: string };
 
 export default function AdminPanelPage() {
   const [users, setUsers] = useState<UserSummary[]>([]);
+  const [overview, setOverview] = useState<AnalyticsOverview | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     let active = true;
     setLoading(true);
-    api
-      .get('/admin/users')
-      .then((res) => {
+
+    Promise.all([
+      api.get('/admin/users'),
+      getAnalyticsOverview().catch(() => null),
+    ])
+      .then(([userResponse, analyticsResponse]) => {
         if (!active) return;
-        setUsers(res.data ?? []);
+        setUsers(userResponse.data ?? []);
+        setOverview(analyticsResponse);
       })
-      .catch(() => setUsers([]))
-      .finally(() => setLoading(false));
+      .catch(() => {
+        if (active) setUsers([]);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
 
     return () => {
       active = false;
@@ -45,11 +55,11 @@ export default function AdminPanelPage() {
           </Card>
           <Card>
             <CardTitle>Active Jobs</CardTitle>
-            <CardMeta>—</CardMeta>
+            <CardMeta>{overview?.activeJobs ?? '—'}</CardMeta>
           </Card>
           <Card>
             <CardTitle>Open Reports</CardTitle>
-            <CardMeta>—</CardMeta>
+            <CardMeta>{overview ? `${overview.totalApplications} applications` : '—'}</CardMeta>
           </Card>
         </div>
 

@@ -34,7 +34,7 @@ export default function Register() {
     authService.register({ name: form.name, email: form.email, password: form.password, role: form.role || undefined })
         .then((user) => {
           if (user) {
-            signIn(user);
+            signIn('user' in user ? user.user : user);
             navigate('/');
           }
       })
@@ -123,14 +123,14 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '11px 16px', borderRadius: '14px',
+  width: '100%', padding: '11px 16px', borderRadius: '10px',
   border: '1px solid var(--border)', background: 'var(--bg)',
   color: 'var(--text)', fontSize: '0.9rem', outline: 'none',
   transition: 'border-color 180ms', boxSizing: 'border-box',
 };
 
 const btnStyle: React.CSSProperties = {
-  width: '100%', padding: '13px', borderRadius: '14px', border: 'none',
+  width: '100%', padding: '13px', borderRadius: '10px', border: 'none',
   background: 'linear-gradient(135deg, var(--accent), var(--accent-strong))',
   color: '#fff', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer',
   boxShadow: '0 12px 28px rgba(63,102,244,0.28)', marginTop: '4px',

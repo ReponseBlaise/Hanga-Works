@@ -1,13 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { publicNavItems } from '../../constants/routes';
 import { useAuth } from '../../context/AuthContext';
+import { NotificationBell } from '../shared/NotificationBell';
+import { useNotificationsFeed } from '../../services/notifications.service';
 
 export default function Navbar() {
 	const location = useLocation();
+	const navigate = useNavigate();
 	const { user, isAuthenticated, signOut } = useAuth();
 	const [hovered, setHovered] = useState<string | null>(null);
 	const [menuOpen, setMenuOpen] = useState(false);
+	const { unreadCount } = useNotificationsFeed(user?.id);
 
 	useEffect(() => {
 		setMenuOpen(false);
@@ -27,6 +31,8 @@ export default function Navbar() {
 				{ label: 'Post a Job', href: '/employer/post-job' },
 				{ label: 'Applicants', href: '/employer/applicants' },
 				{ label: 'Candidates', href: '/candidates' },
+				{ label: 'Intelligence', href: '/intelligence' },
+				{ label: 'Notifications', href: '/notifications' },
 			];
 		}
 		if (userRole === 'ADMIN') {
@@ -35,6 +41,7 @@ export default function Navbar() {
 				{ label: 'Admin Home', href: '/admin' },
 				{ label: 'Exports', href: '/admin/export' },
 				{ label: 'Moderation', href: '/admin/moderation' },
+				{ label: 'Notifications', href: '/notifications' },
 			];
 		}
 		return [
@@ -44,6 +51,8 @@ export default function Navbar() {
 			{ label: 'Courses', href: '/courses' },
 			{ label: 'Mentors', href: '/mentors' },
 			{ label: 'Applications', href: '/applications' },
+			{ label: 'Intelligence', href: '/intelligence' },
+			{ label: 'Notifications', href: '/notifications' },
 			{ label: 'Profile', href: '/profile' },
 			{ label: 'Certifications', href: '/certifications' },
 		];
@@ -101,6 +110,10 @@ export default function Navbar() {
 					<div className="public-navbar__auth">
 						{isAuthenticated ? (
 							<>
+								<NotificationBell
+									count={unreadCount}
+									onClick={() => navigate('/notifications')}
+								/>
 								<button
 									type="button"
 									className="public-navbar__signin"

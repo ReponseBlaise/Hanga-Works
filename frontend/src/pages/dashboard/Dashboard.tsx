@@ -173,6 +173,8 @@ export function Dashboard() {
 							<Button to="/jobs" variant="ghost">Find jobs</Button>
 							<Button to="/courses" variant="ghost">Learning catalog</Button>
 							<Button to="/applications" variant="ghost">Applications</Button>
+							<Button to="/intelligence" variant="ghost">Intelligence</Button>
+							<Button to="/notifications" variant="ghost">Notifications</Button>
 							<Button to="/profile" variant="ghost">Profile</Button>
 						</div>
 					</Card>

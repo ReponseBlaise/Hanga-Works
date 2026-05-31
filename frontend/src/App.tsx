@@ -30,6 +30,8 @@ import Contact from './pages/contact/Contact';
 import Pricing from './pages/pricing/Pricing';
 import Candidates from './pages/candidates/Candidates';
 import Blog from './pages/blog/Blog';
+import Intelligence from './pages/intelligence/Intelligence';
+import Notifications from './pages/notifications/Notifications';
 
 export default function App() {
   return (
@@ -59,6 +61,8 @@ export default function App() {
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/candidates" element={<Candidates />} />
           <Route path="/blog" element={<Blog />} />
+          <Route path="/intelligence" element={<Intelligence />} />
+          <Route path="/notifications" element={<Notifications />} />
           <Route path="/employer" element={<EmployerRoute><EmployerDashboard /></EmployerRoute>} />
           <Route path="/employer/post-job" element={<EmployerRoute><PostJob /></EmployerRoute>} />
           <Route path="/employer/applicants" element={<EmployerRoute><Applicants /></EmployerRoute>} />
