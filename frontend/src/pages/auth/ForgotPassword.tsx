@@ -3,12 +3,45 @@ import { Link } from 'react-router-dom';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
 
   const focus = (e: React.FocusEvent<HTMLInputElement>) => {
     e.target.style.borderColor = 'var(--accent)';
   };
   const blur = (e: React.FocusEvent<HTMLInputElement>) => {
     e.target.style.borderColor = 'var(--border)';
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+
+    setLoading(true);
+    setMessage('');
+    setError('');
+
+    try {
+      const response = await fetch('http://localhost:3000/api/v1/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Something went wrong');
+      }
+
+      setMessage(data.message || 'If the email exists, a password reset link has been sent.');
+      setEmail('');
+    } catch (err: any) {
+      setError(err.message || 'Failed to connect to the server');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -56,7 +89,7 @@ export default function ForgotPassword() {
         </h1>
 
         <p style={{
-          margin: '0 0 36px',
+          margin: '0 0 24px',
           textAlign: 'center',
           fontSize: '0.95rem',
           lineHeight: 1.65,
@@ -68,7 +101,19 @@ export default function ForgotPassword() {
           Enter email address associated with your account and we&apos;ll send you a link to reset your password
         </p>
 
-        <form onSubmit={e => e.preventDefault()} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {message && (
+          <div style={{ padding: '12px', background: '#dcfce7', color: '#166534', borderRadius: '8px', marginBottom: '20px', fontSize: '0.9rem', textAlign: 'center' }}>
+            {message}
+          </div>
+        )}
+
+        {error && (
+          <div style={{ padding: '12px', background: '#fee2e2', color: '#991b1b', borderRadius: '8px', marginBottom: '20px', fontSize: '0.9rem', textAlign: 'center' }}>
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <label style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text)' }}>
               Email address *
@@ -85,8 +130,8 @@ export default function ForgotPassword() {
             />
           </div>
 
-          <button type="submit" style={btnStyle}>
-            Continue
+          <button type="submit" disabled={loading} style={{ ...btnStyle, opacity: loading ? 0.7 : 1 }}>
+            {loading ? 'Sending...' : 'Continue'}
           </button>
         </form>
 
