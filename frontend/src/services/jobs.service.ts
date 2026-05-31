@@ -109,3 +109,9 @@ export async function getSkills() {
   if (Array.isArray(data)) return data as SkillWithCount[];
   return (data.skills ?? data) as SkillWithCount[];
 }
+
+export async function getRecommended() {
+	const res = await api.get('/jobs/recommended');
+	const data = res.data?.data ?? res.data;
+	return (data?.jobs ?? data) as JobSummary[];
+}

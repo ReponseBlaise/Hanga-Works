@@ -53,10 +53,19 @@ api.interceptors.response.use(
 		try {
 			const refreshResponse = await refreshClient.post('/auth/refresh', null, {
 				validateStatus: () => true,
+				withCredentials: true,
 			});
+
+			if (refreshResponse.status !== 200) {
+				console.error('Refresh endpoint returned non-200', { status: refreshResponse.status, data: refreshResponse.data });
+				setAuthToken(null);
+				return Promise.reject(error);
+			}
+
 			const refreshedToken = refreshResponse.data?.data?.access_token ?? refreshResponse.data?.access_token;
 
 			if (!refreshedToken) {
+				console.error('No access token in refresh response', { data: refreshResponse.data });
 				setAuthToken(null);
 				return Promise.reject(error);
 			}
@@ -68,7 +77,8 @@ api.interceptors.response.use(
 			originalRequest.headers = originalRequest.headers ?? {};
 			originalRequest.headers.Authorization = `Bearer ${refreshedToken}`;
 			return api(originalRequest);
-		} catch {
+		} catch (err) {
+			console.error('Error while refreshing token', err);
 			setAuthToken(null);
 			return Promise.reject(error);
 		}

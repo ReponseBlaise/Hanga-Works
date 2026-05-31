@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { forgotPassword } from '../../services/auth.service';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
+  const [status, setStatus] = useState<'idle' | 'sent' | 'error'>('idle');
 
   const focus = (e: React.FocusEvent<HTMLInputElement>) => {
     e.target.style.borderColor = 'var(--accent)';
@@ -68,7 +70,16 @@ export default function ForgotPassword() {
           Enter email address associated with your account and we&apos;ll send you a link to reset your password
         </p>
 
-        <form onSubmit={e => e.preventDefault()} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <form onSubmit={async e => {
+          e.preventDefault();
+          setStatus('idle');
+          try {
+            await forgotPassword({ email });
+            setStatus('sent');
+          } catch {
+            setStatus('error');
+          }
+        }} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <label style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text)' }}>
               Email address *
@@ -89,6 +100,9 @@ export default function ForgotPassword() {
             Continue
           </button>
         </form>
+
+        {status === 'sent' ? <p style={{ color: 'var(--success)', marginTop: 12 }}>If an account with that email exists, a reset link has been sent.</p> : null}
+        {status === 'error' ? <p style={{ color: 'var(--danger)', marginTop: 12 }}>Unable to send reset link. Try again later.</p> : null}
 
         <p style={{
           textAlign: 'center',
@@ -139,9 +153,9 @@ function Decorations() {
         }}
       >
         <ellipse cx="200" cy="160" rx="110" ry="100" fill="rgba(183, 198, 245, 0.45)" />
-        <rect x="118" y="72" width="118" height="78" rx="18" fill="#fff" stroke="#c5d0e4" strokeWidth="1.5" />
-        <rect x="138" y="108" width="118" height="78" rx="18" fill="#fff" stroke="#c5d0e4" strokeWidth="1.5" />
-        <rect x="158" y="144" width="118" height="78" rx="18" fill="#fff" stroke="#c5d0e4" strokeWidth="1.5" />
+          <rect x="118" y="72" width="118" height="78" rx="12" fill="#fff" stroke="#c5d0e4" strokeWidth="1.5" />
+          <rect x="138" y="108" width="118" height="78" rx="12" fill="#fff" stroke="#c5d0e4" strokeWidth="1.5" />
+          <rect x="158" y="144" width="118" height="78" rx="12" fill="#fff" stroke="#c5d0e4" strokeWidth="1.5" />
         <line x1="200" y1="48" x2="260" y2="48" stroke="#c5d0e4" strokeWidth="2" strokeLinecap="round" />
         <line x1="200" y1="62" x2="240" y2="62" stroke="#c5d0e4" strokeWidth="2" strokeLinecap="round" />
         <line x1="200" y1="76" x2="220" y2="76" stroke="#c5d0e4" strokeWidth="2" strokeLinecap="round" />
@@ -154,6 +168,7 @@ const inputStyle: React.CSSProperties = {
   width: '100%',
   padding: '14px 16px',
   borderRadius: '10px',
+    borderRadius: 'var(--radius-md)',
   border: '1px solid var(--border)',
   background: '#ffffff',
   color: 'var(--text)',
@@ -167,6 +182,7 @@ const btnStyle: React.CSSProperties = {
   width: '100%',
   padding: '15px',
   borderRadius: '10px',
+    borderRadius: 'var(--radius-md)',
   border: 'none',
   background: 'var(--text)',
   color: '#ffffff',

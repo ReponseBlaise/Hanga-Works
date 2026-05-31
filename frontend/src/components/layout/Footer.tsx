@@ -70,7 +70,7 @@ export default function Footer() {
               { label: 'learn', href: '/courses' },
             ].map((item) => (
               <a key={item.label} href={item.href} style={{
-                width: '30px', height: '30px', borderRadius: '10px',
+                width: '30px', height: '30px', borderRadius: 'var(--radius-md)',
                 background: 'var(--accent-wash)',
                 display: 'grid', placeItems: 'center',
                 fontSize: '0.75rem', fontWeight: 700,

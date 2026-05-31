@@ -13,7 +13,7 @@ export default function VerifyEmail() {
       textAlign: 'center',
     }}>
       <div style={{
-        width: '64px', height: '64px', borderRadius: '14px',
+        width: '64px', height: '64px', borderRadius: 'var(--radius-lg)',
         background: 'var(--accent-soft)',
         display: 'grid', placeItems: 'center',
         margin: '0 auto 24px',
@@ -37,7 +37,7 @@ export default function VerifyEmail() {
 
       <div style={{
         background: 'var(--accent-soft)', border: '1px solid var(--border)',
-        borderRadius: '12px', padding: '16px 20px', textAlign: 'left', marginBottom: '28px',
+        borderRadius: 'var(--radius-md)', padding: '16px 20px', textAlign: 'left', marginBottom: '28px',
       }}>
         <p style={{ margin: '0 0 8px', fontWeight: 700, fontSize: '0.88rem', color: 'var(--text)' }}>
           Didn't receive the email?
@@ -49,7 +49,7 @@ export default function VerifyEmail() {
       </div>
 
       <button style={{
-        width: '100%', padding: '13px', borderRadius: '10px', border: 'none',
+        width: '100%', padding: '13px', borderRadius: 'var(--radius-md)', border: 'none',
         background: 'linear-gradient(135deg, var(--accent), var(--accent-strong))',
         color: '#fff', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer',
         boxShadow: '0 12px 28px rgba(63,102,244,0.28)', marginBottom: '20px',

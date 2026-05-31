@@ -4,6 +4,7 @@ import { publicNavItems } from '../../constants/routes';
 import { useAuth } from '../../context/AuthContext';
 import { NotificationBell } from '../shared/NotificationBell';
 import { useNotificationsFeed } from '../../services/notifications.service';
+import { Avatar } from '../shared/Avatar';
 
 export default function Navbar() {
 	const location = useLocation();
@@ -11,7 +12,8 @@ export default function Navbar() {
 	const { user, isAuthenticated, signOut } = useAuth();
 	const [hovered, setHovered] = useState<string | null>(null);
 	const [menuOpen, setMenuOpen] = useState(false);
-	const { unreadCount } = useNotificationsFeed(user?.id);
+	const { items: notificationItems } = useNotificationsFeed(user?.id);
+	const visibleUnread = (notificationItems ?? []).filter((it) => it.source !== 'System' && !it.read).length;
 
 	useEffect(() => {
 		setMenuOpen(false);
@@ -31,8 +33,6 @@ export default function Navbar() {
 				{ label: 'Post a Job', href: '/employer/post-job' },
 				{ label: 'Applicants', href: '/employer/applicants' },
 				{ label: 'Candidates', href: '/candidates' },
-				{ label: 'Intelligence', href: '/intelligence' },
-				{ label: 'Notifications', href: '/notifications' },
 			];
 		}
 		if (userRole === 'ADMIN') {
@@ -41,7 +41,6 @@ export default function Navbar() {
 				{ label: 'Admin Home', href: '/admin' },
 				{ label: 'Exports', href: '/admin/export' },
 				{ label: 'Moderation', href: '/admin/moderation' },
-				{ label: 'Notifications', href: '/notifications' },
 			];
 		}
 		return [
@@ -50,13 +49,9 @@ export default function Navbar() {
 			{ label: 'Jobs', href: '/jobs' },
 			{ label: 'Courses', href: '/courses' },
 			{ label: 'Mentors', href: '/mentors' },
-			{ label: 'Applications', href: '/applications' },
-			{ label: 'Intelligence', href: '/intelligence' },
-			{ label: 'Notifications', href: '/notifications' },
-			{ label: 'Profile', href: '/profile' },
-			{ label: 'Certifications', href: '/certifications' },
 		];
 	}, [isAuthenticated, userRole]);
+	const visibleLinks = navLinks.slice(0, 4);
 
 	function isNavActive(href: string) {
 		if (href === '/') return location.pathname === '/';
@@ -86,7 +81,7 @@ export default function Navbar() {
 
 				<div className={`public-navbar__panel ${menuOpen ? 'is-open' : ''}`}>
 					<div className="public-navbar__links">
-						{navLinks.map((link) => {
+						{visibleLinks.map((link) => {
 							const active = isNavActive(link.href);
 							return (
 								<Link
@@ -107,35 +102,38 @@ export default function Navbar() {
 						})}
 					</div>
 
-					<div className="public-navbar__auth">
-						{isAuthenticated ? (
-							<>
-								<NotificationBell
-									count={unreadCount}
-									onClick={() => navigate('/notifications')}
-								/>
-								<button
-									type="button"
-									className="public-navbar__signin"
-									onClick={() => {
-										setMenuOpen(false);
-										signOut();
-									}}
-								>
-									Sign Out
-								</button>
-							</>
-						) : (
-							<>
-								<Link to="/register" className="public-navbar__register" onClick={() => setMenuOpen(false)}>
-									Sign Up
-								</Link>
-								<Link to="/login" className="public-navbar__signin" onClick={() => setMenuOpen(false)}>
-									Sign In
-								</Link>
-							</>
-						)}
-					</div>
+						<div className="public-navbar__auth">
+							{isAuthenticated ? (
+								<>
+									<NotificationBell
+										count={visibleUnread}
+										onClick={() => navigate('/notifications')}
+									/>
+								<Link to="/profile" className="public-navbar__avatar-link" onClick={() => setMenuOpen(false)}>
+										<Avatar name={user?.name ?? 'User'} imageUrl={user?.avatarUrl ?? undefined} size="sm" />
+									</Link>
+									<button
+										type="button"
+										className="public-navbar__signin"
+										onClick={() => {
+											setMenuOpen(false);
+											signOut();
+										}}
+									>
+										Sign Out
+									</button>
+								</>
+							) : (
+								<>
+									<Link to="/register" className="public-navbar__register" onClick={() => setMenuOpen(false)}>
+										Sign Up
+									</Link>
+									<Link to="/login" className="public-navbar__signin" onClick={() => setMenuOpen(false)}>
+										Sign In
+									</Link>
+								</>
+							)}
+						</div>
 				</div>
 			</div>
 		</nav>
