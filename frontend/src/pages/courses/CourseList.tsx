@@ -4,11 +4,18 @@ import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
 import { getCourses, type BackendCourse } from '../../services/courses.service';
+import { useAuth } from '../../context/AuthContext';
+import { getMyProgress } from '../../services/courses.service';
 
 export function CourseList() {
+	const { isAuthenticated, user } = useAuth();
 	const [search, setSearch] = useState('');
 	const [courses, setCourses] = useState<BackendCourse[]>([]);
+	const [enrolledCourseIds, setEnrolledCourseIds] = useState<Set<string>>(new Set());
+	const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+	const [publishFilter, setPublishFilter] = useState<'ALL' | 'PUBLISHED' | 'DRAFT'>('ALL');
 	const [loading, setLoading] = useState(true);
+	const canCreateCourse = ['ADMIN', 'INSTITUTION'].includes((user?.role ?? '').toUpperCase());
 
 	useEffect(() => {
 		let active = true;
@@ -29,6 +36,28 @@ export function CourseList() {
 		};
 	}, []);
 
+	useEffect(() => {
+		if (!isAuthenticated) {
+			setEnrolledCourseIds(new Set());
+			return;
+		}
+
+		let active = true;
+		getMyProgress()
+			.then((items) => {
+				if (!active) return;
+				setEnrolledCourseIds(new Set((items ?? []).map((item) => item.course.id)));
+			})
+			.catch((error) => {
+				console.error('Failed to load learner enrollments for course badges', error);
+				if (active) setEnrolledCourseIds(new Set());
+			});
+
+		return () => {
+			active = false;
+		};
+	}, [isAuthenticated]);
+
 	const filteredCourses = useMemo(() => {
 		const query = search.trim().toLowerCase();
 		return courses.filter((course) => {
@@ -38,118 +67,160 @@ export function CourseList() {
 				course.description.toLowerCase().includes(query) ||
 				course.institution?.name?.toLowerCase().includes(query) ||
 				(course.skills ?? []).some((skill) => skill.skill.name.toLowerCase().includes(query));
-			return matchesSearch;
+			const matchesPublish =
+				publishFilter === 'ALL' ||
+				(publishFilter === 'PUBLISHED' && course.published) ||
+				(publishFilter === 'DRAFT' && !course.published);
+
+			return matchesSearch && matchesPublish;
 		});
-	}, [courses, search]);
+	}, [courses, publishFilter, search]);
 
 	const totalEnrollments = useMemo(
 		() => courses.reduce((sum, course) => sum + (course._count?.enrollments ?? 0), 0),
 		[courses],
 	);
 
+	const topSkills = useMemo(() => {
+		const counts = new Map<string, number>();
+		courses.forEach((course) => {
+			(course.skills ?? []).forEach((skill) => {
+				counts.set(skill.skill.name, (counts.get(skill.skill.name) ?? 0) + 1);
+			});
+		});
+		return Array.from(counts.entries()).sort((left, right) => right[1] - left[1]).slice(0, 4).map(([name, count]) => ({ name, count }));
+	}, [courses]);
+
+	const enrolledCount = useMemo(
+		() => courses.filter((course) => enrolledCourseIds.has(course.id)).length,
+		[courses, enrolledCourseIds],
+	);
+
 	return (
 		<SiteLayout>
-			<div className="courses-page">
-				<section className="courses-hero card">
-					<div>
-						<p className="section-head__eyebrow">Learning</p>
-						<h2 className="courses-hero__title">Browse courses</h2>
-						<p className="card-meta">Search database-backed courses by title, description, institution, or skill.</p>
-					</div>
-					<div className="courses-hero__visual">
-						<img
-							src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80"
-							alt="People collaborating on learning goals"
-							className="courses-hero__image"
-							loading="lazy"
-						/>
-						<div className="courses-hero__visual-caption">
-							<strong>Live learning feed</strong>
-							<span>Courses are loaded directly from the LMS database.</span>
+			<section className="studio-catalog">
+				<section className="studio-catalog__hero">
+					<div className="studio-catalog__headline">
+						<p className="eyebrow">Course catalog</p>
+						<h1 className="display">A redesigned learning marketplace with faster discovery.</h1>
+						<p className="lead">Switch between card and row formats, combine keyword and publication filters, and jump into enrolled courses directly.</p>
+						<div className="studio-action-row">
+							<Button to="/jobs" variant="secondary">View jobs</Button>
+							{canCreateCourse ? <Button to="/courses/new" variant="primary">Create course</Button> : null}
 						</div>
 					</div>
-					<div className="courses-hero__stats">
-						<div className="hero-stat">
-							<span>Published courses</span>
-							<strong>{courses.length}</strong>
-							<p>Loaded from the backend</p>
-						</div>
-						<div className="hero-stat">
-							<span>Total enrollments</span>
-							<strong>{totalEnrollments}</strong>
-							<p>Counted from the LMS tables</p>
-						</div>
-						<div className="hero-stat">
-							<span>Paid learning</span>
-							<strong>Pricing</strong>
-							<p>See plan details for premium courses and team access.</p>
-						</div>
+					<div className="studio-catalog__stats">
+						<div><span>Total courses</span><strong>{courses.length}</strong></div>
+						<div><span>Total enrollments</span><strong>{totalEnrollments}</strong></div>
+						<div><span>Enrolled by you</span><strong>{enrolledCount}</strong></div>
 					</div>
 				</section>
 
-				<section className="courses-toolbar card">
-					<label className="courses-search">
-						<span className="courses-search__label">Search courses</span>
-						<input
-							type="search"
-							placeholder="Search by title, description, institution, or skill..."
-							value={search}
-							onChange={(e) => setSearch(e.target.value)}
-						/>
-					</label>
-				</section>
-
-				<section className="courses-results">
-					<p className="courses-results__count">
-						{filteredCourses.length} course{filteredCourses.length === 1 ? '' : 's'} found
-					</p>
-					{loading ? <p>Loading courses…</p> : null}
-					<div className="courses-results__actions">
-						<Button to="/pricing" variant="secondary">
-							View pricing
-						</Button>
-					</div>
-
-					{filteredCourses.length === 0 ? (
-						<Card className="courses-empty">
-							<CardTitle>No courses match your filters</CardTitle>
-							<CardMeta>Try a broader keyword or clear the search field.</CardMeta>
+				<section className="studio-catalog__layout">
+					<aside className="studio-catalog__filters">
+						<Card className="studio-block">
+							<CardEyebrow>Search and filter</CardEyebrow>
+							<div className="form-stack">
+								<label>
+									Keyword
+									<input
+										type="search"
+										placeholder="Title, institution, skill"
+										value={search}
+										onChange={(event) => setSearch(event.target.value)}
+									/>
+								</label>
+								<label>
+									Publication status
+									<select value={publishFilter} onChange={(event) => setPublishFilter(event.target.value as typeof publishFilter)}>
+										<option value="ALL">All</option>
+										<option value="PUBLISHED">Published</option>
+										<option value="DRAFT">Draft</option>
+									</select>
+								</label>
+							</div>
+							<div className="studio-action-row">
+								<Button type="button" variant="ghost" onClick={() => setSearch('')}>Clear search</Button>
+								<Button to="/jobs" variant="secondary">View jobs</Button>
+							</div>
 						</Card>
-					) : (
-						<div className="courses-grid">
+
+						<Card className="studio-block">
+							<CardEyebrow>Skill heatmap</CardEyebrow>
+							<div className="studio-chip-row">
+								{topSkills.map((item) => (
+									<span key={item.name} className="dashboard-chip">{item.name} · {item.count}</span>
+								))}
+							</div>
+						</Card>
+					</aside>
+
+					<main className="studio-catalog__results">
+						<div className="studio-catalog__toolbar">
+							<div>
+								<p className="eyebrow">Results</p>
+								<h2>{filteredCourses.length} course matches</h2>
+							</div>
+							<div className="studio-toggle-group" role="tablist" aria-label="Catalog view mode">
+								<button
+									type="button"
+									className={`studio-toggle ${viewMode === 'grid' ? 'is-active' : ''}`.trim()}
+									onClick={() => setViewMode('grid')}
+								>
+									Grid
+								</button>
+								<button
+									type="button"
+									className={`studio-toggle ${viewMode === 'list' ? 'is-active' : ''}`.trim()}
+									onClick={() => setViewMode('list')}
+								>
+									List
+								</button>
+							</div>
+						</div>
+
+						{loading ? <Card className="studio-block"><CardMeta>Loading courses...</CardMeta></Card> : null}
+
+						{!loading && filteredCourses.length === 0 ? (
+							<Card className="studio-block">
+								<CardTitle>No courses match this view</CardTitle>
+								<CardMeta>Try a broader search keyword or reset publication status.</CardMeta>
+							</Card>
+						) : null}
+
+						<div className={viewMode === 'grid' ? 'studio-catalog-grid' : 'studio-catalog-list'}>
 							{filteredCourses.map((course) => {
+								const isEnrolled = enrolledCourseIds.has(course.id);
 								return (
-									<Card key={course.id} className="course-list-card">
-										<div className="course-list-card__top">
+									<Card key={course.id} className="studio-catalog-card">
+										<div className="studio-catalog-card__head">
 											<div>
 												<CardEyebrow>{course.institution?.name ?? 'Hanga Works'}</CardEyebrow>
-												<CardTitle>
-													<Link to={`/courses/${course.id}`}>{course.title}</Link>
-												</CardTitle>
+												<CardTitle>{course.title}</CardTitle>
 											</div>
-											<span className="course-list-card__provider">{course.published ? 'Published' : 'Draft'}</span>
+											<div className="studio-chip-row">
+												<span className="dashboard-chip">{course.published ? 'Published' : 'Draft'}</span>
+												{isEnrolled ? <span className="dashboard-chip">Enrolled</span> : null}
+											</div>
 										</div>
 										<CardMeta>{course.description}</CardMeta>
-										<div className="course-list-card__tags">
-											{(course.skills ?? []).map((skill) => (
-												<span key={skill.id}>{skill.skill.name}</span>
+										<p className="muted">{course._count?.modules ?? course.modules?.length ?? 0} modules · {course._count?.enrollments ?? 0} enrollments</p>
+										<div className="studio-chip-row">
+											{(course.skills ?? []).slice(0, 5).map((skill) => (
+												<span key={skill.id} className="dashboard-chip">{skill.skill.name}</span>
 											))}
 										</div>
-										<p className="course-list-card__meta">
-											{course._count?.modules ?? course.modules?.length ?? 0} modules · {course._count?.enrollments ?? 0} enrollments
-										</p>
-										<div className="course-list-card__actions">
-											<Button to={`/courses/${course.id}`} variant="primary">
-												View course
-											</Button>
+										<div className="studio-action-row">
+											<Button to={`/courses/${course.id}`} variant="secondary">Preview</Button>
+											<Button to={`/courses/${course.id}`} variant="primary">{isEnrolled ? 'Resume' : 'Enroll now'}</Button>
 										</div>
 									</Card>
 								);
 							})}
 						</div>
-					)}
+					</main>
 				</section>
-			</div>
+			</section>
 		</SiteLayout>
 	);
 }

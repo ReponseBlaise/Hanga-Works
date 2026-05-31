@@ -10,344 +10,357 @@ import { getCourses, type BackendCourse } from '../../services/courses.service';
 import { getMyCertificates, type LearnerCertificate } from '../../services/certificates.service';
 import type { JobApplication } from '../../types/job.types';
 
-type DashboardCourse = {
-	id: string;
-	title: string;
-	provider: string;
-	enrollments: number;
-	modules: number;
-	description: string;
+type DashboardTask = {
+  title: string;
+  detail: string;
+  meta: string;
+  href?: string;
 };
 
-function DashboardSectionTitle({
-	eyebrow,
-	title,
-	action,
-	actionHref = '#',
-}: {
-	eyebrow: string;
-	title: string;
-	action?: string;
-	actionHref?: string;
-}) {
-	return (
-		<div className="section-head">
-			<div>
-				<p className="section-head__eyebrow">{eyebrow}</p>
-				<h2>{title}</h2>
-			</div>
-			{action ? (
-				<Button to={actionHref} variant="ghost" className="section-head__action">
-					{action}
-				</Button>
-			) : null}
-		</div>
-	);
-}
-
 function formatSalary(min?: number | null, max?: number | null) {
-	if (min == null && max == null) return 'Salary not listed';
-	if (min != null && max != null) return `RWF ${min.toLocaleString()} - ${max.toLocaleString()}`;
-	if (min != null) return `From RWF ${min.toLocaleString()}`;
-	return `Up to RWF ${max?.toLocaleString()}`;
+  if (min == null && max == null) return 'Salary not listed';
+  if (min != null && max != null) return `RWF ${min.toLocaleString()} - ${max.toLocaleString()}`;
+  if (min != null) return `From RWF ${min.toLocaleString()}`;
+  return `Up to RWF ${max?.toLocaleString()}`;
 }
 
 function formatLocation(location?: string | null) {
-	return location?.trim() ? location : 'Remote';
+  return location?.trim() ? location : 'Remote';
 }
 
 export function Dashboard() {
-	const { user, isAuthenticated } = useAuth();
-	const [jobs, setJobs] = useState<JobSummary[]>([]);
-	const [courses, setCourses] = useState<BackendCourse[]>([]);
-	const [applications, setApplications] = useState<JobApplication[]>([]);
-	const [certificates, setCertificates] = useState<LearnerCertificate[]>([]);
-	const [loading, setLoading] = useState(true);
+  const { user, isAuthenticated } = useAuth();
+  const [jobs, setJobs] = useState<JobSummary[]>([]);
+  const [courses, setCourses] = useState<BackendCourse[]>([]);
+  const [applications, setApplications] = useState<JobApplication[]>([]);
+  const [certificates, setCertificates] = useState<LearnerCertificate[]>([]);
+  const [loading, setLoading] = useState(true);
 
-	useEffect(() => {
-		let active = true;
+  useEffect(() => {
+    let active = true;
 
-		Promise.all([getJobs(), getCourses(), getApplications(), getMyCertificates()])
-			.then(([jobsResponse, courseItems, applicationItems, certificateItems]) => {
-				if (!active) return;
-				setJobs(jobsResponse?.jobs ?? []);
-				setCourses(courseItems ?? []);
-				setApplications(applicationItems ?? []);
-				setCertificates(certificateItems ?? []);
-			})
-			.catch((error) => {
-				console.error('Failed to load dashboard data', error);
-			})
-			.finally(() => {
-				if (active) setLoading(false);
-			});
+    Promise.all([getJobs(), getCourses(), getApplications(), getMyCertificates()])
+      .then(([jobsResponse, courseItems, applicationItems, certificateItems]) => {
+        if (!active) return;
+        setJobs(jobsResponse?.jobs ?? []);
+        setCourses(courseItems ?? []);
+        setApplications(applicationItems ?? []);
+        setCertificates(certificateItems ?? []);
+      })
+      .catch((error) => {
+        console.error('Failed to load dashboard data', error);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
 
-		return () => {
-			active = false;
-		};
-	}, []);
+    return () => {
+      active = false;
+    };
+  }, []);
 
-	const displayName = user?.name?.trim() || 'there';
-	const roleLabel = user?.role ? user.role.charAt(0) + user.role.slice(1).toLowerCase() : 'Learner';
+  const roleLabel = user?.role ? user.role.charAt(0) + user.role.slice(1).toLowerCase() : 'Learner';
 
-	const recentCourses = useMemo<DashboardCourse[]>(() => {
-		return courses.slice(0, 3).map((course) => ({
-			id: course.id,
-			title: course.title,
-			provider: course.institution?.name ?? 'Hanga Works',
-			enrollments: course._count?.enrollments ?? 0,
-			modules: course._count?.modules ?? course.modules?.length ?? 0,
-			description: course.description,
-		}));
-	}, [courses]);
+  const recentCourses = useMemo(() => {
+    return courses.slice(0, 3).map((course) => ({
+      id: course.id,
+      title: course.title,
+      provider: course.institution?.name ?? 'Hanga Works',
+      enrollments: course._count?.enrollments ?? 0,
+      modules: course._count?.modules ?? course.modules?.length ?? 0,
+    }));
+  }, [courses]);
 
-	const recommendedJobs = useMemo(() => {
-		return [...jobs]
-			.sort((left, right) => (right.matchScore ?? 0) - (left.matchScore ?? 0) || (right._count?.applications ?? 0) - (left._count?.applications ?? 0))
-			.slice(0, 3);
-	}, [jobs]);
+  const recommendedJobs = useMemo(() => {
+    return [...jobs]
+      .sort(
+        (left, right) =>
+          (right.matchScore ?? 0) - (left.matchScore ?? 0) ||
+          (right._count?.applications ?? 0) - (left._count?.applications ?? 0),
+      )
+      .slice(0, 3);
+  }, [jobs]);
 
-	const recentApplications = useMemo(() => applications.slice(0, 4), [applications]);
-	const continueLearningCourse = recentCourses[0] ?? null;
+  const continueLearningCourse = recentCourses[0] ?? null;
 
-	const skillCounts = useMemo(() => {
-		const counts = new Map<string, number>();
-		[...jobs.flatMap((job) => job.skills ?? []), ...courses.flatMap((course) => course.skills ?? [])].forEach((entry) => {
-			counts.set(entry.skill.name, (counts.get(entry.skill.name) ?? 0) + 1);
-		});
-		return Array.from(counts.entries())
-			.sort((left, right) => right[1] - left[1])
-			.slice(0, 5)
-			.map(([name, count]) => ({ name, count }));
-	}, [courses, jobs]);
+  const upcomingDeadlines = useMemo<DashboardTask[]>(() => {
+    const tasks: DashboardTask[] = [];
 
-	const progressValue = useMemo(() => {
-		const applicationScore = Math.min(40, applications.length * 8);
-		const certificateScore = Math.min(30, certificates.length * 15);
-		const learningScore = Math.min(30, courses.length * 6);
-		return applicationScore + certificateScore + learningScore;
-	}, [applications.length, certificates.length, courses.length]);
+    if (continueLearningCourse) {
+      tasks.push({
+        title: `Continue ${continueLearningCourse.title}`,
+        detail: `${continueLearningCourse.modules} modules and ${continueLearningCourse.enrollments} enrollments in the queue.`,
+        meta: 'Today',
+        href: `/courses/${continueLearningCourse.id}`,
+      });
+    }
 
-	const progressCards = useMemo(() => [
-		{ title: 'Profile completion', value: Math.min(100, progressValue), meta: 'Based on applications, certificates, and learning activity.' },
-		{ title: 'Applications in review', value: applications.filter((item) => item.status === 'REVIEWING' || item.status === 'SHORTLISTED').length, meta: 'Live pipeline statuses from the backend.' },
-		{ title: 'Verified certificates', value: certificates.length, meta: 'Digital certificates available on your profile.' },
-	], [applications, certificates.length, progressValue]);
+    if (applications[0]) {
+      tasks.push({
+        title: `Follow up on ${applications[0].job.title}`,
+        detail: `Applied to ${applications[0].job.employer.name} in ${formatLocation(applications[0].job.location)}.`,
+        meta: 'This week',
+        href: `/jobs/${applications[0].job.id}`,
+      });
+    }
 
-	const applicationStages = useMemo(() => {
-		return ['APPLIED', 'REVIEWING', 'SHORTLISTED', 'HIRED', 'REJECTED'].map((stage) => ({
-			stage,
-			count: applications.filter((item) => item.status === stage).length,
-		}));
-	}, [applications]);
+    tasks.push({
+      title: 'Refresh your public profile',
+      detail: 'Keep your summary, skills, and profile photo aligned with the roles you want.',
+      meta: 'Next step',
+      href: '/profile',
+    });
 
-	if (!isAuthenticated) {
-		return <Navigate to="/login" replace />;
-	}
+    return tasks.slice(0, 3);
+  }, [applications, continueLearningCourse]);
 
-	return (
-		<SiteLayout>
-			<div className="dashboard-shell" id="dashboard-home">
-				<aside className="dashboard-sidebar">
-					<Card className="dashboard-sidebar__panel">
-						<CardEyebrow>Learning path</CardEyebrow>
-						<CardTitle>Continue learning</CardTitle>
-						<CardMeta>
-							Pick up where you left off or jump into the newest published course from the catalog.
-						</CardMeta>
-						{continueLearningCourse ? (
-							<>
-								<p className="dashboard-sidebar__course">{continueLearningCourse.title}</p>
-								<CardMeta>{continueLearningCourse.provider}</CardMeta>
-								<Button to={`/courses/${continueLearningCourse.id}`} variant="primary">Continue learning</Button>
-							</>
-						) : (
-							<Button to="/courses" variant="primary">Browse courses</Button>
-						)}
-					</Card>
+  const recentActivity = useMemo(() => {
+    const items = [
+      ...applications.slice(0, 4).map((application) => ({
+        id: application.id,
+        title: `Application ${application.status.toLowerCase()}`,
+        detail: `${application.job.title} · ${application.job.employer.name}`,
+        date: application.updatedAt,
+        href: '/applications',
+      })),
+      ...certificates.slice(0, 2).map((certificate) => ({
+        id: certificate.id,
+        title: 'Certificate issued',
+        detail: certificate.courseTitle,
+        date: certificate.issuedAt,
+        href: '/certifications',
+      })),
+    ];
 
-					<Card className="dashboard-sidebar__panel">
-						<CardEyebrow>Quick links</CardEyebrow>
-						<CardTitle>Shortcuts</CardTitle>
-						<div className="dashboard-sidebar__links">
-							<Button to="/jobs" variant="ghost">Find jobs</Button>
-							<Button to="/courses" variant="ghost">Learning catalog</Button>
-							<Button to="/applications" variant="ghost">Applications</Button>
-							<Button to="/profile" variant="ghost">Profile</Button>
-						</div>
-					</Card>
+    return items.sort((left, right) => Date.parse(right.date) - Date.parse(left.date)).slice(0, 6);
+  }, [applications, certificates]);
 
-					<Card className="dashboard-sidebar__panel">
-						<CardEyebrow>Progress</CardEyebrow>
-						<CardTitle>At a glance</CardTitle>
-						<div className="dashboard-trend-list">
-							<div className="dashboard-trend-row"><span>Jobs</span><strong>{jobs.length}</strong></div>
-							<div className="dashboard-trend-row"><span>Courses</span><strong>{courses.length}</strong></div>
-							<div className="dashboard-trend-row"><span>Certificates</span><strong>{certificates.length}</strong></div>
-						</div>
-					</Card>
-				</aside>
+  const skillCounts = useMemo(() => {
+    const counts = new Map<string, number>();
 
-				<main className="dashboard-main">
-				<section className="dashboard-hero card card--hero">
-					<div className="dashboard-hero__copy">
-						<CardEyebrow>{roleLabel} dashboard</CardEyebrow>
-						<CardTitle>Welcome back, {displayName}</CardTitle>
-						<CardMeta>
-							This workspace is personalized to your account and reflects the SRS flow: Learn, Certify, Match, and Employ.
-						</CardMeta>
-					</div>
+    [...jobs.flatMap((job) => job.skills ?? []), ...courses.flatMap((course) => course.skills ?? [])].forEach((entry) => {
+      counts.set(entry.skill.name, (counts.get(entry.skill.name) ?? 0) + 1);
+    });
 
-					<div className="dashboard-hero__stats">
-						<div className="hero-stat" id="applications">
-							<span>Open applications</span>
-							<strong>{loading ? '...' : applications.length}</strong>
-							<p>From the live applications endpoint.</p>
-						</div>
-						<div className="hero-stat" id="notifications">
-							<span>Published courses</span>
-							<strong>{loading ? '...' : courses.length}</strong>
-							<p>Directly fetched from the course catalog.</p>
-						</div>
-					</div>
-				</section>
+    return Array.from(counts.entries())
+      .sort((left, right) => right[1] - left[1])
+      .slice(0, 5)
+      .map(([name, count]) => ({ name, count }));
+  }, [courses, jobs]);
 
-				<section className="dashboard-section" id="progress-overview">
-					<DashboardSectionTitle eyebrow="Progress" title="Your current momentum" />
-					<div className="progress-grid">
-						{progressCards.map((card) => (
-							<Card key={card.title} className="progress-card">
-								<CardEyebrow>{card.title}</CardEyebrow>
-								<div className="progress-card__value">{card.value}</div>
-								<ProgressBar value={card.value} />
-								<CardMeta>{card.meta}</CardMeta>
-							</Card>
-						))}
-					</div>
-				</section>
+  const progressValue = useMemo(() => {
+    const applicationScore = Math.min(40, applications.length * 8);
+    const certificateScore = Math.min(30, certificates.length * 15);
+    const learningScore = Math.min(30, courses.length * 6);
+    return applicationScore + certificateScore + learningScore;
+  }, [applications.length, certificates.length, courses.length]);
 
-				<section className="dashboard-section dashboard-section--wide" id="recommended-jobs">
-					<DashboardSectionTitle eyebrow="Jobs" title="Recommended jobs" action="View all jobs" actionHref="/jobs" />
-					<div className="job-grid">
-						{recommendedJobs.map((job) => (
-							<Card key={job.id} className="job-card">
-								<div className="job-card__top">
-									<div>
-										<CardEyebrow>{job.employer.name}</CardEyebrow>
-										<CardTitle><Link to={`/jobs/${job.id}`}>{job.title}</Link></CardTitle>
-									</div>
-									<div className="job-card__match">{job.matchScore ?? job._count?.applications ?? 0}% match</div>
-								</div>
-								<CardMeta>{formatLocation(job.location)} · {job.jobType.replace('_', ' ')}</CardMeta>
-								<CardMeta>{formatSalary(job.salaryMin, job.salaryMax)}</CardMeta>
-								<p className="job-card__description">{job.description}</p>
-								<div className="job-card__tags">
-									{job.skills?.slice(0, 3).map((skill) => (
-										<span key={skill.id}>{skill.skill.name}</span>
-									))}
-								</div>
-								<div className="job-card__actions">
-									<Button to={`/jobs/${job.id}`} variant="secondary">Save</Button>
-									<Button to={`/jobs/${job.id}`} variant="primary">Open</Button>
-								</div>
-							</Card>
-						))}
-					</div>
-				</section>
+  const progressCards = useMemo(
+    () => [
+      {
+        title: 'Profile completion',
+        value: Math.min(100, progressValue),
+        meta: 'Based on applications, certificates, and learning activity.',
+      },
+      {
+        title: 'Applications in review',
+        value: applications.filter((item) => item.status === 'REVIEWING' || item.status === 'SHORTLISTED').length,
+        meta: 'Live pipeline statuses from the backend.',
+      },
+      {
+        title: 'Verified certificates',
+        value: certificates.length,
+        meta: 'Digital certificates available on your profile.',
+      },
+    ],
+    [applications, certificates.length, progressValue],
+  );
 
-				<section className="dashboard-section" id="recent-courses">
-					<DashboardSectionTitle eyebrow="Learning" title="Recent courses" action="Browse all courses" actionHref="/courses" />
-					<div className="course-stack">
-						{recentCourses.map((course) => (
-							<Card key={course.id} className="course-card">
-								<div className="course-card__top">
-									<div>
-										<CardEyebrow>{course.provider}</CardEyebrow>
-										<CardTitle>
-											<Link to={`/courses/${course.id}`}>{course.title}</Link>
-										</CardTitle>
-									</div>
-									<strong>{course.modules} modules</strong>
-								</div>
-								<CardMeta>{course.description}</CardMeta>
-								<CardMeta>{course.enrollments} enrollments</CardMeta>
-								<div className="course-card__actions">
-									<Button to={`/courses/${course.id}`} variant="ghost">Continue</Button>
-								</div>
-							</Card>
-						))}
-					</div>
-				</section>
+  const applicationStages = useMemo(() => {
+    return ['APPLIED', 'REVIEWING', 'SHORTLISTED', 'HIRED', 'REJECTED'].map((stage) => ({
+      stage,
+      count: applications.filter((item) => item.status === stage).length,
+    }));
+  }, [applications]);
 
-				<section className="dashboard-section dashboard-section--split" id="messages">
-					<Card className="info-card">
-						<CardEyebrow>Certification</CardEyebrow>
-						<CardTitle>Verified credentials</CardTitle>
-						<CardMeta>{certificates.length} certificate{certificates.length === 1 ? '' : 's'} available on your account.</CardMeta>
-						{certificates.length > 0 ? (
-							<div className="list-stack">
-								{certificates.slice(0, 3).map((certificate) => (
-									<div key={certificate.id} className="list-item">
-										<div>
-											<strong>{certificate.courseTitle}</strong>
-											<div className="muted">Issued {new Date(certificate.issuedAt).toLocaleDateString()}</div>
-										</div>
-										<Button to={certificate.verifyUrl} variant="ghost">Verify</Button>
-									</div>
-								))}
-							</div>
-						) : (
-							<CardMeta>Complete a course to generate your first verifiable certificate.</CardMeta>
-						)}
-					</Card>
-					<Card className="info-card" id="settings">
-						<CardEyebrow>Career intelligence</CardEyebrow>
-						<CardTitle>Skill signals and application stages</CardTitle>
-						<CardMeta>These summaries reflect the backend data available to your profile and job search flow.</CardMeta>
-						<div className="dashboard-trend-list">
-							{skillCounts.slice(0, 5).map((skill) => (
-								<div key={skill.name} className="dashboard-trend-row">
-									<span>{skill.name}</span>
-									<strong>{skill.count}</strong>
-								</div>
-							))}
-						</div>
-						<div className="dashboard-application-stages">
-							{applicationStages.map((stage) => (
-								<div key={stage.stage} className="hero-stat">
-									<span>{stage.stage.toLowerCase()}</span>
-									<strong>{stage.count}</strong>
-									<p>Application pipeline status.</p>
-								</div>
-							))}
-						</div>
-					</Card>
-				</section>
+  const learningMomentum = loading ? '...' : `${Math.min(100, progressValue)}%`;
 
-				<section className="dashboard-section" id="applications">
-					<DashboardSectionTitle eyebrow="Applications" title="Recent applications" action="View all applications" actionHref="/applications" />
-					<div className="list-stack">
-						{recentApplications.length === 0 ? (
-							<Card className="info-card">
-								<CardTitle>No applications yet</CardTitle>
-								<CardMeta>Apply to jobs from the marketplace to start tracking application progress here.</CardMeta>
-							</Card>
-						) : recentApplications.map((application) => (
-							<div key={application.id} className="list-item">
-								<div>
-									<strong>{application.job.title}</strong>
-									<div className="muted">{application.job.employer.name} · {formatLocation(application.job.location)}</div>
-								</div>
-								<div>
-									<CardEyebrow>{application.status.toLowerCase()}</CardEyebrow>
-									<div className="muted">Applied {new Date(application.appliedAt).toLocaleDateString()}</div>
-								</div>
-							</div>
-						))}
-					</div>
-				</section>
-				</main>
-			</div>
-		</SiteLayout>
-	);
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return (
+    <SiteLayout>
+      <div className="studio-dashboard studio-dashboard--learner" id="dashboard-home">
+        <section className="studio-hero">
+          <div className="studio-hero__intro">
+            <p className="eyebrow">{roleLabel} mode</p>
+            <h1 className="display-large">Design your week across learning and hiring.</h1>
+            <p className="lead">Your next lesson, strongest matching roles, and pending deadlines are arranged as one operating canvas.</p>
+            <div className="studio-hero__actions">
+              <Button to="/courses" variant="secondary" className="button--lg">Continue learning</Button>
+              <Button to="/jobs" variant="primary" className="button--lg button--pill">Match jobs</Button>
+              <Button to="/applications" variant="ghost">Application board</Button>
+            </div>
+          </div>
+
+          <Card className="studio-hero__spotlight">
+            <CardEyebrow>Momentum index</CardEyebrow>
+            <div className="studio-ring">{learningMomentum}</div>
+            <div className="studio-stat-grid">
+              <div>
+                <span>Courses</span>
+                <strong>{loading ? '...' : courses.length}</strong>
+              </div>
+              <div>
+                <span>Applications</span>
+                <strong>{loading ? '...' : applications.length}</strong>
+              </div>
+              <div>
+                <span>Certificates</span>
+                <strong>{loading ? '...' : certificates.length}</strong>
+              </div>
+              <div>
+                <span>Top skill</span>
+                <strong>{skillCounts[0]?.name ?? 'N/A'}</strong>
+              </div>
+            </div>
+          </Card>
+        </section>
+
+        <section className="studio-layout">
+          <aside className="studio-column studio-column--left">
+            <Card className="studio-block">
+              <CardEyebrow>Now learning</CardEyebrow>
+              <CardTitle>{continueLearningCourse ? continueLearningCourse.title : 'No active course yet'}</CardTitle>
+              <CardMeta>
+                {continueLearningCourse
+                  ? `${continueLearningCourse.provider} · ${continueLearningCourse.modules} modules`
+                  : 'Start from the course catalog to build your learning streak.'}
+              </CardMeta>
+              <ProgressBar value={Math.min(100, progressValue)} label="Learning momentum" />
+              <Button to={continueLearningCourse ? `/courses/${continueLearningCourse.id}` : '/courses'} variant="primary" className="button--pill">
+                {continueLearningCourse ? 'Resume course' : 'Browse courses'}
+              </Button>
+            </Card>
+
+            <Card className="studio-block">
+              <CardEyebrow>Upcoming deadlines</CardEyebrow>
+              <div className="studio-stack">
+                {upcomingDeadlines.map((task) => (
+                  <Link key={task.title} to={task.href ?? '/dashboard'} className="studio-inline-item">
+                    <div>
+                      <strong>{task.title}</strong>
+                      <p>{task.detail}</p>
+                    </div>
+                    <span>{task.meta}</span>
+                  </Link>
+                ))}
+              </div>
+            </Card>
+          </aside>
+
+          <main className="studio-column studio-column--main">
+            <section className="studio-section">
+              <div className="studio-section__head">
+                <div>
+                  <p className="eyebrow">Performance board</p>
+                  <h2>Your current momentum</h2>
+                </div>
+                <Button to="/profile" variant="ghost">Profile settings</Button>
+              </div>
+              <div className="studio-metric-grid">
+                {progressCards.map((metric) => (
+                  <Card key={metric.title} className="studio-metric">
+                    <CardEyebrow>{metric.title}</CardEyebrow>
+                    <strong>{loading ? '...' : metric.value}</strong>
+                    <ProgressBar value={Math.min(100, metric.value)} />
+                    <CardMeta>{metric.meta}</CardMeta>
+                  </Card>
+                ))}
+              </div>
+            </section>
+
+            <section className="studio-section">
+              <div className="studio-section__head">
+                <div>
+                  <p className="eyebrow">Cross-platform</p>
+                  <h2>Recommended jobs from your learning signals</h2>
+                </div>
+                <Button to="/jobs" variant="secondary">Open marketplace</Button>
+              </div>
+              <div className="studio-job-grid">
+                {recommendedJobs.map((job) => (
+                  <Card key={job.id} className="studio-job-card">
+                    <div className="studio-job-card__head">
+                      <div>
+                        <CardEyebrow>{job.employer.name}</CardEyebrow>
+                        <CardTitle>{job.title}</CardTitle>
+                      </div>
+                      <span className="dashboard-chip">{job.matchScore ?? job._count?.applications ?? 0}% match</span>
+                    </div>
+                    <CardMeta>{formatLocation(job.location)} · {job.jobType.replace('_', ' ')}</CardMeta>
+                    <CardMeta>{formatSalary(job.salaryMin, job.salaryMax)}</CardMeta>
+                    <div className="studio-chip-row">
+                      {(job.skills ?? []).slice(0, 4).map((skill) => (
+                        <span key={skill.id} className="dashboard-chip">{skill.skill.name}</span>
+                      ))}
+                    </div>
+                    <div className="studio-action-row">
+                      <Button to={`/jobs/${job.id}`} variant="secondary">Details</Button>
+                      <Button to={`/jobs/${job.id}`} variant="primary">Apply</Button>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </section>
+          </main>
+
+          <aside className="studio-column studio-column--right">
+            <Card className="studio-block">
+              <CardEyebrow>Recent activity</CardEyebrow>
+              <div className="studio-stack">
+                {recentActivity.length === 0 ? (
+                  <div className="studio-inline-item">
+                    <div>
+                      <strong>No recent updates</strong>
+                      <p>Your timeline appears as soon as you apply or complete a course.</p>
+                    </div>
+                  </div>
+                ) : (
+                  recentActivity.map((activity) => (
+                    <Link key={activity.id} to={activity.href} className="studio-inline-item">
+                      <div>
+                        <strong>{activity.title}</strong>
+                        <p>{activity.detail}</p>
+                      </div>
+                      <span>{new Date(activity.date).toLocaleDateString()}</span>
+                    </Link>
+                  ))
+                )}
+              </div>
+            </Card>
+
+            <Card className="studio-block">
+              <CardEyebrow>Application stages</CardEyebrow>
+              <div className="studio-stage-list">
+                {applicationStages.map((stage) => (
+                  <div key={stage.stage} className="studio-stage-item">
+                    <span>{stage.stage.replace('_', ' ')}</span>
+                    <strong>{stage.count}</strong>
+                  </div>
+                ))}
+              </div>
+              <Button to="/applications" variant="ghost">Open pipeline</Button>
+            </Card>
+          </aside>
+        </section>
+
+        <div className="studio-floating-actions" aria-label="Quick learner actions">
+          <Button to="/jobs" variant="primary">Jobs</Button>
+          <Button to="/courses" variant="secondary">Courses</Button>
+        </div>
+      </div>
+    </SiteLayout>
+  );
 }

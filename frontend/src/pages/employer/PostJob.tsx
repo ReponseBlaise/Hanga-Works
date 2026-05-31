@@ -39,66 +39,86 @@ export default function PostJob() {
 
   return (
     <SiteLayout>
-      <section>
-        <header className="page-header">
-          <h2>Post a Job</h2>
+      <section className="studio-post-job">
+        <header className="studio-post-job__head">
+          <div>
+            <p className="eyebrow">Recruiter mode</p>
+            <h1 className="display">Post a role with a clean, scannable drafting workflow.</h1>
+            <p className="lead">Create listings quickly and validate copy quality using the live preview panel before publishing.</p>
+          </div>
         </header>
 
-        <form onSubmit={onSubmit} className="form-stack">
-          <label>
-            Job Title
-            <input value={title} onChange={(e) => setTitle(e.target.value)} required />
-          </label>
-          <label>
-            Description
-            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={6} required />
-          </label>
-          <label>
-            Location
-            <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Kigali, Rwanda" />
-          </label>
-          <label>
-            Job Type
-            <select value={jobType} onChange={(e) => setJobType(e.target.value as typeof jobType)}>
-              {JOB_TYPES.map((type) => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Salary Min
-            <input type="number" value={salaryMin} onChange={(e) => setSalaryMin(e.target.value)} placeholder="0" />
-          </label>
-          <label>
-            Salary Max
-            <input type="number" value={salaryMax} onChange={(e) => setSalaryMax(e.target.value)} placeholder="0" />
-          </label>
+        <div className="studio-post-job__layout">
+          <Card className="studio-block">
+            <CardTitle>Job details</CardTitle>
+            <form onSubmit={onSubmit} className="form-stack">
+              <label>
+                Job title
+                <input value={title} onChange={(e) => setTitle(e.target.value)} required />
+              </label>
+              <label>
+                Job description
+                <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={8} required />
+              </label>
+              <div className="profile-form-grid">
+                <label>
+                  Location
+                  <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Kigali, Rwanda" />
+                </label>
+                <label>
+                  Job type
+                  <select value={jobType} onChange={(e) => setJobType(e.target.value as typeof jobType)}>
+                    {JOB_TYPES.map((type) => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Salary min
+                  <input type="number" value={salaryMin} onChange={(e) => setSalaryMin(e.target.value)} placeholder="0" />
+                </label>
+                <label>
+                  Salary max
+                  <input type="number" value={salaryMax} onChange={(e) => setSalaryMax(e.target.value)} placeholder="0" />
+                </label>
+              </div>
 
-          <div>
-            <Button type="submit" disabled={loading}>{loading ? 'Publishing…' : 'Publish'}</Button>
-            <Button variant="secondary" type="button" onClick={() => {
-              setTitle('');
-              setDescription('');
-              setLocation('');
-              setJobType('FULL_TIME');
-              setSalaryMin('');
-              setSalaryMax('');
-              setPublishedJob(null);
-              setError('');
-            }}>Reset</Button>
-          </div>
-          {error && <p style={{ color: 'var(--danger)' }}>{error}</p>}
-        </form>
-
-        {publishedJob && (
-          <Card>
-            <CardTitle>{publishedJob.title}</CardTitle>
-            <CardMeta>
-              {publishedJob.location ?? 'No location'} · {publishedJob.jobType}
-            </CardMeta>
-            <p>{publishedJob.description}</p>
+              <div className="studio-action-row">
+                <Button type="submit" variant="primary" className="button--pill" disabled={loading}>{loading ? 'Publishing...' : 'Publish job'}</Button>
+                <Button variant="secondary" type="button" onClick={() => {
+                  setTitle('');
+                  setDescription('');
+                  setLocation('');
+                  setJobType('FULL_TIME');
+                  setSalaryMin('');
+                  setSalaryMax('');
+                  setPublishedJob(null);
+                  setError('');
+                }}>Reset form</Button>
+              </div>
+              {error && <CardMeta>{error}</CardMeta>}
+            </form>
           </Card>
-        )}
+
+          <aside>
+            <Card className="studio-block">
+              <CardTitle>Live preview</CardTitle>
+              <CardMeta>{title || 'Untitled role'}</CardMeta>
+              <p className="muted">{location || 'Location not specified'} · {jobType.replace('_', ' ')}</p>
+              <p className="muted">{salaryMin || salaryMax ? `Salary range: ${salaryMin || 0} - ${salaryMax || 0}` : 'Salary range not specified'}</p>
+              <p>{description || 'Role description preview will appear here as you type.'}</p>
+            </Card>
+
+            {publishedJob ? (
+              <Card className="studio-block">
+                <CardTitle>Published successfully</CardTitle>
+                <CardMeta>{publishedJob.title}</CardMeta>
+                <p className="muted">{publishedJob.location ?? 'No location'} · {publishedJob.jobType}</p>
+                <p>{publishedJob.description}</p>
+              </Card>
+            ) : null}
+          </aside>
+        </div>
       </section>
     </SiteLayout>
   );

@@ -23,3 +23,8 @@ export async function verifyCertificate(token: string) {
 	const res = await api.get(`/certificates/verify/${token}`);
 	return (res.data?.data?.certificate ?? res.data?.certificate ?? res.data) as LearnerCertificate;
 }
+
+export async function validateCertificate(token: string) {
+	const res = await api.post('/certificates/validate', { token });
+	return res.data?.data ?? res.data;
+}
