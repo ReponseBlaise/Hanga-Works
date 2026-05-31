@@ -71,7 +71,7 @@ export default function AdminPanelPage() {
             <p>No users available (or admin endpoint not configured).</p>
           ) : (
             <div className="list-stack">
-              {users.slice(0, 10).map((u) => (
+              {users.map((u) => (
                 <div key={u.id} className="list-item">
                   <div>
                     <strong>{u.name}</strong>
