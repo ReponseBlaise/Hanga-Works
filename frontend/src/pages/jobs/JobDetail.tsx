@@ -20,6 +20,15 @@ export default function JobDetail() {
 	const navigate = useNavigate();
 	const location = useLocation();
 	const [similarJobs, setSimilarJobs] = useState<JobSummary[]>([]);
+	const [formStep, setFormStep] = useState(1);
+	const [applicationForm, setApplicationForm] = useState({
+		fullName: '',
+		email: '',
+		phone: '',
+		portfolio: '',
+		coverLetter: '',
+		resumeSummary: '',
+	});
 
 	useEffect(() => {
 		if (!id) return;
@@ -88,94 +97,126 @@ export default function JobDetail() {
 		}
 	}
 
+	function moveToNextStep() {
+		setFormStep((prev) => Math.min(3, prev + 1));
+	}
+
+	function moveToPreviousStep() {
+		setFormStep((prev) => Math.max(1, prev - 1));
+	}
+
 	return (
 		<SiteLayout>
-			<section className="job-detail-page">
-				<Link to="/jobs" className="course-detail__back">← Back to jobs</Link>
+			<section className="studio-job-detail">
+				<Link to="/jobs" className="studio-inline-link">Back to jobs</Link>
 
-				{loading ? <p>Loading job details…</p> : null}
-				{!loading && error ? <Card className="courses-empty"><CardTitle>{error}</CardTitle><CardMeta>Try another role from the marketplace.</CardMeta></Card> : null}
+				{loading ? <p>Loading job details...</p> : null}
+				{!loading && error ? <Card className="studio-block"><CardTitle>{error}</CardTitle><CardMeta>Try another role from the marketplace.</CardMeta></Card> : null}
 
 				{job ? (
 					<>
-						<section className="course-detail__hero card">
-							<div className="course-detail__hero-copy">
-								<CardEyebrow>{job.employer.name}</CardEyebrow>
-								<h2 className="course-detail__title">{job.title}</h2>
-								<p className="card-meta">{job.description}</p>
-								<p className="course-detail__meta">{job.location ?? 'Remote friendly'} · {job.jobType.replace('_', ' ')} · {formatSalary(job.salaryMin, job.salaryMax)}</p>
+						<header className="studio-job-detail__head">
+							<div>
+								<p className="eyebrow">{job.employer.name}</p>
+								<h1 className="display">{job.title}</h1>
+								<p className="lead">{job.description}</p>
+								<p className="muted">{job.location ?? 'Remote friendly'} · {job.jobType.replace('_', ' ')} · {formatSalary(job.salaryMin, job.salaryMax)}</p>
 							</div>
-							<div className="course-detail__hero-panel">
-								<div className="employer-branding">
-									<div className="employer-branding__mark" aria-hidden="true">{employerInitials}</div>
-									<div>
-										<strong>{job.employer.name}</strong>
-										<p>{job.employer.website ?? 'Employer branding ready for preview'}</p>
-									</div>
-								</div>
-								{isAuthenticated ? (
-									<Button type="button" variant="primary" onClick={handleApply} disabled={applying}>One-click apply</Button>
-								) : (
-									<Button to="/login" variant="primary">Sign in to apply</Button>
-								)}
-								{application ? (
-									<Button to="/applications" variant="secondary">View application status</Button>
-								) : isAuthenticated ? (
-									<Button type="button" variant="secondary" onClick={handleApply} disabled={applying}>Save role</Button>
-								) : (
-									<Button to="/login" variant="secondary">Sign in to save</Button>
-								)}
-								{application ? (
-									<div className="course-detail__quiz-note">
-										<strong>Application status:</strong> {application.status.toLowerCase()} · Updated {new Date(application.updatedAt).toLocaleDateString()}
-									</div>
-								) : null}
-								{status ? <p className="course-detail__quiz-note">{status}</p> : null}
-							</div>
-						</section>
-
-						<section className="dashboard-section">
-							<div className="section-head">
+							<div className="studio-employer-card">
+								<div className="studio-employer-mark" aria-hidden="true">{employerInitials}</div>
 								<div>
-									<p className="section-head__eyebrow">Why this role</p>
-									<h2>Role highlights</h2>
+									<strong>{job.employer.name}</strong>
+									<p>{job.employer.website ?? 'Employer website not provided'}</p>
 								</div>
 							</div>
-							<div className="job-detail-grid">
-								<Card>
-									<CardTitle>Skills to show</CardTitle>
-									<CardMeta>Tailor your application to the employer's keywords.</CardMeta>
-									<div className="job-card__tags">
-										{job.description.split(' ').slice(0, 10).map((word) => <span key={word}>{word.replace(/[.,]/g, '')}</span>)}
+						</header>
+
+						<section className="studio-job-detail__layout">
+							<div className="studio-job-detail__main">
+								<Card className="studio-block">
+									<CardEyebrow>Job highlights</CardEyebrow>
+									<div className="studio-chip-row">
+										{job.description
+											.split(' ')
+											.slice(0, 14)
+											.map((word) => (
+												<span key={word} className="dashboard-chip">{word.replace(/[.,]/g, '')}</span>
+											))}
 									</div>
 								</Card>
-								<Card>
-									<CardTitle>Employer link</CardTitle>
-									<CardMeta>{job.employer.website ?? 'No public website provided'}</CardMeta>
-									<p className="card-meta">This section is ready for expanded branding assets and company details.</p>
-								</Card>
-							</div>
-						</section>
 
-						<section className="dashboard-section">
-							<div className="section-head">
-								<div>
-									<p className="section-head__eyebrow">Similar roles</p>
-									<h2>Other openings</h2>
-								</div>
-							</div>
-							<div className="job-grid">
-								{similarJobs.map((item) => (
-									<Card key={item.id} className="job-card">
-										<CardEyebrow>{item.employer.name}</CardEyebrow>
-										<CardTitle><Link to={`/jobs/${item.id}`}>{item.title}</Link></CardTitle>
-										<CardMeta>{item.location ?? 'Location flexible'}</CardMeta>
-										<div className="job-card__actions">
-											<Button to={`/jobs/${item.id}`} variant="secondary">Open</Button>
+								<Card className="studio-block">
+									<div className="studio-section__head">
+										<div>
+											<p className="eyebrow">Similar roles</p>
+											<h2>Explore related openings</h2>
 										</div>
-									</Card>
-								))}
+									</div>
+									<div className="studio-job-grid">
+										{similarJobs.map((item) => (
+											<Card key={item.id} className="studio-job-card">
+												<CardEyebrow>{item.employer.name}</CardEyebrow>
+												<CardTitle><Link to={`/jobs/${item.id}`}>{item.title}</Link></CardTitle>
+												<CardMeta>{item.location ?? 'Location flexible'}</CardMeta>
+												<Button to={`/jobs/${item.id}`} variant="secondary">View</Button>
+											</Card>
+										))}
+									</div>
+								</Card>
 							</div>
+
+							<aside className="studio-job-detail__apply">
+								<Card className="studio-block">
+									<CardEyebrow>Application form</CardEyebrow>
+									<CardTitle>Step {formStep} of 3</CardTitle>
+									<div className="studio-stepper">
+										<span className={formStep >= 1 ? 'is-active' : ''}>1</span>
+										<span className={formStep >= 2 ? 'is-active' : ''}>2</span>
+										<span className={formStep >= 3 ? 'is-active' : ''}>3</span>
+									</div>
+
+									{formStep === 1 ? (
+										<div className="form-stack">
+											<label>Full name<input value={applicationForm.fullName} onChange={(event) => setApplicationForm((prev) => ({ ...prev, fullName: event.target.value }))} placeholder="Your full name" /></label>
+											<label>Email<input type="email" value={applicationForm.email} onChange={(event) => setApplicationForm((prev) => ({ ...prev, email: event.target.value }))} placeholder="you@example.com" /></label>
+											<label>Phone<input value={applicationForm.phone} onChange={(event) => setApplicationForm((prev) => ({ ...prev, phone: event.target.value }))} placeholder="+250..." /></label>
+										</div>
+									) : null}
+
+									{formStep === 2 ? (
+										<div className="form-stack">
+											<label>Portfolio URL<input value={applicationForm.portfolio} onChange={(event) => setApplicationForm((prev) => ({ ...prev, portfolio: event.target.value }))} placeholder="https://portfolio.example" /></label>
+											<label>Resume summary<textarea rows={4} value={applicationForm.resumeSummary} onChange={(event) => setApplicationForm((prev) => ({ ...prev, resumeSummary: event.target.value }))} placeholder="Highlight your role-specific strengths" /></label>
+										</div>
+									) : null}
+
+									{formStep === 3 ? (
+										<div className="form-stack">
+											<label>Cover letter<textarea rows={6} value={applicationForm.coverLetter} onChange={(event) => setApplicationForm((prev) => ({ ...prev, coverLetter: event.target.value }))} placeholder="Explain why you are a fit for this role" /></label>
+											<CardMeta>Review your details then submit to finalize your application.</CardMeta>
+										</div>
+									) : null}
+
+									<div className="studio-action-row">
+										<Button type="button" variant="ghost" disabled={formStep === 1} onClick={moveToPreviousStep}>Back</Button>
+										{formStep < 3 ? (
+											<Button type="button" variant="secondary" onClick={moveToNextStep}>Next</Button>
+										) : null}
+										{isAuthenticated ? (
+											<Button type="button" variant="primary" className="button--pill" onClick={handleApply} disabled={applying || !!application}>
+												{application ? 'Already applied' : applying ? 'Submitting...' : 'Submit application'}
+											</Button>
+										) : (
+											<Button to="/login" variant="primary" className="button--pill">Sign in to apply</Button>
+										)}
+									</div>
+
+									{application ? (
+										<CardMeta>Application status: {application.status.toLowerCase()} · Updated {new Date(application.updatedAt).toLocaleDateString()}</CardMeta>
+									) : null}
+									{status ? <CardMeta>{status}</CardMeta> : null}
+								</Card>
+							</aside>
 						</section>
 					</>
 				) : null}

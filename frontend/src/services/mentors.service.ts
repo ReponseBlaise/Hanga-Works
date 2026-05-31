@@ -50,14 +50,42 @@ function saveBooking(mentorId: string, payload: { date: string; notes?: string }
 }
 
 export async function getMentors() {
-  return fallbackMentors;
+  try {
+    const res = await api.get('/mentorship/mentors');
+    const data = res.data?.data ?? res.data;
+    if (Array.isArray(data)) return data as MentorSummary[];
+    return (data?.mentors ?? data) as MentorSummary[];
+  } catch {
+    return fallbackMentors;
+  }
 }
 
 export async function getMentorById(id: string) {
-  return fallbackMentors.find((mentor) => mentor.id === id) ?? null;
+  try {
+    const res = await api.get(`/mentorship/mentors/${id}`);
+    const data = res.data?.data ?? res.data;
+    return (data?.mentor ?? data) as MentorSummary | null;
+  } catch {
+    return fallbackMentors.find((mentor) => mentor.id === id) ?? null;
+  }
 }
 
 export async function bookSession(mentorId: string, payload: { date: string; notes?: string }) {
-  saveBooking(mentorId, payload);
-  return { booking: { mentorId, scheduledAt: payload.date, notes: payload.notes, status: 'confirmed-local' } };
+  try {
+    const res = await api.post('/mentorship/sessions/book', { mentorId, ...payload });
+    return res.data?.data ?? res.data;
+  } catch {
+    saveBooking(mentorId, payload);
+    return { booking: { mentorId, scheduledAt: payload.date, notes: payload.notes, status: 'confirmed-local' } };
+  }
+}
+
+export async function createMentorProfile(payload: { title?: string; bio?: string; skills?: string[] }) {
+  try {
+    const res = await api.post('/mentorship/profile', payload);
+    return res.data?.data ?? res.data;
+  } catch (err) {
+    // bubble up error so UI can handle role/permission cases
+    throw err;
+  }
 }

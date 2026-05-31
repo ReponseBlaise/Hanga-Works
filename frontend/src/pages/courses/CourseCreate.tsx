@@ -1,0 +1,194 @@
+import { useState } from 'react';
+import type { FormEvent } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { SiteLayout } from '../../components/layout/SiteLayout';
+import { Button } from '../../components/ui/Button';
+import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
+import { useAuth } from '../../context/AuthContext';
+import { createCourse } from '../../services/courses.service';
+
+type CourseFormState = {
+	title: string;
+	slug: string;
+	description: string;
+	thumbnailUrl: string;
+	institutionId: string;
+	published: boolean;
+};
+
+function slugify(value: string) {
+	return value
+		.toLowerCase()
+		.trim()
+		.replace(/[^a-z0-9]+/g, '-')
+		.replace(/^-+|-+$/g, '');
+}
+
+export default function CourseCreate() {
+	const navigate = useNavigate();
+	const { user } = useAuth();
+	const role = (user?.role ?? '').toUpperCase();
+	const canCreate = role === 'ADMIN' || role === 'INSTITUTION';
+	const [form, setForm] = useState<CourseFormState>({
+		title: '',
+		slug: '',
+		description: '',
+		thumbnailUrl: '',
+		institutionId: '',
+		published: true,
+	});
+	const [saving, setSaving] = useState(false);
+	const [error, setError] = useState('');
+
+	if (!canCreate) {
+		return <Navigate to="/courses" replace />;
+	}
+
+	async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+		event.preventDefault();
+		setSaving(true);
+		setError('');
+
+		try {
+			const course = await createCourse({
+				title: form.title.trim(),
+				slug: form.slug.trim() || slugify(form.title),
+				description: form.description.trim(),
+				thumbnailUrl: form.thumbnailUrl.trim() || undefined,
+				institutionId: form.institutionId.trim() || undefined,
+				published: form.published,
+			});
+			navigate(`/courses/${course.id}`);
+		} catch (creationError) {
+			console.error('Failed to create course', creationError);
+			setError('Course could not be created right now. Check the fields and try again.');
+		} finally {
+			setSaving(false);
+		}
+	}
+
+	return (
+		<SiteLayout>
+			<div className="page-shell studio-course-create">
+				<header className="page-head">
+					<div>
+						<p className="section-head__eyebrow">Course creation</p>
+						<h1>Create a new course from the frontend.</h1>
+						<p className="muted">This screen maps directly to the NestJS POST /courses endpoint for institution and admin users.</p>
+					</div>
+					<div className="studio-action-row">
+						<Button to="/courses" variant="secondary">Back to catalog</Button>
+					</div>
+				</header>
+
+				<section className="dashboard-section dashboard-section--split">
+					<Card className="studio-block">
+						<CardEyebrow>Course details</CardEyebrow>
+						<form className="form-stack" onSubmit={handleSubmit}>
+							<label>
+								Title
+								<input
+									type="text"
+									required
+									value={form.title}
+									onChange={(event) =>
+										setForm((previous) => ({
+											...previous,
+											title: event.target.value,
+											slug: previous.slug || slugify(event.target.value),
+										}))
+									}
+									placeholder="Advanced Product Design"
+								/>
+							</label>
+							<label>
+								Slug
+								<input
+									type="text"
+									required
+									value={form.slug}
+									onChange={(event) => setForm((previous) => ({ ...previous, slug: event.target.value }))}
+									placeholder="advanced-product-design"
+								/>
+							</label>
+							<label>
+								Description
+								<textarea
+									required
+									rows={5}
+									value={form.description}
+									onChange={(event) => setForm((previous) => ({ ...previous, description: event.target.value }))}
+									placeholder="Explain who the course is for, what learners will achieve, and the core outcome."
+								/>
+							</label>
+							<label>
+								Thumbnail URL
+								<input
+									type="url"
+									value={form.thumbnailUrl}
+									onChange={(event) => setForm((previous) => ({ ...previous, thumbnailUrl: event.target.value }))}
+									placeholder="https://example.com/course-cover.jpg"
+								/>
+							</label>
+							<label>
+								Institution ID
+								<input
+									type="text"
+									value={form.institutionId}
+									onChange={(event) => setForm((previous) => ({ ...previous, institutionId: event.target.value }))}
+									placeholder="Optional for admin-created content"
+								/>
+							</label>
+							<div className="auth-note">
+								<input
+									type="checkbox"
+									checked={form.published}
+									onChange={(event) => setForm((previous) => ({ ...previous, published: event.target.checked }))}
+								/>
+								<div>
+									<strong>Publish immediately</strong>
+									<p className="muted">Uncheck to save the course as a draft.</p>
+								</div>
+							</div>
+
+							<div className="studio-action-row">
+								<Button to="/courses" variant="secondary">Cancel</Button>
+								<Button type="submit" variant="primary" disabled={saving}>
+									{saving ? 'Creating…' : 'Create course'}
+								</Button>
+							</div>
+
+							{error ? <p className="text-danger">{error}</p> : null}
+						</form>
+					</Card>
+
+					<Card className="studio-block">
+						<CardEyebrow>Backend mapping</CardEyebrow>
+						<CardTitle>What this form sends</CardTitle>
+						<CardMeta>title, slug, description, published, thumbnailUrl, institutionId</CardMeta>
+						<div className="studio-stack">
+							<div className="studio-inline-item">
+								<div>
+									<strong>Title and slug</strong>
+									<p>Required by the backend DTO.</p>
+								</div>
+							</div>
+							<div className="studio-inline-item">
+								<div>
+									<strong>Description</strong>
+									<p>Must be at least 10 characters long.</p>
+								</div>
+							</div>
+							<div className="studio-inline-item">
+								<div>
+									<strong>Optional metadata</strong>
+									<p>Thumbnail and institution are optional and can be added later.</p>
+								</div>
+							</div>
+						</div>
+					</Card>
+				</section>
+			</div>
+		</SiteLayout>
+	);
+}

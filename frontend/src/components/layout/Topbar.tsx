@@ -1,13 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { publicNavItems } from '../../constants/routes';
 import { useAuth } from '../../context/AuthContext';
+import { NotificationBell } from '../shared/NotificationBell';
+import { useNotificationsFeed } from '../../services/notifications.service';
+import { Avatar } from '../shared/Avatar';
 
 export default function Navbar() {
 	const location = useLocation();
+	const navigate = useNavigate();
 	const { user, isAuthenticated, signOut } = useAuth();
-	const [hovered, setHovered] = useState<string | null>(null);
 	const [menuOpen, setMenuOpen] = useState(false);
+	const { items: notificationItems } = useNotificationsFeed(user?.id);
+	const visibleUnread = (notificationItems ?? []).filter((it) => it.source !== 'System' && !it.read).length;
 
 	useEffect(() => {
 		setMenuOpen(false);
@@ -42,12 +47,9 @@ export default function Navbar() {
 			{ label: 'Dashboard', href: '/dashboard' },
 			{ label: 'Jobs', href: '/jobs' },
 			{ label: 'Courses', href: '/courses' },
-			{ label: 'Mentors', href: '/mentors' },
-			{ label: 'Applications', href: '/applications' },
-			{ label: 'Profile', href: '/profile' },
-			{ label: 'Certifications', href: '/certifications' },
 		];
 	}, [isAuthenticated, userRole]);
+	const visibleLinks = navLinks.slice(0, 4);
 
 	function isNavActive(href: string) {
 		if (href === '/') return location.pathname === '/';
@@ -77,7 +79,7 @@ export default function Navbar() {
 
 				<div className={`public-navbar__panel ${menuOpen ? 'is-open' : ''}`}>
 					<div className="public-navbar__links">
-						{navLinks.map((link) => {
+						{visibleLinks.map((link) => {
 							const active = isNavActive(link.href);
 							return (
 								<Link
@@ -85,12 +87,7 @@ export default function Navbar() {
 									to={link.href}
 									className={`public-navbar__link ${active ? 'is-active' : ''}`.trim()}
 									aria-current={active ? 'page' : undefined}
-									onMouseEnter={() => setHovered(link.label)}
-									onMouseLeave={() => setHovered(null)}
 									onClick={() => setMenuOpen(false)}
-									style={{
-										color: active || hovered === link.label ? 'var(--accent)' : 'var(--text-soft)',
-									}}
 								>
 									{link.label}
 								</Link>
@@ -98,31 +95,39 @@ export default function Navbar() {
 						})}
 					</div>
 
-					<div className="public-navbar__auth">
-						{isAuthenticated ? (
-							<>
-								<button
-									type="button"
-									className="public-navbar__signin"
-									onClick={() => {
-										setMenuOpen(false);
-										signOut();
-									}}
-								>
-									Sign Out
-								</button>
-							</>
-						) : (
-							<>
-								<Link to="/register" className="public-navbar__register" onClick={() => setMenuOpen(false)}>
-									Sign Up
-								</Link>
-								<Link to="/login" className="public-navbar__signin" onClick={() => setMenuOpen(false)}>
-									Sign In
-								</Link>
-							</>
-						)}
-					</div>
+						<div className="public-navbar__auth">
+							{isAuthenticated ? (
+								<>
+									<NotificationBell
+										count={visibleUnread}
+										onClick={() => navigate('/notifications')}
+									/>
+									<Link to="/profile" className="public-navbar__avatar-link" onClick={() => setMenuOpen(false)}>
+										<Avatar name={user?.name ?? 'User'} imageUrl={user?.avatarUrl ?? undefined} size="sm" />
+									</Link>
+									<button
+										type="button"
+										className="public-navbar__signin"
+										onClick={() => {
+											setMenuOpen(false);
+											signOut();
+											navigate('/login', { replace: true });
+										}}
+									>
+										Sign Out
+									</button>
+								</>
+							) : (
+								<>
+									<Link to="/register" className="public-navbar__register" onClick={() => setMenuOpen(false)}>
+										Sign Up
+									</Link>
+									<Link to="/login" className="public-navbar__signin" onClick={() => setMenuOpen(false)}>
+										Sign In
+									</Link>
+								</>
+							)}
+						</div>
 				</div>
 			</div>
 		</nav>
