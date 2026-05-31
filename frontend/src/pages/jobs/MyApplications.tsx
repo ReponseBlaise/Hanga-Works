@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
+import { useAuth } from '../../context/AuthContext';
 import { getApplications } from '../../services/jobs.service';
 import type { JobApplication, JobApplicationStage } from '../../types/job.types';
 
@@ -17,10 +18,17 @@ const stageLabels: Record<JobApplicationStage, string> = {
 const stages: JobApplicationStage[] = ['APPLIED', 'REVIEWING', 'SHORTLISTED', 'HIRED', 'REJECTED'];
 
 export default function MyApplications() {
+	const { isAuthenticated } = useAuth();
 	const [applications, setApplications] = useState<JobApplication[]>([]);
 	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
+		if (!isAuthenticated) {
+			setApplications([]);
+			setLoading(false);
+			return;
+		}
+
 		let active = true;
 		getApplications()
 			.then((items) => {
@@ -37,7 +45,7 @@ export default function MyApplications() {
 		return () => {
 			active = false;
 		};
-	}, []);
+	}, [isAuthenticated]);
 
 	const grouped = useMemo(() => {
 		return stages.reduce<Record<JobApplicationStage, JobApplication[]>>((acc, stage) => {

@@ -16,8 +16,8 @@
   --border: #dbe4f3;
   --shadow: 0 24px 60px rgba(13, 47, 103, 0.12);
   --shadow-strong: 0 28px 60px rgba(13, 47, 103, 0.18);
-  --radius-xl: 14px;
-  --radius-lg: 12px;
+  --radius-xl: 12px;
+  --radius-lg: 10px;
   --radius-md: 8px;
   --radius-sm: 6px;
   --content-width: 1360px;
@@ -2119,7 +2119,7 @@ select {
   width: 100%;
   min-height: 220px;
   object-fit: cover;
-  border-radius: 22px;
+  border-radius: 12px;
   border: 1px solid var(--border);
   box-shadow: 0 18px 40px rgba(13, 47, 103, 0.12);
 }
@@ -2128,7 +2128,7 @@ select {
   display: grid;
   gap: 4px;
   padding: 14px 16px;
-  border-radius: 18px;
+  border-radius: 12px;
   background: rgba(255, 255, 255, 0.86);
   border: 1px solid var(--border);
 }
@@ -2479,7 +2479,7 @@ select {
   align-items: center;
   gap: 10px;
   padding: 12px 14px;
-  border-radius: 14px;
+  border-radius: 10px;
   border: 1px solid var(--border);
   background: #ffffff;
   cursor: pointer;
@@ -2646,7 +2646,7 @@ select {
   align-items: center;
   gap: 14px;
   padding: 14px;
-  border-radius: 18px;
+  border-radius: 12px;
   border: 1px solid var(--border);
   background: var(--surface-muted);
 }
@@ -2656,7 +2656,7 @@ select {
   height: 56px;
   display: grid;
   place-items: center;
-  border-radius: 18px;
+  border-radius: 12px;
   background: var(--accent);
   color: #ffffff;
   font-weight: 800;
@@ -2678,7 +2678,7 @@ select {
   width: 100%;
   max-width: 180px;
   margin: 14px 0;
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid var(--border);
   object-fit: cover;
 }
@@ -2689,7 +2689,7 @@ select {
   display: grid;
   place-items: center;
   margin: 14px 0;
-  border-radius: 14px;
+  border-radius: 10px;
   background: var(--surface-muted);
   border: 1px solid var(--border);
   color: var(--accent);
@@ -2712,7 +2712,7 @@ select {
   display: grid;
   gap: 8px;
   padding: 14px;
-  border-radius: 18px;
+  border-radius: 12px;
   border: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.92);
   color: var(--text-soft);
@@ -2744,7 +2744,7 @@ select {
 
 .onboarding-wizard__content {
   padding: 18px;
-  border-radius: 18px;
+  border-radius: 12px;
   background: var(--surface-muted);
   border: 1px solid var(--border);
   color: var(--text-soft);
@@ -2769,7 +2769,7 @@ select {
   width: 100%;
   min-height: 46px;
   padding: 12px 14px;
-  border-radius: 14px;
+  border-radius: 10px;
   border: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.95);
   color: var(--text);

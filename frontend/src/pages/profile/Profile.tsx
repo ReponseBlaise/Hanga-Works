@@ -15,7 +15,7 @@ const proficiencyLabels: Record<Proficiency, string> = {
 };
 
 export default function Profile() {
-	const { user: authUser, signIn } = useAuth();
+	const { user: authUser, isAuthenticated, signIn } = useAuth();
 	const params = useParams<{ username?: string }>();
 	const [loadingProfile, setLoadingProfile] = useState(true);
 	const [savingProfile, setSavingProfile] = useState(false);
@@ -42,6 +42,12 @@ export default function Profile() {
 	const [onboardingStep, setOnboardingStep] = useState(1);
 
 	useEffect(() => {
+		if (!isAuthenticated) {
+			setLoadingProfile(false);
+			setLoadingCertificates(false);
+			return;
+		}
+
 		let active = true;
 		authService.profile()
 			.then((profile) => {
@@ -83,7 +89,7 @@ export default function Profile() {
 		return () => {
 			active = false;
 		};
-	}, []);
+	}, [isAuthenticated]);
 
 	const userName = params.username ?? authUser?.username ?? authUser?.name ?? 'learner';
 	const publicProfileLink = useMemo(() => `/profile/${userName.toLowerCase().replace(/\s+/g, '-')}`, [userName]);
