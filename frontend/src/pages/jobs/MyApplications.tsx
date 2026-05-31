@@ -56,28 +56,33 @@ export default function MyApplications() {
 
 	return (
 		<SiteLayout>
-			<section className="applications-page">
-				<header className="job-market-hero card">
-					<div>
-						<p className="section-head__eyebrow">Applications</p>
-						<h2>Track where every application stands</h2>
-						<p className="card-meta">Review your pipeline from applied to hired, with direct links back to each job description.</p>
-					</div>
-					<div className="job-market-hero__stats">
-						<div className="hero-stat">
-							<span>Total applications</span>
-							<strong>{applications.length}</strong>
-							<p>Loaded from the backend.</p>
+			<section className="dashboard-page">
+				<section className="dashboard-hero card card--hero">
+					<div className="dashboard-hero__copy">
+						<p className="eyebrow">Applications</p>
+						<h1 className="display-large">Track every application from applied to hired.</h1>
+						<p className="dashboard-hero__lead">Review your pipeline with direct links back to each job posting and a clear stage-by-stage view of every application.</p>
+						<div className="dashboard-hero__actions">
+							<Button to="/jobs" variant="primary" className="button--lg button--pill">Search jobs</Button>
+							<Button to="/profile" variant="secondary" className="button--lg">Update profile</Button>
 						</div>
 					</div>
-				</header>
+					<div className="dashboard-hero__visual">
+						<div className="dashboard-summary__grid">
+							<div className="dashboard-summary__stat"><span>Total applications</span><strong>{applications.length}</strong></div>
+							<div className="dashboard-summary__stat"><span>In review</span><strong>{grouped.REVIEWING.length + grouped.SHORTLISTED.length}</strong></div>
+							<div className="dashboard-summary__stat"><span>Pipeline stages</span><strong>{stages.length}</strong></div>
+						</div>
+						<Card className="dashboard-panel"><CardEyebrow>Live status</CardEyebrow><CardTitle>Your application pipeline</CardTitle><CardMeta>Move through the stages below without losing context.</CardMeta></Card>
+					</div>
+				</section>
 
 				{loading ? <p>Loading applications…</p> : null}
 
 				<div className="kanban">
 					{stages.map((stage) => (
 						<div className="kanban-column" key={stage}>
-							<h3 className="kanban-title">{stageLabels[stage]}</h3>
+							<div className="dashboard-section__head"><div><p className="eyebrow">{stageLabels[stage]}</p><h2>{grouped[stage].length} items</h2></div></div>
 							<div className="kanban-list">
 								{grouped[stage].length === 0 ? <Card className="kanban-card"><CardMeta>No applications in this stage.</CardMeta></Card> : null}
 								{grouped[stage].map((application) => (
@@ -86,9 +91,7 @@ export default function MyApplications() {
 										<CardTitle><Link to={`/jobs/${application.job.id}`}>{application.job.title}</Link></CardTitle>
 										<CardMeta>{application.job.location ?? 'Remote friendly'}</CardMeta>
 										<CardMeta>Updated {new Date(application.updatedAt).toLocaleDateString()}</CardMeta>
-										<div className="job-card__actions">
-											<Button to={`/jobs/${application.job.id}`} variant="secondary">View job</Button>
-										</div>
+										<div className="dashboard-card__actions"><Button to={`/jobs/${application.job.id}`} variant="secondary">View job</Button></div>
 									</Card>
 								))}
 							</div>

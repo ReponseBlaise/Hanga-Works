@@ -39,88 +39,49 @@ const columns = [
 
 export default function Footer() {
   return (
-    <footer style={{
-      background: 'rgba(255, 255, 255, 0.76)',
-      borderTop: '1px solid var(--border)',
-      marginTop: 'auto',
-      backdropFilter: 'blur(18px)',
-    }}>
-      {/* Main footer */}
-      <div style={{
-        maxWidth: '1180px',
-        margin: '0 auto',
-        padding: '40px 24px 32px',
-        display: 'grid',
-        gridTemplateColumns: '1.6fr 1fr 1fr 1fr 1fr',
-        gap: '32px',
-      }}>
-        {/* Brand column */}
-        <div>
-          <div style={{ marginBottom: '12px' }}>
-            <img src="/hanga-works-logo.svg" alt="Hanga Works Logo" style={{ height: '40px', width: 'auto' }} />
-          </div>
-          <p style={{ fontSize: '0.82rem', color: 'var(--text-soft)', lineHeight: 1.6, margin: '0 0 16px', maxWidth: '200px' }}>
-            HANGA WORKS is the home of the skills employment and workforce intelligence platform.
+    <footer className="site-footer">
+      <div className="site-footer__inner">
+        <div className="site-footer__brand">
+          <img src="/hanga-works-logo.svg" alt="Hanga Works Logo" />
+          <p className="site-footer__brand-text">
+            Hanga Works unifies learning, hiring, and workforce intelligence in one enterprise-ready workspace.
           </p>
-          {/* Social icons */}
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div className="site-footer__social">
             {[
               { label: 'email', href: 'mailto:hello@hanga.works' },
               { label: 'support', href: '/contact' },
               { label: 'learn', href: '/courses' },
             ].map((item) => (
-              <a key={item.label} href={item.href} style={{
-                width: '30px', height: '30px', borderRadius: 'var(--radius-md)',
-                background: 'var(--accent-wash)',
-                display: 'grid', placeItems: 'center',
-                fontSize: '0.75rem', fontWeight: 700,
-                color: 'var(--accent)', textDecoration: 'none',
-              }}>{item.label[0].toUpperCase()}</a>
+              <a key={item.label} href={item.href} className="site-footer__social-link" aria-label={item.label}>
+                {item.label[0].toUpperCase()}
+              </a>
             ))}
           </div>
         </div>
 
-        {/* Link columns */}
         {columns.map((col) => (
-          <div key={col.title}>
-            <p style={{ margin: '0 0 12px', fontWeight: 700, fontSize: '0.88rem', color: 'var(--text)' }}>
-              {col.title}
-            </p>
-            <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div key={col.title} className="site-footer__column">
+            <p className="site-footer__column-title">{col.title}</p>
+            <div className="site-footer__links">
               {col.links.map((link) => (
-                <li key={link.label}>
-                  <Link to={link.href} style={{ fontSize: '0.82rem', color: 'var(--text-soft)', textDecoration: 'none' }}>
-                    {link.label}
-                  </Link>
-                </li>
+                <Link key={link.label} to={link.href} className="site-footer__link">
+                  {link.label}
+                </Link>
               ))}
-            </ul>
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Bottom bar */}
-      <div style={{
-        borderTop: '1px solid var(--border)',
-        padding: '14px 24px',
-        maxWidth: '1180px',
-        margin: '0 auto',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: '8px',
-      }}>
-        <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-soft)' }}>
-          Copyright © 2024. Hanga Works. All rights reserved.
-        </p>
-        <div style={{ display: 'flex', gap: '20px' }}>
+      <div className="site-footer__bottom">
+        <p className="site-footer__legal-link">Copyright © 2024. Hanga Works. All rights reserved.</p>
+        <div className="site-footer__legal-links">
           {[
             { label: 'Privacy Policy', href: '/contact' },
             { label: 'Terms & Conditions', href: '/contact' },
             { label: 'Security', href: '/contact' },
           ].map((item) => (
-            <Link key={item.label} to={item.href} style={{ fontSize: '0.78rem', color: 'var(--text-soft)', textDecoration: 'none' }}>
+            <Link key={item.label} to={item.href} className="site-footer__legal-link">
               {item.label}
             </Link>
           ))}

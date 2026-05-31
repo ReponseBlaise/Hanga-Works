@@ -39,6 +39,15 @@ export type BackendCourse = {
 	};
 };
 
+export type CreateCoursePayload = {
+	title: string;
+	slug: string;
+	description: string;
+	published?: boolean;
+	thumbnailUrl?: string;
+	institutionId?: string;
+};
+
 export type CourseEnrollment = {
 	id: string;
 	progress: number;
@@ -61,6 +70,12 @@ export async function getCourseById(id: string) {
 	const res = await api.get(`/courses/${id}`);
 	const payload = res.data?.data ?? res.data;
 	return (payload?.course ?? payload) as BackendCourse;
+}
+
+export async function createCourse(payload: CreateCoursePayload) {
+	const res = await api.post('/courses', payload);
+	const data = res.data?.data ?? res.data;
+	return (data?.course ?? data) as BackendCourse;
 }
 
 export async function enrollInCourse(courseId: string) {

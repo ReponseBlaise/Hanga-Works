@@ -10,7 +10,6 @@ export default function Navbar() {
 	const location = useLocation();
 	const navigate = useNavigate();
 	const { user, isAuthenticated, signOut } = useAuth();
-	const [hovered, setHovered] = useState<string | null>(null);
 	const [menuOpen, setMenuOpen] = useState(false);
 	const { items: notificationItems } = useNotificationsFeed(user?.id);
 	const visibleUnread = (notificationItems ?? []).filter((it) => it.source !== 'System' && !it.read).length;
@@ -48,7 +47,6 @@ export default function Navbar() {
 			{ label: 'Dashboard', href: '/dashboard' },
 			{ label: 'Jobs', href: '/jobs' },
 			{ label: 'Courses', href: '/courses' },
-			{ label: 'Mentors', href: '/mentors' },
 		];
 	}, [isAuthenticated, userRole]);
 	const visibleLinks = navLinks.slice(0, 4);
@@ -89,12 +87,7 @@ export default function Navbar() {
 									to={link.href}
 									className={`public-navbar__link ${active ? 'is-active' : ''}`.trim()}
 									aria-current={active ? 'page' : undefined}
-									onMouseEnter={() => setHovered(link.label)}
-									onMouseLeave={() => setHovered(null)}
 									onClick={() => setMenuOpen(false)}
-									style={{
-										color: active || hovered === link.label ? 'var(--accent)' : 'var(--text-soft)',
-									}}
 								>
 									{link.label}
 								</Link>
@@ -109,7 +102,7 @@ export default function Navbar() {
 										count={visibleUnread}
 										onClick={() => navigate('/notifications')}
 									/>
-								<Link to="/profile" className="public-navbar__avatar-link" onClick={() => setMenuOpen(false)}>
+									<Link to="/profile" className="public-navbar__avatar-link" onClick={() => setMenuOpen(false)}>
 										<Avatar name={user?.name ?? 'User'} imageUrl={user?.avatarUrl ?? undefined} size="sm" />
 									</Link>
 									<button
@@ -118,6 +111,7 @@ export default function Navbar() {
 										onClick={() => {
 											setMenuOpen(false);
 											signOut();
+											navigate('/login', { replace: true });
 										}}
 									>
 										Sign Out
