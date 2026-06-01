@@ -1,3 +1,5 @@
+import api from './api';
+
 export type MentorSummary = {
   id: string;
   name: string;
