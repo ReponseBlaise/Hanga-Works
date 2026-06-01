@@ -45,9 +45,11 @@ export default function Navbar() {
 			{ label: 'Dashboard', href: '/dashboard' },
 			{ label: 'Jobs', href: '/jobs' },
 			{ label: 'Courses', href: '/courses' },
+			{ label: 'Certifications', href: '/certifications' },
+			{ label: 'Mentors', href: '/mentors' },
 		];
 	}, [isAuthenticated, userRole]);
-	const visibleLinks = navLinks.slice(0, 4);
+	const visibleLinks = navLinks;
 
 	function isNavActive(href: string) {
 		if (href === '/') return location.pathname === '/';
