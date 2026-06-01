@@ -228,8 +228,8 @@ export function Dashboard() {
           </Card>
         </section>
 
-        <section className="studio-layout">
-          <aside className="studio-column studio-column--left">
+        <section className="dashboard-layout mt-lg">
+          <aside className="dashboard-rail">
             <Card className="studio-block">
               <CardEyebrow>Now learning</CardEyebrow>
               <CardTitle>{continueLearningCourse ? continueLearningCourse.title : 'No active course yet'}</CardTitle>
@@ -260,7 +260,7 @@ export function Dashboard() {
             </Card>
           </aside>
 
-          <main className="studio-column studio-column--main">
+          <main className="dashboard-main-column">
             <section className="studio-section">
               <div className="studio-section__head">
                 <div>
@@ -316,7 +316,7 @@ export function Dashboard() {
             </section>
           </main>
 
-          <aside className="studio-column studio-column--right">
+          <aside className="dashboard-rail dashboard-rail--right">
             <Card className="studio-block">
               <CardEyebrow>Recent activity</CardEyebrow>
               <div className="studio-stack">
