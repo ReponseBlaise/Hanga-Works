@@ -61,16 +61,14 @@ export default function CertificationList() {
                     <small>Issued {new Date(c.issuedAt).toLocaleDateString()}</small>
                   </div>
                 </div>
-                <CardMeta>
-                  <div className="cert-actions">
+                  <div className="cert-actions" style={{ marginTop: '16px', display: 'flex', gap: '16px', alignItems: 'center' }}>
                     {c.pdfUrl ? (
                       <Button href={c.pdfUrl} variant="ghost" target="_blank" rel="noreferrer">
                         Download PDF
                       </Button>
                     ) : null}
-                    <Link to={`/certifications/verify/${c.verifyToken}`} className="link">Verify</Link>
+                    <Link to={`/certifications/verify/${c.code}`} className="link">Verify</Link>
                   </div>
-                </CardMeta>
               </Card>
             ))}
           </div>

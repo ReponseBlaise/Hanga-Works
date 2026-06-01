@@ -14,7 +14,7 @@ export default function AdminExportPage() {
 
   async function fetchExportData(type: 'users' | 'courses') {
     if (type === 'users') {
-      const res = await api.get('/admin/users').catch(() => ({ data: { data: [] } }));
+      const res = await api.get('/users').catch(() => ({ data: { data: [] } }));
       const users = res.data?.data ?? res.data ?? [];
       return Array.isArray(users) ? users : [];
     } else {

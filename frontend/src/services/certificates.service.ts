@@ -6,7 +6,7 @@ export type LearnerCertificate = {
 	courseTitle: string;
 	issuedAt: string;
 	pdfUrl?: string | null;
-	verifyToken: string;
+	code: string;
 	verifyUrl: string;
 };
 

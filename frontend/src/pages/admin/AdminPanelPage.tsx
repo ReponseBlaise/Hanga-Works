@@ -20,7 +20,7 @@ export default function AdminPanelPage() {
     setLoading(true);
 
     Promise.all([
-      api.get('/admin/users').catch(() => ({ data: { data: [] } })),
+      api.get('/users').catch(() => ({ data: { data: [] } })),
       getCourses().catch(() => []),
       getAnalyticsOverview().catch(() => null),
     ])
