@@ -29,6 +29,8 @@ export default function JobDetail() {
 		coverLetter: '',
 		resumeSummary: '',
 	});
+	const role = (useAuth().user?.role ?? '').toUpperCase();
+	const canApply = !role || role === 'LEARNER';
 
 	useEffect(() => {
 		if (!id) return;
@@ -202,7 +204,11 @@ export default function JobDetail() {
 										{formStep < 3 ? (
 											<Button type="button" variant="secondary" onClick={moveToNextStep}>Next</Button>
 										) : null}
-										{isAuthenticated ? (
+											{!canApply ? (
+												<Button type="button" variant="secondary" disabled>
+													This role can view jobs only
+												</Button>
+											) : isAuthenticated ? (
 											<Button type="button" variant="primary" className="button--pill" onClick={handleApply} disabled={applying || !!application}>
 												{application ? 'Already applied' : applying ? 'Submitting...' : 'Submit application'}
 											</Button>
@@ -214,6 +220,9 @@ export default function JobDetail() {
 									{application ? (
 										<CardMeta>Application status: {application.status.toLowerCase()} · Updated {new Date(application.updatedAt).toLocaleDateString()}</CardMeta>
 									) : null}
+										{!canApply ? (
+											<CardMeta>Only learner accounts can submit applications. Use this page to review job details and share the link with the hiring team.</CardMeta>
+										) : null}
 									{status ? <CardMeta>{status}</CardMeta> : null}
 								</Card>
 							</aside>

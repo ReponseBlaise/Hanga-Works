@@ -1,6 +1,12 @@
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
-const columns = [
+type FooterColumn = {
+  title: string;
+  links: Array<{ label: string; href: string }>;
+};
+
+const publicColumns: FooterColumn[] = [
   {
     title: 'Resources',
     links: [
@@ -37,7 +43,87 @@ const columns = [
   },
 ];
 
+const roleColumns: Record<string, FooterColumn[]> = {
+  EMPLOYER: [
+    {
+      title: 'Employer',
+      links: [
+        { label: 'Dashboard', href: '/employer' },
+        { label: 'Post a Job', href: '/employer/post-job' },
+        { label: 'Applicants', href: '/employer/applicants' },
+      ],
+    },
+    {
+      title: 'Hiring',
+      links: [
+        { label: 'Jobs', href: '/jobs' },
+        { label: 'Candidates', href: '/candidates' },
+        { label: 'Profile', href: '/profile' },
+      ],
+    },
+  ],
+  INSTITUTION: [
+    {
+      title: 'Institution',
+      links: [
+        { label: 'Courses', href: '/courses' },
+        { label: 'Create Course', href: '/courses/new' },
+        { label: 'Profile', href: '/profile' },
+      ],
+    },
+    {
+      title: 'Learning',
+      links: [
+        { label: 'Certifications', href: '/certifications' },
+        { label: 'Intelligence', href: '/intelligence' },
+        { label: 'Contact', href: '/contact' },
+      ],
+    },
+  ],
+  MENTOR: [
+    {
+      title: 'Mentor',
+      links: [
+        { label: 'Mentors', href: '/mentors' },
+        { label: 'Profile', href: '/profile' },
+        { label: 'Courses', href: '/courses' },
+      ],
+    },
+    {
+      title: 'Support',
+      links: [
+        { label: 'Jobs', href: '/jobs' },
+        { label: 'Contact', href: '/contact' },
+        { label: 'Certifications', href: '/certifications' },
+      ],
+    },
+  ],
+  ADMIN: [
+    {
+      title: 'Admin',
+      links: [
+        { label: 'Admin Home', href: '/admin' },
+        { label: 'Exports', href: '/admin/export' },
+        { label: 'Moderation', href: '/admin/moderation' },
+      ],
+    },
+    {
+      title: 'Platform',
+      links: [
+        { label: 'Users', href: '/admin' },
+        { label: 'Courses', href: '/courses' },
+        { label: 'Jobs', href: '/jobs' },
+      ],
+    },
+  ],
+  LEARNER: publicColumns,
+};
+
 export default function Footer() {
+  const { user } = useAuth();
+  const role = (user?.role ?? 'LEARNER').toUpperCase();
+  const columns = roleColumns[role] ?? publicColumns;
+
   return (
     <footer className="site-footer">
       <div className="site-footer__inner">

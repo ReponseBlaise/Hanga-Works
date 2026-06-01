@@ -21,3 +21,12 @@ This note tracks the current implementation status against the Hanga Works SRS v
 ## Notes
 
 This summary is intentionally short so it can be kept current as features are added or validated.
+
+## Role-To-Page Flow
+
+| Role | Default landing | Primary pages | Can create courses | Can post jobs | Can apply to jobs |
+| --- | --- | --- | --- | --- | --- |
+| Learner | `/dashboard` | `/jobs`, `/applications`, `/profile`, `/courses` | No | No | Yes |
+| Employer | `/employer` | `/employer/post-job`, `/employer/applicants`, `/candidates`, `/jobs` | No | Yes | No |
+| Institution | `/courses` | `/courses/new`, `/courses/:id`, `/profile`, `/intelligence` | Yes | No | No |
+| Mentor | `/mentors` | `/mentors/:id`, `/mentors/:id/book`, `/courses`, `/profile` | No | No | No |

@@ -50,7 +50,7 @@ export default function App() {
             <Route path="/verify-email" element={<VerifyEmail />} />
           </Route>
           <Route path="/courses" element={<CourseList />} />
-          <Route path="/courses/new" element={<ProtectedRoute><CourseCreate /></ProtectedRoute>} />
+          <Route path="/courses/new" element={<InstitutionOrAdminRoute><CourseCreate /></InstitutionOrAdminRoute>} />
           <Route path="/courses/:id" element={<CourseDetail />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/jobs" element={<JobList />} />
@@ -99,6 +99,14 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
     const role = user?.role ?? '';
     if (role && role.toUpperCase() === 'EMPLOYER') return children;
     return <Navigate to="/register" replace />;
+  }
+
+  function InstitutionOrAdminRoute({ children }: { children: JSX.Element }) {
+    const { user } = useAuth();
+    const role = user?.role ?? '';
+    const upper = role.toUpperCase();
+    if (upper === 'INSTITUTION' || upper === 'ADMIN') return children;
+    return <Navigate to="/courses" replace />;
   }
 
   function AdminRoute({ children }: { children: JSX.Element }) {
