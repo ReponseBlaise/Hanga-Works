@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import AuthLayout from './components/layout/AuthLayout';
-import Home from './pages/home';
+import Home from './pages/home/Home';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import VerifyEmail from './pages/auth/VerifyEmail';
@@ -35,12 +35,28 @@ import Blog from './pages/blog/Blog';
 import Intelligence from './pages/intelligence/Intelligence';
 import Notifications from './pages/notifications/Notifications';
 
+function RoleBasedRedirect({ children }: { children: JSX.Element }) {
+  const { user, isAuthenticated } = useAuth();
+  
+  if (!isAuthenticated || !user) {
+    return children;
+  }
+
+  const role = user.role?.toUpperCase();
+  if (role === 'ADMIN') return <Navigate to="/admin" replace />;
+  if (role === 'EMPLOYER') return <Navigate to="/employer" replace />;
+  if (role === 'MENTOR') return <Navigate to="/mentors/dashboard" replace />;
+  if (role === 'INSTITUTION') return <Navigate to="/institution/dashboard" replace />;
+  
+  return children;
+}
+
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<RoleBasedRedirect><Home /></RoleBasedRedirect>} />
           <Route element={<AuthLayout />}>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -63,6 +79,11 @@ export default function App() {
           <Route path="/mentors" element={<MentorList />} />
           <Route path="/mentors/:id" element={<MentorProfile />} />
           <Route path="/mentors/:id/book" element={<MentorBooking />} />
+          
+          {/* New placeholders for specialized dashboards */}
+          <Route path="/mentors/dashboard" element={<ProtectedRoute><div>Mentor Dashboard Placeholder</div></ProtectedRoute>} />
+          <Route path="/institution/dashboard" element={<ProtectedRoute><div>Institution Dashboard Placeholder</div></ProtectedRoute>} />
+
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/candidates" element={<Candidates />} />
           <Route path="/blog" element={<Blog />} />
@@ -94,16 +115,16 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
   return children;
 }
 
-  function EmployerRoute({ children }: { children: JSX.Element }) {
-    const { user } = useAuth();
-    const role = user?.role ?? '';
-    if (role && role.toUpperCase() === 'EMPLOYER') return children;
-    return <Navigate to="/register" replace />;
-  }
+function EmployerRoute({ children }: { children: JSX.Element }) {
+  const { user } = useAuth();
+  const role = user?.role ?? '';
+  if (role && role.toUpperCase() === 'EMPLOYER') return children;
+  return <Navigate to="/register" replace />;
+}
 
-  function AdminRoute({ children }: { children: JSX.Element }) {
-    const { user } = useAuth();
-    const role = user?.role ?? '';
-    if (role && role.toUpperCase() === 'ADMIN') return children;
-    return <Navigate to="/" replace />;
-  }
+function AdminRoute({ children }: { children: JSX.Element }) {
+  const { user } = useAuth();
+  const role = user?.role ?? '';
+  if (role && role.toUpperCase() === 'ADMIN') return children;
+  return <Navigate to="/" replace />;
+}

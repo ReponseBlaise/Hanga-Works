@@ -38,11 +38,30 @@ export class AuthService {
       organizationId = org.id;
     }
 
-    const user = await this.prisma.user.create({
-      data: { name: dto.name, email: dto.email, passwordHash, role: userRole, organizationId },
-    });
+    let user;
+    try {
+      user = await this.prisma.user.create({
+        data: { 
+          name: dto.name, 
+          email: dto.email, 
+          phone: dto.phone?.trim() || undefined, 
+          passwordHash, 
+          role: userRole, 
+          organizationId 
+        },
+      });
+    } catch (error: any) {
+      if (error.code === 'P2002') {
+        throw new ConflictException('Email or phone number already in use');
+      }
+      throw error;
+    }
 
-    await this.notifications.sendRegistrationConfirmation(user.email, user.name);
+    try {
+      await this.notifications.sendRegistrationConfirmation(user.email, user.name);
+    } catch (err) {
+      console.error('Failed to send registration email', err);
+    }
     
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete (user as any).passwordHash;
@@ -50,10 +69,13 @@ export class AuthService {
   }
 
   async login(dto: LoginDto) {
+    console.log('LOGIN ATTEMPT:', dto);
     const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
+    console.log('USER FOUND:', user ? user.email : 'null');
     if (!user) throw new UnauthorizedException('Invalid credentials');
 
     const isMatch = await bcrypt.compare(dto.password, user.passwordHash);
+    console.log('PASSWORD MATCH:', isMatch);
     if (!isMatch) throw new UnauthorizedException('Invalid credentials');
 
     const payload = { sub: user.id, email: user.email, role: user.role };

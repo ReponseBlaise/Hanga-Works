@@ -11,7 +11,7 @@ const ROLES = [
 
 export default function Register() {
   const [form, setForm] = useState({
-    name: '', email: '', password: '', role: '' as '' | 'LEARNER' | 'EMPLOYER',
+    name: '', email: '', phone: '', password: '', role: '' as '' | 'LEARNER' | 'EMPLOYER',
   });
   const navigate = useNavigate();
   const { signIn } = useAuth();
@@ -28,7 +28,7 @@ export default function Register() {
     e.preventDefault();
     setLoading(true);
     setError('');
-    authService.register({ name: form.name, email: form.email, password: form.password, role: form.role || undefined })
+    authService.register({ name: form.name, email: form.email, phone: form.phone, password: form.password, role: form.role || undefined })
         .then((user) => {
           if (user) {
             signIn('user' in user ? user.user : user);
@@ -72,6 +72,12 @@ export default function Register() {
         <Field label="Email *">
           <input type="email" placeholder="example@gmail.com" required
             value={form.email} onChange={e => setForm({ ...form, email: e.target.value })}
+            style={inputStyle} onFocus={focus} onBlur={blur} />
+        </Field>
+
+        <Field label="Phone">
+          <input type="tel" placeholder="+250..." 
+            value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })}
             style={inputStyle} onFocus={focus} onBlur={blur} />
         </Field>
 

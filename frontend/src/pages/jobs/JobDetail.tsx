@@ -131,8 +131,8 @@ export default function JobDetail() {
 							</div>
 						</header>
 
-						<section className="studio-job-detail__layout">
-							<div className="studio-job-detail__main">
+						<section className="dashboard-layout dashboard-layout--two-col-left mt-lg">
+							<div className="dashboard-rail dashboard-rail--left">
 								<Card className="studio-block">
 									<CardEyebrow>Job highlights</CardEyebrow>
 									<div className="studio-chip-row">
@@ -165,7 +165,7 @@ export default function JobDetail() {
 								</Card>
 							</div>
 
-							<aside className="studio-job-detail__apply">
+							<aside className="dashboard-main-column">
 								<Card className="studio-block">
 									<CardEyebrow>Application form</CardEyebrow>
 									<CardTitle>Step {formStep} of 3</CardTitle>

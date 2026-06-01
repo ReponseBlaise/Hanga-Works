@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { verifyCertificate, LearnerCertificate } from '../../services/certificates.service';
+import { API_BASE_URL } from '../../services/api';
 import { Button } from '../../components/ui/Button';
 
 export default function CertificationVerify() {
@@ -49,11 +50,9 @@ export default function CertificationVerify() {
         <div className="card card--info">
           <h2>{cert.courseTitle}</h2>
           <p>Issued: {new Date(cert.issuedAt).toLocaleDateString()}</p>
-          {cert.pdfUrl ? (
-            <p>
-              <Button href={cert.pdfUrl} variant="ghost" target="_blank" rel="noreferrer">Download PDF</Button>
-            </p>
-          ) : null}
+          <p>
+            <Button href={`${API_BASE_URL}/certificates/${cert.code}/download`} variant="ghost" target="_blank" rel="noreferrer">Download PDF</Button>
+          </p>
           <p>Certificate ID: {cert.id}</p>
           <p>
             <Link to="/">Return home</Link>
