@@ -210,6 +210,7 @@ input, textarea, select { color: var(--text); }
 .dashboard-page { display: grid; gap: 28px; width: 100%; }
 .dashboard-layout { display: grid; grid-template-columns: minmax(280px, 324px) minmax(0, 1fr) minmax(280px, 340px); gap: 24px; align-items: start; }
 .dashboard-layout--two-col-right { grid-template-columns: minmax(0, 1fr) minmax(280px, 340px); }
+.dashboard-layout--two-col-left { grid-template-columns: minmax(280px, 340px) minmax(0, 1fr); }
 .dashboard-main-column, .dashboard-rail { display: grid; gap: 24px; }
 .dashboard-rail { position: sticky; top: 92px; align-content: start; }
 .dashboard-rail--right { top: 116px; }

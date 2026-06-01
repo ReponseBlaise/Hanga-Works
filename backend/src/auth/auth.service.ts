@@ -39,7 +39,7 @@ export class AuthService {
     }
 
     const user = await this.prisma.user.create({
-      data: { name: dto.name, email: dto.email, passwordHash, role: userRole, organizationId },
+      data: { name: dto.name, email: dto.email, phone: dto.phone, passwordHash, role: userRole, organizationId },
     });
 
     await this.notifications.sendRegistrationConfirmation(user.email, user.name);
