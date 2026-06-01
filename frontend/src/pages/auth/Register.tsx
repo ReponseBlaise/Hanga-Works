@@ -7,14 +7,11 @@ import * as authService from '../../services/auth.service';
 const ROLES = [
   { value: 'LEARNER', label: 'Job Seeker' },
   { value: 'EMPLOYER', label: 'Employer' },
-  { value: 'INSTITUTION', label: 'Institution' },
-  { value: 'MENTOR', label: 'Mentor' },
-
 ];
 
 export default function Register() {
   const [form, setForm] = useState({
-    name: '', email: '', password: '', role: '' as '' | 'LEARNER' | 'EMPLOYER' | 'INSTITUTION' | 'MENTOR',
+    name: '', email: '', password: '', role: '' as '' | 'LEARNER' | 'EMPLOYER',
   });
   const navigate = useNavigate();
   const { signIn } = useAuth();

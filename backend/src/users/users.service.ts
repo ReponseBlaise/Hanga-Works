@@ -6,6 +6,45 @@ import { UpdateUserDto } from './dto/update-user.dto';
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
+  async findAllUsers() {
+    return this.prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        bio: true,
+        avatarUrl: true,
+        location: true,
+        createdAt: true,
+      },
+    });
+  }
+
+  async getPublicProfile(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        role: true,
+        bio: true,
+        avatarUrl: true,
+        location: true,
+        createdAt: true,
+        skills: {
+          select: {
+            skill: true,
+            level: true,
+          },
+        },
+      },
+    });
+
+    if (!user) throw new NotFoundException('User not found');
+    return user;
+  }
+
   async getProfile(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },

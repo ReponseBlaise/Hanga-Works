@@ -24,7 +24,7 @@ type AuthResponse = {
 
 type RegisterResponse = AuthUser | AuthResponse;
 
-export async function register(payload: { name: string; email: string; password: string; role?: 'LEARNER' | 'EMPLOYER' | 'INSTITUTION' | 'MENTOR' }) {
+export async function register(payload: { name: string; email: string; password: string; role?: 'LEARNER' | 'EMPLOYER' }) {
 	// Create the account
 	await api.post('/auth/register', payload);
 	// Immediately log in to get the token
@@ -33,12 +33,16 @@ export async function register(payload: { name: string; email: string; password:
 
 export async function login(payload: { email: string; password: string }) {
 	const res = await api.post('/auth/login', payload);
-	const data = res.data as AuthResponse;
-	if (data?.access_token) {
-		setAuthToken(data.access_token);
-		window.localStorage.setItem(AUTH_TOKEN_KEY, data.access_token);
+	const data = res.data?.data ?? res.data;
+	const token = data?.access_token ?? data?.token;
+
+	if (token) {
+		setAuthToken(token);
+		window.localStorage.setItem(AUTH_TOKEN_KEY, token);
+		return { access_token: token, user: data.user } as AuthResponse;
 	}
-	return data;
+	
+	throw new Error("Invalid response from server");
 }
 
 export async function profile() {
