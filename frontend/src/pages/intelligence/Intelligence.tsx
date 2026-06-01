@@ -92,8 +92,8 @@ export default function Intelligence() {
 
         {error ? <Card className="studio-block"><CardTitle>{error}</CardTitle><CardMeta>Try refreshing the page or checking the backend API.</CardMeta></Card> : null}
 
-        <section className="studio-layout">
-          <main className="studio-column studio-column--main">
+        <section className="dashboard-layout dashboard-layout--two-col-right mt-lg">
+          <main className="dashboard-main-column">
             <Card className="studio-block">
               <CardEyebrow>Skill gap</CardEyebrow>
               <CardTitle>Compare yourself to a live role</CardTitle>
@@ -165,7 +165,7 @@ export default function Intelligence() {
             </section>
           </main>
 
-          <aside className="studio-column studio-column--right">
+          <aside className="dashboard-rail dashboard-rail--right">
             <Card className="studio-block">
               <CardEyebrow>Pathway</CardEyebrow>
               <CardTitle>Recommended next step</CardTitle>
