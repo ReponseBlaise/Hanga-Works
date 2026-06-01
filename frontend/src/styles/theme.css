@@ -415,6 +415,21 @@ input, textarea, select { color: var(--text); }
 .studio-section__head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-end; }
 .studio-action-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .studio-chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.studio-employer-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(26, 87, 160, 0.18);
+  background: rgba(226, 236, 250, 0.96);
+  color: #153d79;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
 
 .studio-hero {
   display: grid;
@@ -649,6 +664,27 @@ input, textarea, select { color: var(--text); }
 
 .studio-recruiter__layout aside { position: sticky; top: 90px; align-self: start; }
 .studio-applicants__kanban { display: grid; gap: 12px; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+
+.studio-recruiter--employer .studio-recruiter__hero,
+.studio-post-job--employer .studio-post-job__head,
+.studio-applicants--employer .studio-applicants__head {
+  border-color: rgba(26, 87, 160, 0.14);
+  background:
+    linear-gradient(180deg, rgba(26, 87, 160, 0.08), rgba(255, 255, 255, 0.98)),
+    var(--surface);
+}
+
+.studio-recruiter--employer .studio-block,
+.studio-post-job--employer .studio-block,
+.studio-applicants--employer .studio-block {
+  border-color: rgba(26, 87, 160, 0.12);
+}
+
+.studio-recruiter--employer .studio-job-card,
+.studio-post-job--employer .studio-job-card {
+  background: linear-gradient(180deg, rgba(248, 251, 255, 0.98), rgba(243, 247, 253, 0.96));
+  border-color: rgba(26, 87, 160, 0.1);
+}
 .studio-candidate-card {
   border: 1px solid var(--border);
   background: var(--surface-muted);

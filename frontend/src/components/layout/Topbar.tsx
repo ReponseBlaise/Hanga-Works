@@ -62,6 +62,7 @@ export default function Navbar() {
 			{ label: 'Home', href: '/' },
 			{ label: 'Dashboard', href: '/dashboard' },
 			{ label: 'Jobs', href: '/jobs' },
+			{ label: 'Mentors', href: '/mentors' },
 			{ label: 'Courses', href: '/courses' },
 		];
 	}, [isAuthenticated, userRole]);

@@ -96,7 +96,7 @@ export default function Applicants() {
 
   return (
     <SiteLayout>
-      <section className="studio-applicants">
+      <section className="studio-applicants studio-applicants--employer">
         <header className="studio-applicants__head">
           <div>
             <p className="eyebrow">Applicant review</p>

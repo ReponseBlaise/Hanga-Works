@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Card, CardMeta, CardTitle } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
@@ -46,7 +47,7 @@ export default function EmployerDashboard() {
 
   return (
     <SiteLayout>
-      <section className="studio-recruiter">
+      <section className="studio-recruiter studio-recruiter--employer">
         <header className="studio-recruiter__hero">
           <div>
             <p className="eyebrow">Recruiter mode</p>
@@ -86,12 +87,13 @@ export default function EmployerDashboard() {
                     <div className="studio-job-card__head">
                       <div>
                         <CardMeta>{job.jobType.replace('_', ' ')}</CardMeta>
-                        <CardTitle>{job.title}</CardTitle>
+                        <CardTitle><Link to={`/jobs/${job.id}`}>{job.title}</Link></CardTitle>
                       </div>
-                      <span className="dashboard-chip">{job.location ?? 'Remote'}</span>
+                      <span className="studio-employer-chip">{job.location ?? 'Remote'}</span>
                     </div>
                     <CardMeta>{job.salaryMin || job.salaryMax ? `Salary range: ${job.salaryMin ?? 0} - ${job.salaryMax ?? 0}` : 'Salary not specified'}</CardMeta>
                     <div className="studio-action-row">
+                      <Button to={`/jobs/${job.id}`} variant="ghost">View details</Button>
                       <Button to="/employer/applicants" variant="secondary">Review applicants</Button>
                     </div>
                   </Card>
