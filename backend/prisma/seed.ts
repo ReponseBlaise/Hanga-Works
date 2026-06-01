@@ -364,7 +364,7 @@ async function main() {
       ),
     ),
   );
-  console.log(`✅ user skill assignments`);
+  console.log(` user skill assignments`);
 
   // ── Mentorship System ─────────────────────────────────────────────────────
   const mentorPwd = await hash('Mentor@123');
