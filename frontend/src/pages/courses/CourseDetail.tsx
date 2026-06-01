@@ -8,6 +8,7 @@ import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card
 import { ProgressBar } from '../../components/shared/ProgressBar';
 import { getCourseById, getMyProgress, enrollInCourse, updateLessonProgress, type BackendCourse, type CourseEnrollment } from '../../services/courses.service';
 import { getMyCertificates, type LearnerCertificate } from '../../services/certificates.service';
+import { getJobs, type JobSummary } from '../../services/jobs.service';
 
 export function CourseDetail() {
 	const { id } = useParams<{ id: string }>();
@@ -21,6 +22,8 @@ export function CourseDetail() {
 	const [progressValue, setProgressValue] = useState(0);
 	const [trackingMessage, setTrackingMessage] = useState('');
 	const [savingProgress, setSavingProgress] = useState(false);
+	const [activeModuleId, setActiveModuleId] = useState('');
+	const [relatedJobs, setRelatedJobs] = useState<JobSummary[]>([]);
 
 	useEffect(() => {
 		if (!id) return;
@@ -28,9 +31,10 @@ export function CourseDetail() {
 		setLoading(true);
 		setError('');
 
-		getCourseById(id)
-			.then((item) => {
+		Promise.all([getCourseById(id), getJobs({ perPage: 40, page: 1 })])
+			.then(([item, jobsResponse]) => {
 				if (active) setCourse(item ?? null);
+				if (active) setRelatedJobs(jobsResponse.jobs ?? []);
 			})
 			.catch((fetchError) => {
 				console.error(fetchError);
@@ -78,6 +82,19 @@ export function CourseDetail() {
 	useEffect(() => {
 		setProgressValue(currentEnrollment?.progress ?? 0);
 	}, [currentEnrollment]);
+
+	useEffect(() => {
+		if (!course?.modules?.length) {
+			setActiveModuleId('');
+			return;
+		}
+		setActiveModuleId((previous) => {
+			if (previous && course.modules?.some((module) => module.id === previous)) {
+				return previous;
+			}
+			return course.modules?.[0]?.id ?? '';
+		});
+	}, [course]);
 
 	async function handleEnroll() {
 		if (!course) return;
@@ -162,104 +179,143 @@ export function CourseDetail() {
 		return null;
 	}
 
+	const activeModule = (course.modules ?? []).find((module) => module.id === activeModuleId) ?? course.modules?.[0] ?? null;
+	const relatedFromSkills = relatedJobs
+		.filter((job) => job.id !== id)
+		.sort((left, right) => {
+			const leftScore = (left.skills ?? []).filter((skill) => (course.skills ?? []).some((courseSkill) => courseSkill.skill.id === skill.skill.id)).length;
+			const rightScore = (right.skills ?? []).filter((skill) => (course.skills ?? []).some((courseSkill) => courseSkill.skill.id === skill.skill.id)).length;
+			return rightScore - leftScore;
+		})
+		.slice(0, 4);
+
 	return (
 		<SiteLayout>
-			<div className="course-detail">
-				<Link to="/courses" className="course-detail__back">
-					← Back to courses
-				</Link>
-
-				<section className="course-detail__hero card">
-					<div className="course-detail__hero-copy">
-						<CardEyebrow>{course.institution?.name ?? 'Hanga Works'} · {course.published ? 'Published' : 'Draft'}</CardEyebrow>
-						<h2 className="course-detail__title">{course.title}</h2>
-						<p className="card-meta">{course.description}</p>
-						<div className="course-detail__tags">
-							{(course.skills ?? []).map((skill) => (
-								<span key={skill.id}>{skill.skill.name}</span>
-							))}
-						</div>
-						<p className="course-detail__meta">
-							{course._count?.modules ?? course.modules?.length ?? 0} modules · {course._count?.enrollments ?? 0} enrollments
-						</p>
-					</div>
-					<div className="course-detail__hero-panel">
-						{course.thumbnailUrl ? <img src={course.thumbnailUrl} alt={course.title} className="course-detail__thumbnail" /> : null}
-						<CardMeta>{course.institution?.website ?? 'No public institution website provided'}</CardMeta>
-						{currentEnrollment ? (
-							<CardMeta>Progress: {currentEnrollment.progress}% · {currentEnrollment.status.toLowerCase()}</CardMeta>
-						) : (
-							<CardMeta>Enroll to track progress, quizzes, and certificate issuance.</CardMeta>
-						)}
-						<Button variant="primary" to="/courses">Back to courses</Button>
-						<Button variant="secondary" type="button" onClick={handleEnroll}>{currentEnrollment ? 'Already enrolled' : 'Start learning'}</Button>
-						{currentCertificate ? (
-							<Button variant="ghost" to="/certifications">View certificate</Button>
-						) : null}
+			<div className="studio-course-detail">
+				<section className="studio-course-head">
+					<Link to="/courses" className="studio-inline-link">Back to catalog</Link>
+					<p className="eyebrow">{course.institution?.name ?? 'Hanga Works'} · {course.published ? 'Published' : 'Draft'}</p>
+					<h1 className="display">{course.title}</h1>
+					<p className="lead">{course.description}</p>
+					<div className="studio-chip-row">
+						{(course.skills ?? []).map((skill) => (
+							<span key={skill.id} className="dashboard-chip">{skill.skill.name}</span>
+						))}
 					</div>
 				</section>
 
-				<section className="dashboard-section">
-					<div className="section-head">
-						<div>
-							<p className="section-head__eyebrow">Study progress</p>
-							<h2>Track your progress and unlock a certificate</h2>
-						</div>
-					</div>
-					<Card className="course-progress-card">
-						<CardMeta>
-							{currentEnrollment
-								? `Current progress: ${currentEnrollment.progress}%`
-								: 'Enroll first so the platform can track your learning progress.'}
-						</CardMeta>
-						<ProgressBar value={currentEnrollment?.progress ?? 0} label="Course progress" />
-						<div className="course-progress-card__controls">
-							<input
-								type="range"
-								min={0}
-								max={100}
-								step={10}
-								value={progressValue}
-								disabled={!currentEnrollment}
-								onChange={(e) => setProgressValue(Number(e.target.value))}
-							/>
-							<div className="course-progress-card__buttons">
-								<Button type="button" variant="primary" disabled={!currentEnrollment || savingProgress} onClick={() => handleSaveProgress(false)}>
+				<section className="studio-course-stage">
+					<div className="studio-course-stage__video">
+						<Card className="studio-block">
+							<CardEyebrow>Lesson stage</CardEyebrow>
+							<div className="studio-video-frame">
+								{activeModule?.videoUrl ? (
+									<iframe
+										title={activeModule.title}
+										src={activeModule.videoUrl}
+										allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+										allowFullScreen
+									/>
+								) : (
+									<div className="studio-video-fallback">
+										<strong>{activeModule?.title ?? 'No module selected'}</strong>
+										<p>Video content is not available for this module yet.</p>
+									</div>
+								)}
+							</div>
+							<div className="studio-action-row">
+								<Button variant="secondary" type="button" onClick={handleEnroll}>
+									{currentEnrollment ? 'Already enrolled' : 'Enroll in course'}
+								</Button>
+								<Button
+									type="button"
+									variant="primary"
+									disabled={!currentEnrollment || savingProgress}
+									onClick={() => handleSaveProgress(false)}
+								>
 									Save progress
 								</Button>
-								<Button type="button" variant="secondary" disabled={!currentEnrollment || savingProgress} onClick={() => handleSaveProgress(true)}>
+								<Button
+									type="button"
+									variant="ghost"
+									disabled={!currentEnrollment || savingProgress}
+									onClick={() => handleSaveProgress(true)}
+								>
 									Mark complete
 								</Button>
 							</div>
-							{trackingMessage ? <p className="course-detail__quiz-note">{trackingMessage}</p> : null}
-							{currentCertificate ? (
+							<div className="studio-progress-stack">
 								<CardMeta>
-									Certificate issued on {new Date(currentCertificate.issuedAt).toLocaleDateString()} · {' '}
-									<Button href={currentCertificate.verifyUrl} variant="ghost">Verify certificate</Button>
+									{currentEnrollment
+										? `Enrollment status: ${currentEnrollment.status.toLowerCase()} · ${currentEnrollment.progress}% complete`
+										: 'Enroll to start tracking your progress and unlock a certificate.'}
 								</CardMeta>
-							) : null}
-						</div>
-					</Card>
+								<ProgressBar value={currentEnrollment?.progress ?? 0} label="Course completion" />
+								<input
+									type="range"
+									min={0}
+									max={100}
+									step={10}
+									value={progressValue}
+									disabled={!currentEnrollment}
+									onChange={(event) => setProgressValue(Number(event.target.value))}
+								/>
+								{trackingMessage ? <p className="muted">{trackingMessage}</p> : null}
+								{currentCertificate ? (
+									<div className="studio-action-row">
+										<CardMeta>Certificate issued {new Date(currentCertificate.issuedAt).toLocaleDateString()}</CardMeta>
+										<Button href={currentCertificate.verifyUrl} variant="ghost">Verify</Button>
+									</div>
+								) : null}
+							</div>
+						</Card>
+					</div>
+
+					<aside className="studio-course-stage__sidebar">
+						<Card className="studio-block">
+							<CardEyebrow>Curriculum</CardEyebrow>
+							<div className="studio-module-list">
+								{(course.modules ?? []).map((module) => (
+									<button
+										key={module.id}
+										type="button"
+										className={`studio-module-item ${activeModuleId === module.id ? 'is-active' : ''}`.trim()}
+										onClick={() => setActiveModuleId(module.id)}
+									>
+										<span>Module {module.order}</span>
+										<strong>{module.title}</strong>
+									</button>
+								))}
+							</div>
+						</Card>
+
+						<Card className="studio-block">
+							<CardEyebrow>Instructor</CardEyebrow>
+							<CardTitle>{course.institution?.name ?? 'Hanga Works Academy Team'}</CardTitle>
+							<CardMeta>{course.institution?.website ?? 'Instructor profile and external links are available in the course metadata.'}</CardMeta>
+							<CardMeta>{course._count?.modules ?? course.modules?.length ?? 0} modules · {course._count?.enrollments ?? 0} learners enrolled</CardMeta>
+						</Card>
+					</aside>
 				</section>
 
-				<section className="dashboard-section">
-					<div className="section-head">
+				<section className="studio-section">
+					<div className="studio-section__head">
 						<div>
-							<p className="section-head__eyebrow">Curriculum</p>
-							<h2>Course modules from the database</h2>
+							<p className="eyebrow">Career bridge</p>
+							<h2>Related jobs based on course skills</h2>
 						</div>
+						<Button to="/jobs" variant="secondary">See all jobs</Button>
 					</div>
-					<div className="course-module-list">
-						{(course.modules ?? []).map((module) => (
-							<Card key={module.id} className="course-module-card">
-								<div className="course-module-card__top">
-									<div>
-										<CardEyebrow>Module {module.order}</CardEyebrow>
-										<CardTitle>{module.title}</CardTitle>
-									</div>
+					<div className="studio-job-grid">
+						{relatedFromSkills.map((job) => (
+							<Card key={job.id} className="studio-job-card">
+								<CardEyebrow>{job.employer.name}</CardEyebrow>
+								<CardTitle>{job.title}</CardTitle>
+								<CardMeta>{job.location ?? 'Remote'} · {job.jobType.replace('_', ' ')}</CardMeta>
+								<div className="studio-action-row">
+									<Button to={`/jobs/${job.id}`} variant="secondary">Details</Button>
+									<Button to={`/jobs/${job.id}`} variant="primary">Apply</Button>
 								</div>
-								<CardMeta>{module.content ?? 'Module content stored in the backend.'}</CardMeta>
-								{module.videoUrl ? <CardMeta>{module.videoUrl}</CardMeta> : null}
 							</Card>
 						))}
 					</div>

@@ -1,30 +1,40 @@
 import { Injectable, Logger } from '@nestjs/common';
-import * as sgMail from '@sendgrid/mail';
+import * as nodemailer from 'nodemailer';
 import { NotificationsGateway } from './notifications.gateway';
 
 @Injectable()
 export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name);
+  private transporter: nodemailer.Transporter | null = null;
 
   constructor(private readonly gateway: NotificationsGateway) {
-    const apiKey = process.env.SENDGRID_API_KEY;
-    if (apiKey) {
-      sgMail.setApiKey(apiKey);
+    const appPassword = process.env.APP_PASSWORD;
+    if (appPassword) {
+      this.transporter = nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false, // true for 465, false for other ports
+        auth: {
+          user: process.env.EMAIL_USER || 'kafurukaleo66@gmail.com',
+          pass: appPassword,
+        },
+      });
+      this.logger.log('Nodemailer initialized with Gmail');
     } else {
-      this.logger.warn('SENDGRID_API_KEY is not set. Emails will only be logged, not sent.');
+      this.logger.warn('APP_PASSWORD is not set. Emails will only be logged, not sent.');
     }
   }
 
   async sendEmail(to: string, subject: string, text: string, html?: string) {
-    if (!process.env.SENDGRID_API_KEY) {
-      this.logger.debug(`[MOCK EMAIL] To: ${to} | Subject: ${subject}`);
+    if (!this.transporter) {
+      this.logger.debug(`[MOCK EMAIL] To: ${to} | Subject: ${subject}\nText: ${text}`);
       return;
     }
 
     try {
-      await sgMail.send({
+      await this.transporter.sendMail({
+        from: process.env.EMAIL_FROM || '"HANGA WORKS Support" <kafurukaleo66@gmail.com>',
         to,
-        from: process.env.SENDGRID_FROM_EMAIL || 'noreply@hangaworks.com',
         subject,
         text,
         html: html || text,

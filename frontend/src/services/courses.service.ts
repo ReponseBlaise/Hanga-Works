@@ -39,6 +39,15 @@ export type BackendCourse = {
 	};
 };
 
+export type CreateCoursePayload = {
+	title: string;
+	slug: string;
+	description: string;
+	published?: boolean;
+	thumbnailUrl?: string;
+	institutionId?: string;
+};
+
 export type CourseEnrollment = {
 	id: string;
 	progress: number;
@@ -59,7 +68,14 @@ export async function getCourses() {
 
 export async function getCourseById(id: string) {
 	const res = await api.get(`/courses/${id}`);
-	return res.data?.data?.course as BackendCourse;
+	const payload = res.data?.data ?? res.data;
+	return (payload?.course ?? payload) as BackendCourse;
+}
+
+export async function createCourse(payload: CreateCoursePayload) {
+	const res = await api.post('/courses', payload);
+	const data = res.data?.data ?? res.data;
+	return (data?.course ?? data) as BackendCourse;
 }
 
 export async function enrollInCourse(courseId: string) {
@@ -79,4 +95,9 @@ export async function getMyProgress() {
 	}
 
 	return (res.data?.data?.progress ?? res.data?.progress ?? []) as CourseEnrollment[];
+}
+
+export async function submitQuiz(moduleId: string, payload: { answers: Array<{ questionId: string; answerIndex: number }> }) {
+	const res = await api.post(`/quiz/${moduleId}/submit`, payload);
+	return res.data?.data ?? res.data;
 }

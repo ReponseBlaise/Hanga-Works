@@ -24,7 +24,7 @@ type AuthResponse = {
 
 type RegisterResponse = AuthUser | AuthResponse;
 
-export async function register(payload: { name: string; email: string; password: string; role?: 'LEARNER' | 'EMPLOYER' | 'INSTITUTION' | 'MENTOR' }) {
+export async function register(payload: { name: string; email: string; password: string; role?: 'LEARNER' | 'EMPLOYER' }) {
 	// Create the account
 	await api.post('/auth/register', payload);
 	// Immediately log in to get the token
@@ -84,6 +84,16 @@ export async function refresh() {
 	} catch {
 		return null;
 	}
+}
+
+export async function forgotPassword(payload: { email: string }) {
+	const res = await api.post('/auth/forgot-password', payload);
+	return res.data?.data ?? res.data;
+}
+
+export async function resetPassword(payload: { token: string; password: string }) {
+	const res = await api.post('/auth/reset-password', payload);
+	return res.data?.data ?? res.data;
 }
 
 export default { register, login, profile, updateProfile, logout, refresh };
