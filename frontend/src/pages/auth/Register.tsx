@@ -40,6 +40,10 @@ export default function Register() {
               navigate('/mentors');
               return;
             }
+            if (userRole === 'INSTITUTION') {
+              navigate('/courses');
+              return;
+            }
             if (userRole === 'EMPLOYER') {
               navigate('/employer');
               return;

@@ -25,6 +25,8 @@ export default function JobList() {
     location: '',
     jobType: 'ALL',
     remoteOnly: false,
+    salaryMin: '',
+    salaryMax: '',
   });
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(12);
@@ -57,6 +59,8 @@ export default function JobList() {
       search: filters.search,
       location: filters.location,
       jobType: filters.jobType === 'ALL' ? undefined : filters.jobType,
+      salaryMin: filters.salaryMin ? Number(filters.salaryMin) : undefined,
+      salaryMax: filters.salaryMax ? Number(filters.salaryMax) : undefined,
       page,
       perPage,
     })
@@ -79,7 +83,8 @@ export default function JobList() {
     return () => {
       active = false;
     };
-  }, [filters.search, filters.location, filters.jobType, filters.remoteOnly, page, perPage]);
+  }, [filters.search, filters.location, filters.jobType, filters.remoteOnly, filters.salaryMin, filters.salaryMax, page, perPage]);
+  
 
   const filteredJobs = useMemo(() => {
     const query = filters.search.trim().toLowerCase();
@@ -94,7 +99,14 @@ export default function JobList() {
       const matchesType = filters.jobType === 'ALL' || job.jobType === filters.jobType;
       const matchesRemote = !filters.remoteOnly || job.jobType === 'REMOTE';
       const matchesSaved = !savedOnly || savedJobIds.includes(job.id);
-      return matchesQuery && matchesLocation && matchesType && matchesRemote && matchesSaved;
+      const minSalary = filters.salaryMin ? Number(filters.salaryMin) : null;
+      const maxSalary = filters.salaryMax ? Number(filters.salaryMax) : null;
+      const jobSalaryMin = job.salaryMin ?? null;
+      const jobSalaryMax = job.salaryMax ?? null;
+      const matchesSalary =
+        (minSalary == null || (jobSalaryMax != null && jobSalaryMax >= minSalary) || (jobSalaryMin != null && jobSalaryMin >= minSalary)) &&
+        (maxSalary == null || (jobSalaryMin != null && jobSalaryMin <= maxSalary) || (jobSalaryMax != null && jobSalaryMax <= maxSalary));
+      return matchesQuery && matchesLocation && matchesType && matchesRemote && matchesSaved && matchesSalary;
     });
   }, [filters.search, filters.location, filters.jobType, filters.remoteOnly, jobs, savedOnly, savedJobIds]);
 
@@ -169,6 +181,28 @@ export default function JobList() {
                     {filterOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                   </select>
                 </label>
+                <div className="profile-form-grid">
+                  <label>
+                    Min salary
+                    <input
+                      type="number"
+                      min="0"
+                      value={filters.salaryMin}
+                      onChange={(e) => setFilters((prev) => ({ ...prev, salaryMin: e.target.value }))}
+                      placeholder="500000"
+                    />
+                  </label>
+                  <label>
+                    Max salary
+                    <input
+                      type="number"
+                      min="0"
+                      value={filters.salaryMax}
+                      onChange={(e) => setFilters((prev) => ({ ...prev, salaryMax: e.target.value }))}
+                      placeholder="1500000"
+                    />
+                  </label>
+                </div>
                 <label>
                   Sort by
                   <select value={sortBy} onChange={(e) => { setSortBy(e.target.value as typeof sortBy); setPage(1); }}>
@@ -196,7 +230,7 @@ export default function JobList() {
                 </label>
               </div>
               <div className="studio-action-row">
-                <Button type="button" variant="ghost" onClick={() => setFilters({ search: '', location: '', jobType: 'ALL', remoteOnly: false })}>Reset filters</Button>
+                <Button type="button" variant="ghost" onClick={() => setFilters({ search: '', location: '', jobType: 'ALL', remoteOnly: false, salaryMin: '', salaryMax: '' })}>Reset filters</Button>
                 <Button to="/applications" variant="secondary">My applications</Button>
               </div>
             </Card>

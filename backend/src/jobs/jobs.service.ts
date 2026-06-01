@@ -55,7 +55,7 @@ export class JobsService {
 
   // ── GET /jobs (with filters) ──────────────────────────────────────────────
   async findAll(filters: FilterJobsDto) {
-    const { search, location, jobType, skillId, skillIds, skillMatch = 'any', page = 1, perPage = 20 } = filters;
+    const { search, location, jobType, skillId, skillIds, skillMatch = 'any', salaryMin, salaryMax, page = 1, perPage = 20 } = filters;
 
     const where: Prisma.JobWhereInput = {
       isActive: true,
@@ -67,6 +67,8 @@ export class JobsService {
           { description: { contains: search, mode: 'insensitive' } },
         ],
       }),
+      ...(salaryMin != null && { salaryMax: { gte: salaryMin } }),
+      ...(salaryMax != null && { salaryMin: { lte: salaryMax } }),
     };
 
     // prefer multiple skillIds if provided, otherwise single skillId

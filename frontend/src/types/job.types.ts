@@ -47,5 +47,7 @@ export type JobFilterState = {
 	location: string;
 	jobType: 'ALL' | JobType;
 	remoteOnly: boolean;
+	salaryMin: string;
+	salaryMax: string;
 };
 

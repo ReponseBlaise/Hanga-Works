@@ -28,10 +28,18 @@ export default function Navbar() {
 		if (userRole === 'EMPLOYER') {
 			return [
 				{ label: 'Home', href: '/' },
-				{ label: 'Employer Home', href: '/employer' },
+				{ label: 'Dashboard', href: '/employer' },
 				{ label: 'Post a Job', href: '/employer/post-job' },
 				{ label: 'Applicants', href: '/employer/applicants' },
 				{ label: 'Candidates', href: '/candidates' },
+			];
+		}
+		if (userRole === 'INSTITUTION') {
+			return [
+				{ label: 'Home', href: '/' },
+				{ label: 'Institution Home', href: '/courses' },
+				{ label: 'Create Course', href: '/courses/new' },
+				{ label: 'Profile', href: '/profile' },
 			];
 		}
 		if (userRole === 'ADMIN') {

@@ -24,6 +24,10 @@ export default function Login() {
             navigate('/mentors');
             return;
           }
+          if (role === 'institution') {
+            navigate('/courses');
+            return;
+          }
           if (role === 'employer') {
             navigate('/employer');
             return;
