@@ -35,7 +35,16 @@ export default function Register() {
         .then((user) => {
           if (user) {
             signIn('user' in user ? user.user : user);
-            navigate('/');
+            const userRole = ('user' in user ? user.user : user)?.role?.toUpperCase?.() ?? '';
+            if (userRole === 'MENTOR') {
+              navigate('/mentors');
+              return;
+            }
+            if (userRole === 'EMPLOYER') {
+              navigate('/employer');
+              return;
+            }
+            navigate('/dashboard');
           }
       })
       .catch((err) => {
@@ -46,7 +55,7 @@ export default function Register() {
   };
 
   return (
-    <div style={{
+    <div className="auth-card auth-card--centered" style={{
       width: '100%',
       maxWidth: '460px',
       background: 'var(--bg-elevated)',
@@ -81,7 +90,7 @@ export default function Register() {
         <Field label="Role">
           <select
             value={form.role}
-            onChange={(e) => setForm({ ...form, role: e.target.value as any })}
+            onChange={(e) => setForm({ ...form, role: e.target.value as '' | 'LEARNER' | 'EMPLOYER' | 'INSTITUTION' | 'MENTOR' })}
             style={inputStyle}
             onFocus={focus}
             onBlur={blur}
