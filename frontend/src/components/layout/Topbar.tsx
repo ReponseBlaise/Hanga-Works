@@ -27,24 +27,14 @@ export default function Navbar() {
 
 		if (userRole === 'EMPLOYER') {
 			return [
-				{ label: 'Home', href: '/' },
-				{ label: 'Dashboard', href: '/employer' },
+				{ label: 'Employer Home', href: '/employer' },
 				{ label: 'Post a Job', href: '/employer/post-job' },
 				{ label: 'Applicants', href: '/employer/applicants' },
 				{ label: 'Candidates', href: '/candidates' },
 			];
 		}
-		if (userRole === 'INSTITUTION') {
-			return [
-				{ label: 'Home', href: '/' },
-				{ label: 'Institution Home', href: '/courses' },
-				{ label: 'Create Course', href: '/courses/new' },
-				{ label: 'Profile', href: '/profile' },
-			];
-		}
 		if (userRole === 'ADMIN') {
 			return [
-				{ label: 'Home', href: '/' },
 				{ label: 'Admin Home', href: '/admin' },
 				{ label: 'Exports', href: '/admin/export' },
 				{ label: 'Moderation', href: '/admin/moderation' },
@@ -64,9 +54,11 @@ export default function Navbar() {
 			{ label: 'Jobs', href: '/jobs' },
 			{ label: 'Mentors', href: '/mentors' },
 			{ label: 'Courses', href: '/courses' },
+			{ label: 'Certifications', href: '/certifications' },
+			{ label: 'Mentors', href: '/mentors' },
 		];
 	}, [isAuthenticated, userRole]);
-	const visibleLinks = navLinks.slice(0, 4);
+	const visibleLinks = navLinks;
 
 	function isNavActive(href: string) {
 		if (href === '/') return location.pathname === '/';
@@ -112,13 +104,15 @@ export default function Navbar() {
 						})}
 					</div>
 
-						<div className="public-navbar__auth">
+						<div className="public-navbar__auth" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
 							{isAuthenticated ? (
 								<>
-									<NotificationBell
-										count={visibleUnread}
-										onClick={() => navigate('/notifications')}
-									/>
+									<div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+										<NotificationBell
+											count={visibleUnread}
+											onClick={() => navigate('/notifications')}
+										/>
+									</div>
 									<Link to="/profile" className="public-navbar__avatar-link" onClick={() => setMenuOpen(false)}>
 										<Avatar name={user?.name ?? 'User'} imageUrl={user?.avatarUrl ?? undefined} size="sm" />
 									</Link>

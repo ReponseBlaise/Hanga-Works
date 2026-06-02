@@ -2,10 +2,10 @@ import axios from 'axios';
 
 export const AUTH_TOKEN_KEY = 'sewi-platform-auth-token';
 
-const BASE = import.meta.env.VITE_API_URL ?? import.meta.env.VITE_API_BASE ?? '/api/v1';
+export const API_BASE_URL = import.meta.env.VITE_API_URL ?? import.meta.env.VITE_API_BASE ?? '/api/v1';
 
 export const api = axios.create({
-	baseURL: BASE,
+	baseURL: API_BASE_URL,
 	withCredentials: true,
 	headers: {
 		'Content-Type': 'application/json',
@@ -14,7 +14,7 @@ export const api = axios.create({
 });
 
 const refreshClient = axios.create({
-	baseURL: BASE,
+	baseURL: API_BASE_URL,
 	withCredentials: true,
 });
 

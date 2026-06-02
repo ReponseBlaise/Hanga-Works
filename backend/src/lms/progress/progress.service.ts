@@ -6,6 +6,7 @@ import {
 import { EnrollmentStatus } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CertificationsService } from '../../certifications/certifications.service';
+import { NotificationsService } from '../../notifications/notifications.service';
 import { UpdateProgressDto } from './dto/update-progress.dto';
 import { SubmitQuizDto } from './dto/submit-quiz.dto';
 
@@ -16,6 +17,7 @@ export class ProgressService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly certifications: CertificationsService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   async updateProgress(enrollmentId: string, userId: string, dto: UpdateProgressDto) {
@@ -46,6 +48,26 @@ export class ProgressService {
 
     if (status === EnrollmentStatus.COMPLETED) {
       await this.certifications.issue(userId, enrollment.courseId);
+
+      const learner = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { email: true, name: true },
+      });
+      const courseTitle = updated.course?.title ?? 'your course';
+
+      if (learner?.email) {
+        await this.notifications.sendCourseCompletion(learner.email, courseTitle);
+      }
+
+      await this.notifications.createInApp(userId, 'course-complete', {
+        title: 'Course completed',
+        message: `You finished ${courseTitle}.`,
+        courseId: enrollment.courseId,
+      });
+      this.notifications.emitCourseComplete(userId, {
+        courseTitle,
+        courseId: enrollment.courseId,
+      });
     }
 
     return updated;

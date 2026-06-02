@@ -38,22 +38,103 @@ export class AuthService {
       organizationId = org.id;
     }
 
-    const user = await this.prisma.user.create({
-      data: { name: dto.name, email: dto.email, passwordHash, role: userRole, organizationId },
-    });
+    let user;
+    try {
+      user = await this.prisma.user.create({
+        data: { 
+          name: dto.name, 
+          email: dto.email, 
+          phone: dto.phone?.trim() || undefined, 
+          passwordHash, 
+          role: userRole, 
+          organizationId 
+        },
+      });
+    } catch (error: any) {
+      if (error.code === 'P2002') {
+        throw new ConflictException('Email or phone number already in use');
+      }
+      throw error;
+    }
 
-    await this.notifications.sendRegistrationConfirmation(user.email, user.name);
+    try {
+      await this.notifications.sendRegistrationConfirmation(user.email, user.name);
+      await this.issueEmailVerification(user.id, user.email, user.name);
+    } catch (err) {
+      console.error('Failed to send registration email', err);
+    }
+
+    await this.notifications.createInApp(user.id, 'welcome', {
+      title: 'Welcome to Hanga Works',
+      message: 'Complete your profile and verify your email to get started.',
+    });
     
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete (user as any).passwordHash;
     return user;
   }
 
+  async issueEmailVerification(userId: string, email: string, name: string) {
+    const token = crypto.randomBytes(32).toString('hex');
+    const emailVerifyExpires = new Date();
+    emailVerifyExpires.setHours(emailVerifyExpires.getHours() + 24);
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { emailVerifyToken: token, emailVerifyExpires, emailVerified: false },
+    });
+
+    await this.notifications.sendEmailVerification(email, name, token);
+    return { message: 'Verification email sent' };
+  }
+
+  async verifyEmail(token: string) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        emailVerifyToken: token,
+        emailVerifyExpires: { gt: new Date() },
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid or expired verification token');
+    }
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailVerified: true,
+        emailVerifyToken: null,
+        emailVerifyExpires: null,
+      },
+    });
+
+    await this.notifications.createInApp(user.id, 'email-verified', {
+      title: 'Email verified',
+      message: 'Your email address has been confirmed.',
+    });
+
+    return { message: 'Email verified successfully' };
+  }
+
+  async resendEmailVerification(userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException('User not found');
+    if (user.emailVerified) {
+      return { message: 'Email is already verified' };
+    }
+
+    return this.issueEmailVerification(user.id, user.email, user.name);
+  }
+
   async login(dto: LoginDto) {
+    console.log('LOGIN ATTEMPT:', dto);
     const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
+    console.log('USER FOUND:', user ? user.email : 'null');
     if (!user) throw new UnauthorizedException('Invalid credentials');
 
     const isMatch = await bcrypt.compare(dto.password, user.passwordHash);
+    console.log('PASSWORD MATCH:', isMatch);
     if (!isMatch) throw new UnauthorizedException('Invalid credentials');
 
     const payload = { sub: user.id, email: user.email, role: user.role };
@@ -74,7 +155,11 @@ export class AuthService {
     return { access_token, refresh_token, user };
   }
 
-  async refreshToken(token: string) {
+  async refreshToken(token: string | undefined) {
+    if (!token) {
+      throw new UnauthorizedException('Refresh token missing');
+    }
+
     const storedToken = await this.prisma.refreshToken.findUnique({
       where: { token }, include: { user: true },
     });

@@ -3,7 +3,8 @@ import { Navigate, Link } from 'react-router-dom';
 import { SiteLayout } from '../../components/layout/SiteLayout';
 import { getMyCertificates, LearnerCertificate } from '../../services/certificates.service';
 import { useAuth } from '../../context/AuthContext';
-import { Card, CardEyebrow, CardTitle, CardMeta } from '../../components/ui/Card';
+import { API_BASE_URL } from '../../services/api';
+import { Card, CardEyebrow, CardTitle } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 
 export default function CertificationList() {
@@ -61,16 +62,12 @@ export default function CertificationList() {
                     <small>Issued {new Date(c.issuedAt).toLocaleDateString()}</small>
                   </div>
                 </div>
-                <CardMeta>
-                  <div className="cert-actions">
-                    {c.pdfUrl ? (
-                      <Button href={c.pdfUrl} variant="ghost" target="_blank" rel="noreferrer">
-                        Download PDF
-                      </Button>
-                    ) : null}
-                    <Link to={`/certifications/verify/${c.verifyToken}`} className="link">Verify</Link>
+                  <div className="cert-actions" style={{ marginTop: '16px', display: 'flex', gap: '16px', alignItems: 'center' }}>
+                    <Button href={`${API_BASE_URL}/certificates/${c.code}/download`} variant="ghost" target="_blank" rel="noreferrer">
+                      Download PDF
+                    </Button>
+                    <Link to={`/certifications/verify/${c.code}`} className="link">Verify</Link>
                   </div>
-                </CardMeta>
               </Card>
             ))}
           </div>

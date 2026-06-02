@@ -66,8 +66,8 @@ export default function EmployerDashboard() {
           </div>
         </header>
 
-        <section className="studio-recruiter__layout">
-          <main>
+        <section className="dashboard-layout dashboard-layout--two-col-right mt-lg">
+          <main className="dashboard-main-column">
             <Card className="studio-block">
               <div className="studio-section__head">
                 <div>
@@ -92,8 +92,7 @@ export default function EmployerDashboard() {
                       <span className="studio-employer-chip">{job.location ?? 'Remote'}</span>
                     </div>
                     <CardMeta>{job.salaryMin || job.salaryMax ? `Salary range: ${job.salaryMin ?? 0} - ${job.salaryMax ?? 0}` : 'Salary not specified'}</CardMeta>
-                    <div className="studio-action-row">
-                      <Button to={`/jobs/${job.id}`} variant="ghost">View details</Button>
+                    <div className="studio-action-row mt-md">
                       <Button to="/employer/applicants" variant="secondary">Review applicants</Button>
                     </div>
                   </Card>
@@ -102,7 +101,7 @@ export default function EmployerDashboard() {
             </Card>
           </main>
 
-          <aside>
+          <aside className="dashboard-rail dashboard-rail--right">
             <Card className="studio-block">
               <CardTitle>Hiring pipeline</CardTitle>
               <div className="studio-stage-list">
@@ -113,7 +112,7 @@ export default function EmployerDashboard() {
                   </div>
                 ))}
               </div>
-              <Button to="/employer/applicants" variant="primary">Open applicant board</Button>
+              <Button to="/employer/applicants" variant="primary" className="mt-md w-full">Open applicant board</Button>
             </Card>
           </aside>
         </section>

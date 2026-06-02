@@ -364,7 +364,7 @@ async function main() {
       ),
     ),
   );
-  console.log(`✅ user skill assignments`);
+  console.log(` user skill assignments`);
 
   // ── Mentorship System ─────────────────────────────────────────────────────
   const mentorPwd = await hash('Mentor@123');
@@ -409,11 +409,19 @@ async function main() {
   });
   console.log(`✅ mentorship profiles and sessions`);
 
+  // ── Admin User ────────────────────────────────────────────────────────────
+  const adminPwd = await hash('Admin@123');
+  await prisma.user.create({
+    data: { name: 'System Admin', email: 'admin@hanga.rw', phone: '+250780000000', passwordHash: adminPwd, role: Role.ADMIN, status: AccountStatus.ACTIVE },
+  });
+  console.log(`✅ admin user`);
+
   console.log('\n🎉 Seed complete!');
   console.log('──────────────────────────────────────────');
   console.log('  Learner password : Learner@123');
   console.log('  Employer password: Employer@123');
   console.log('  Mentor password  : Mentor@123');
+  console.log('  Admin password   : Admin@123');
   console.log('  Run `npm run prisma:studio` to browse data');
 }
 

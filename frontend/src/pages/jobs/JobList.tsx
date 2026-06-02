@@ -143,9 +143,9 @@ export default function JobList() {
       <section className="studio-jobs" id="results">
         <header className="studio-jobs__hero">
           <div>
-            <p className="eyebrow">Job seeker mode</p>
-            <h1 className="display">A rebuilt hiring board with saved roles and focused apply actions.</h1>
-            <p className="lead">Use advanced filters, sort priorities, and save roles to build your own shortlist before applying.</p>
+            <p className="eyebrow">Career Marketplace</p>
+            <h1 className="display">Find the perfect role to advance your career.</h1>
+            <p className="lead">Browse hundreds of opportunities, filter by your preferences, and easily save your favorite jobs to apply when you're ready.</p>
           </div>
           <div className="studio-jobs__hero-stats">
             <div><span>Results</span><strong>{totalResults}</strong></div>

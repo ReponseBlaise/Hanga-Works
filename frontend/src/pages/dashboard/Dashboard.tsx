@@ -6,7 +6,7 @@ import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card
 import { ProgressBar } from '../../components/shared/ProgressBar';
 import { useAuth } from '../../context/AuthContext';
 import { getApplications, getJobs, type JobSummary } from '../../services/jobs.service';
-import { getCourses, type BackendCourse } from '../../services/courses.service';
+import { getMyProgress, type CourseEnrollment } from '../../services/courses.service';
 import { getMyCertificates, type LearnerCertificate } from '../../services/certificates.service';
 import type { JobApplication } from '../../types/job.types';
 
@@ -31,7 +31,7 @@ function formatLocation(location?: string | null) {
 export function Dashboard() {
   const { user, isAuthenticated } = useAuth();
   const [jobs, setJobs] = useState<JobSummary[]>([]);
-  const [courses, setCourses] = useState<BackendCourse[]>([]);
+  const [enrollments, setEnrollments] = useState<CourseEnrollment[]>([]);
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [certificates, setCertificates] = useState<LearnerCertificate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,11 +39,11 @@ export function Dashboard() {
   useEffect(() => {
     let active = true;
 
-    Promise.all([getJobs(), getCourses(), getApplications(), getMyCertificates()])
-      .then(([jobsResponse, courseItems, applicationItems, certificateItems]) => {
+    Promise.all([getJobs(), getMyProgress(), getApplications(), getMyCertificates()])
+      .then(([jobsResponse, progressItems, applicationItems, certificateItems]) => {
         if (!active) return;
         setJobs(jobsResponse?.jobs ?? []);
-        setCourses(courseItems ?? []);
+        setEnrollments(progressItems ?? []);
         setApplications(applicationItems ?? []);
         setCertificates(certificateItems ?? []);
       })
@@ -62,14 +62,14 @@ export function Dashboard() {
   const roleLabel = user?.role ? user.role.charAt(0) + user.role.slice(1).toLowerCase() : 'Learner';
 
   const recentCourses = useMemo(() => {
-    return courses.slice(0, 3).map((course) => ({
-      id: course.id,
-      title: course.title,
-      provider: course.institution?.name ?? 'Hanga Works',
-      enrollments: course._count?.enrollments ?? 0,
-      modules: course._count?.modules ?? course.modules?.length ?? 0,
+    return enrollments.slice(0, 3).map((enrollment) => ({
+      id: enrollment.course.id,
+      title: enrollment.course.title,
+      provider: 'Hanga Works',
+      enrollments: 1,
+      modules: 0,
     }));
-  }, [courses]);
+  }, [enrollments]);
 
   const recommendedJobs = useMemo(() => {
     return [...jobs]
@@ -89,7 +89,7 @@ export function Dashboard() {
     if (continueLearningCourse) {
       tasks.push({
         title: `Continue ${continueLearningCourse.title}`,
-        detail: `${continueLearningCourse.modules} modules and ${continueLearningCourse.enrollments} enrollments in the queue.`,
+        detail: `Keep up your learning momentum.`,
         meta: 'Today',
         href: `/courses/${continueLearningCourse.id}`,
       });
@@ -138,7 +138,7 @@ export function Dashboard() {
   const skillCounts = useMemo(() => {
     const counts = new Map<string, number>();
 
-    [...jobs.flatMap((job) => job.skills ?? []), ...courses.flatMap((course) => course.skills ?? [])].forEach((entry) => {
+    [...jobs.flatMap((job) => job.skills ?? [])].forEach((entry) => {
       counts.set(entry.skill.name, (counts.get(entry.skill.name) ?? 0) + 1);
     });
 
@@ -146,14 +146,14 @@ export function Dashboard() {
       .sort((left, right) => right[1] - left[1])
       .slice(0, 5)
       .map(([name, count]) => ({ name, count }));
-  }, [courses, jobs]);
+  }, [jobs]);
 
   const progressValue = useMemo(() => {
     const applicationScore = Math.min(40, applications.length * 8);
     const certificateScore = Math.min(30, certificates.length * 15);
-    const learningScore = Math.min(30, courses.length * 6);
+    const learningScore = Math.min(30, enrollments.length * 6);
     return applicationScore + certificateScore + learningScore;
-  }, [applications.length, certificates.length, courses.length]);
+  }, [applications.length, certificates.length, enrollments.length]);
 
   const progressCards = useMemo(
     () => [
@@ -210,7 +210,7 @@ export function Dashboard() {
             <div className="studio-stat-grid">
               <div>
                 <span>Courses</span>
-                <strong>{loading ? '...' : courses.length}</strong>
+                <strong>{loading ? '...' : enrollments.length}</strong>
               </div>
               <div>
                 <span>Applications</span>
@@ -228,14 +228,14 @@ export function Dashboard() {
           </Card>
         </section>
 
-        <section className="studio-layout">
-          <aside className="studio-column studio-column--left">
+        <section className="dashboard-layout mt-lg">
+          <aside className="dashboard-rail">
             <Card className="studio-block">
               <CardEyebrow>Now learning</CardEyebrow>
               <CardTitle>{continueLearningCourse ? continueLearningCourse.title : 'No active course yet'}</CardTitle>
               <CardMeta>
                 {continueLearningCourse
-                  ? `${continueLearningCourse.provider} · ${continueLearningCourse.modules} modules`
+                  ? `${continueLearningCourse.provider}`
                   : 'Start from the course catalog to build your learning streak.'}
               </CardMeta>
               <ProgressBar value={Math.min(100, progressValue)} label="Learning momentum" />
@@ -260,7 +260,7 @@ export function Dashboard() {
             </Card>
           </aside>
 
-          <main className="studio-column studio-column--main">
+          <main className="dashboard-main-column">
             <section className="studio-section">
               <div className="studio-section__head">
                 <div>
@@ -316,7 +316,7 @@ export function Dashboard() {
             </section>
           </main>
 
-          <aside className="studio-column studio-column--right">
+          <aside className="dashboard-rail dashboard-rail--right">
             <Card className="studio-block">
               <CardEyebrow>Recent activity</CardEyebrow>
               <div className="studio-stack">
