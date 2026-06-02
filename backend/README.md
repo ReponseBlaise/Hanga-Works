@@ -49,6 +49,18 @@ npm run dev
 ```
 The server will be running at **`http://localhost:3000`**.
 
+### Media uploads (Cloudinary)
+
+Profile photos and course media use **Cloudinary** when `CLOUDINARY_*` env vars are set.
+
+| Use case | Endpoint |
+|----------|----------|
+| Profile avatar (multipart) | `POST /api/v1/users/me/avatar` — field `file` |
+| Any asset (multipart) | `POST /api/v1/media/upload?purpose=...` |
+| Browser direct upload | `POST /api/v1/media/cloudinary/sign` → upload to Cloudinary from frontend |
+
+Certificate PDFs still use **S3/R2** (`S3_*` env vars).
+
 ---
 
 ## 📚 API Documentation (Swagger)

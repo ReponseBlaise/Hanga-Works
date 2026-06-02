@@ -54,20 +54,25 @@ export class IntelligenceService {
       take: 10,
     });
 
-    const recommendedSkills = demand.filter(d => !userSkillIds.has(d.skillId));
+    const recommendedSkills = demand.filter((d) => !userSkillIds.has(d.skillId));
+    const skillIds = recommendedSkills.map((rs) => rs.skillId);
 
-    const courses = await this.prisma.course.findMany({
-      where: {
-        published: true,
-        skills: {
-          some: {
-            skillId: { in: recommendedSkills.map(rs => rs.skillId) }
-          }
-        }
-      },
-      take: 5,
-      include: { skills: { include: { skill: true } } }
-    });
+    const courses =
+      skillIds.length === 0
+        ? await this.prisma.course.findMany({
+            where: { published: true },
+            take: 5,
+            orderBy: { createdAt: 'desc' },
+            include: { skills: { include: { skill: true } } },
+          })
+        : await this.prisma.course.findMany({
+            where: {
+              published: true,
+              skills: { some: { skillId: { in: skillIds } } },
+            },
+            take: 5,
+            include: { skills: { include: { skill: true } } },
+          });
 
     return {
       currentLevel: 'Entry Level',

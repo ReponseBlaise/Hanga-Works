@@ -210,7 +210,15 @@ export class JobsService {
       select: { id: true, name: true, tag: true },
     });
 
-    const countsMap = new Map(groups.map((g) => [g.skillId, g._count?._all ?? 0]));
+    const countsMap = new Map(
+      groups.map((g) => {
+        const count =
+          typeof g._count === 'object' && g._count !== null && '_all' in g._count
+            ? (g._count as { _all: number })._all
+            : 0;
+        return [g.skillId, count] as const;
+      }),
+    );
 
     return skills
       .map((s) => ({ id: s.id, name: s.name, tag: s.tag, count: countsMap.get(s.id) ?? 0 }))
