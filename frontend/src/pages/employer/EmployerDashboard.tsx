@@ -47,12 +47,12 @@ export default function EmployerDashboard() {
 
   return (
     <SiteLayout>
-      <section className="studio-recruiter studio-recruiter--employer">
-        <header className="studio-recruiter__hero">
+      <section className="studio-recruiter studio-recruiter--employer employer-page">
+        <header className="studio-recruiter__hero employer-page__head">
           <div>
-            <p className="eyebrow">Recruiter mode</p>
-            <h1 className="display">A high-clarity hiring command center for teams.</h1>
-            <p className="lead">Track open requisitions, applicant velocity, and stage distribution from a redesigned enterprise layout.</p>
+            <p className="eyebrow">Employer dashboard</p>
+            <h1 className="display">Your hiring overview</h1>
+            <p className="lead">See open jobs, applicant counts, and pipeline stages in one place. Post a new role or review candidates when you are ready.</p>
             <div className="studio-action-row">
               <Button to="/employer/post-job" variant="primary" className="button--pill">Post a job</Button>
               <Button to="/employer/applicants" variant="secondary">Review applicants</Button>

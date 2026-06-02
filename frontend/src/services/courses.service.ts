@@ -83,21 +83,43 @@ export async function enrollInCourse(courseId: string) {
 	return (res.data?.data?.enrollment ?? res.data?.enrollment ?? res.data) as CourseEnrollment;
 }
 
+function normalizeEnrollment(payload: unknown): CourseEnrollment {
+	const raw = (payload as { enrollment?: CourseEnrollment })?.enrollment ?? payload;
+	return raw as CourseEnrollment;
+}
+
 export async function updateLessonProgress(enrollmentId: string, progress?: number) {
 	const res = await api.patch(`/progress/${enrollmentId}`, { progress });
-	return (res.data?.data ?? res.data) as CourseEnrollment;
+	const data = res.data?.data ?? res.data;
+	return normalizeEnrollment(data?.enrollment ?? data);
 }
 
 export async function getMyProgress() {
 	const res = await api.get('/progress');
-	if (Array.isArray(res.data)) {
-		return res.data as CourseEnrollment[];
+	const data = res.data?.data ?? res.data;
+	if (Array.isArray(data)) {
+		return data as CourseEnrollment[];
 	}
-
-	return (res.data?.data?.progress ?? res.data?.progress ?? []) as CourseEnrollment[];
+	if (Array.isArray(data?.progress)) {
+		return data.progress as CourseEnrollment[];
+	}
+	return (data?.enrollments ?? []) as CourseEnrollment[];
 }
 
-export async function submitQuiz(moduleId: string, payload: { answers: Array<{ questionId: string; answerIndex: number }> }) {
+export async function submitQuiz(
+	moduleId: string,
+	payload: { enrollmentId: string; score: number },
+) {
 	const res = await api.post(`/quiz/${moduleId}/submit`, payload);
-	return res.data?.data ?? res.data;
+	const data = res.data?.data ?? res.data;
+	return {
+		...data,
+		enrollment: data?.enrollment ? normalizeEnrollment(data.enrollment) : undefined,
+	} as {
+		passed: boolean;
+		score: number;
+		required: number;
+		message: string;
+		enrollment?: CourseEnrollment;
+	};
 }
