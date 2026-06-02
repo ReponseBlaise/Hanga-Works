@@ -48,6 +48,13 @@ export type CreateCoursePayload = {
 	institutionId?: string;
 };
 
+export type CreateModulePayload = {
+	title: string;
+	content?: string;
+	videoUrl?: string;
+	order?: number;
+};
+
 export type CourseEnrollment = {
 	id: string;
 	progress: number;
@@ -66,6 +73,11 @@ export async function getCourses() {
 	return res.data as BackendCourse[];
 }
 
+export async function getManageableCourses() {
+	const res = await api.get('/courses/manage');
+	return res.data as BackendCourse[];
+}
+
 export async function getCourseById(id: string) {
 	const res = await api.get(`/courses/${id}`);
 	const payload = res.data?.data ?? res.data;
@@ -76,6 +88,12 @@ export async function createCourse(payload: CreateCoursePayload) {
 	const res = await api.post('/courses', payload);
 	const data = res.data?.data ?? res.data;
 	return (data?.course ?? data) as BackendCourse;
+}
+
+export async function createCourseModule(courseId: string, payload: CreateModulePayload) {
+	const res = await api.post(`/courses/${courseId}/modules`, payload);
+	const data = res.data?.data ?? res.data;
+	return data as BackendCourseModule;
 }
 
 export async function enrollInCourse(courseId: string) {

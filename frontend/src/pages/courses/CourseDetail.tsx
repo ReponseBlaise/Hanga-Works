@@ -6,7 +6,7 @@ import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
 import { ProgressBar } from '../../components/shared/ProgressBar';
-import { getCourseById, getMyProgress, enrollInCourse, updateLessonProgress, type BackendCourse, type CourseEnrollment } from '../../services/courses.service';
+import { getCourseById, getMyProgress, enrollInCourse, updateLessonProgress, createCourseModule, type BackendCourse, type CourseEnrollment } from '../../services/courses.service';
 import { getMyCertificates, type LearnerCertificate } from '../../services/certificates.service';
 import { getJobs, type JobSummary } from '../../services/jobs.service';
 
@@ -24,6 +24,11 @@ export function CourseDetail() {
 	const [savingProgress, setSavingProgress] = useState(false);
 	const [activeModuleId, setActiveModuleId] = useState('');
 	const [relatedJobs, setRelatedJobs] = useState<JobSummary[]>([]);
+	const { user } = useAuth();
+	const isManager = user?.role === 'INSTITUTION' || user?.role === 'ADMIN';
+	const [isAddingModule, setIsAddingModule] = useState(false);
+	const [moduleForm, setModuleForm] = useState({ title: '', content: '', videoUrl: '', order: 1 });
+	const [savingModule, setSavingModule] = useState(false);
 
 	useEffect(() => {
 		if (!id) return;
@@ -152,6 +157,28 @@ export function CourseDetail() {
 		}
 	}
 
+	async function handleAddModule(e: React.FormEvent) {
+		e.preventDefault();
+		if (!course) return;
+		setSavingModule(true);
+		try {
+			const newModule = await createCourseModule(course.id, {
+				title: moduleForm.title,
+				content: moduleForm.content || undefined,
+				videoUrl: moduleForm.videoUrl || undefined,
+				order: Number(moduleForm.order)
+			});
+			setCourse(prev => prev ? { ...prev, modules: [...(prev.modules || []), newModule] } : null);
+			setIsAddingModule(false);
+			setModuleForm({ title: '', content: '', videoUrl: '', order: (course.modules?.length ?? 0) + 2 });
+		} catch (err) {
+			console.error(err);
+			alert('Failed to add module. Check inputs.');
+		} finally {
+			setSavingModule(false);
+		}
+	}
+
 	if (loading) {
 		return (
 			<SiteLayout>
@@ -226,7 +253,25 @@ export function CourseDetail() {
 				<section className="learning-redesign__layout">
 					<aside className="learning-redesign__sidebar">
 						<Card className="studio-block">
-							<CardEyebrow>Curriculum</CardEyebrow>
+							<div className="studio-section__head" style={{ marginBottom: '12px' }}>
+								<CardEyebrow>Curriculum</CardEyebrow>
+								{isManager && (
+									<Button variant="ghost" type="button" onClick={() => setIsAddingModule(!isAddingModule)}>
+										{isAddingModule ? 'Cancel' : '+ Add Lesson'}
+									</Button>
+								)}
+							</div>
+
+							{isAddingModule && (
+								<form onSubmit={handleAddModule} style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px', padding: '12px', background: 'var(--surface-muted)', borderRadius: 'var(--radius-md)' }}>
+									<input type="text" required placeholder="Lesson Title" value={moduleForm.title} onChange={e => setModuleForm(f => ({ ...f, title: e.target.value }))} style={{ padding: '8px', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)' }} />
+									<input type="url" placeholder="Video URL (optional)" value={moduleForm.videoUrl} onChange={e => setModuleForm(f => ({ ...f, videoUrl: e.target.value }))} style={{ padding: '8px', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)' }} />
+									<textarea placeholder="Lesson Content (optional)" value={moduleForm.content} onChange={e => setModuleForm(f => ({ ...f, content: e.target.value }))} style={{ padding: '8px', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)' }} />
+									<input type="number" required placeholder="Order (e.g. 1)" value={moduleForm.order} onChange={e => setModuleForm(f => ({ ...f, order: Number(e.target.value) }))} style={{ padding: '8px', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)' }} />
+									<Button variant="primary" type="submit" disabled={savingModule}>{savingModule ? 'Saving...' : 'Save Lesson'}</Button>
+								</form>
+							)}
+
 							<div className="studio-module-list">
 								{(course.modules ?? []).map((module) => (
 									<button

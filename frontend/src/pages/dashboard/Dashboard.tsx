@@ -204,6 +204,12 @@ export function Dashboard() {
     return <Navigate to="/login" replace />;
   }
 
+  const role = user?.role?.toUpperCase();
+  if (role === 'INSTITUTION') return <Navigate to="/institution/dashboard" replace />;
+  if (role === 'EMPLOYER') return <Navigate to="/employer" replace />;
+  if (role === 'MENTOR') return <Navigate to="/mentors/dashboard" replace />;
+  if (role === 'ADMIN') return <Navigate to="/admin" replace />;
+
   return (
     <SiteLayout>
       <div className="app-shell-layout">

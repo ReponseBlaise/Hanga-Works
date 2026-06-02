@@ -18,6 +18,12 @@ export class CertificationsController {
     return this.service.getMyCertificates(user.userId);
   }
 
+  @Get('manage')
+  @UseGuards(JwtAuthGuard)
+  getManageableCertificates(@CurrentUser() user: CurrentUserPayload) {
+    return this.service.getManageableCertificates(user.userId, user.role);
+  }
+
   @Get('verify/:token')
   verify(@Param('token') token: string) {
     return this.service.verify(token);

@@ -40,6 +40,14 @@ export default function Navbar() {
 				{ label: 'Moderation', href: '/admin/moderation' },
 			];
 		}
+		if (userRole === 'INSTITUTION') {
+			return [
+				{ label: 'Institution Home', href: '/institution/dashboard' },
+				{ label: 'Courses', href: '/courses' },
+				{ label: 'Mentors', href: '/institution/mentors' },
+				{ label: 'Certifications', href: '/institution/certifications' },
+			];
+		}
 		if (userRole === 'MENTOR') {
 			return [
 				{ label: 'Home', href: '/' },

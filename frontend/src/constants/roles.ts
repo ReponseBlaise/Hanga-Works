@@ -4,5 +4,4 @@ export const REGISTER_ROLES: Array<{ value: PublicRegisterRole; label: string; d
   { value: 'LEARNER', label: 'Job seeker', description: 'Find jobs and grow your skills' },
   { value: 'EMPLOYER', label: 'Employer', description: 'Post jobs and hire talent' },
   { value: 'INSTITUTION', label: 'Training provider', description: 'Publish courses and track learners' },
-  { value: 'MENTOR', label: 'Mentor', description: 'Guide learners and offer sessions' },
 ];
