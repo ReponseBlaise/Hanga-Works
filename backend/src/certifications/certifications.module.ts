@@ -4,7 +4,6 @@ import { JwtModule } from '@nestjs/jwt';
 import { CertificationsController } from './certifications.controller';
 import { CertificationsService } from './certifications.service';
 import { PdfService } from './pdf.service';
-import { StorageService } from './storage.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtStrategy } from '../auth/strategies/jwt.strategy';
 
@@ -17,7 +16,7 @@ import { JwtStrategy } from '../auth/strategies/jwt.strategy';
     }),
   ],
   controllers: [CertificationsController],
-  providers: [CertificationsService, PdfService, StorageService, PrismaService, JwtStrategy],
+  providers: [CertificationsService, PdfService, PrismaService, JwtStrategy],
   exports: [CertificationsService],
 })
 export class CertificationsModule {}

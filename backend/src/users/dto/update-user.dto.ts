@@ -27,6 +27,10 @@ export class UpdateUserDto {
   location?: string;
 
   @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @IsOptional()
   @IsArray()
   skills?: UserSkillDto[];
 }

@@ -4,6 +4,7 @@ import { EnrollmentStatus } from '@prisma/client';
 import { ProgressService } from '../progress.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { CertificationsService } from '../../../certifications/certifications.service';
+import { NotificationsService } from '../../../notifications/notifications.service';
 
 const LEARNER_ID = 'user-uuid-1';
 const ENROLLMENT_ID = 'enrollment-uuid-1';
@@ -31,10 +32,19 @@ const mockPrisma = {
     findUnique: jest.fn(),
     update: jest.fn(),
   },
+  user: {
+    findUnique: jest.fn(),
+  },
 };
 
 const mockCertifications: Partial<CertificationsService> = {
   issue: jest.fn().mockResolvedValue(undefined),
+};
+
+const mockNotifications = {
+  sendCourseCompletion: jest.fn().mockResolvedValue(undefined),
+  createInApp: jest.fn().mockResolvedValue(undefined),
+  emitCourseComplete: jest.fn(),
 };
 
 describe('ProgressService', () => {
@@ -46,6 +56,7 @@ describe('ProgressService', () => {
         ProgressService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: CertificationsService, useValue: mockCertifications },
+        { provide: NotificationsService, useValue: mockNotifications },
       ],
     }).compile();
 

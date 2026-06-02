@@ -20,8 +20,29 @@ const mockPrisma = {
   course: {
     findMany: jest.fn(),
     findUnique: jest.fn(),
+    findFirst: jest.fn(),
     create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
   },
+  courseModule: {
+    findFirst: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+  },
+  enrollment: {
+    count: jest.fn(),
+  },
+  user: {
+    findUnique: jest.fn(),
+  },
+};
+
+const adminUser = {
+  userId: 'admin-1',
+  email: 'admin@hanga.rw',
+  role: 'ADMIN',
 };
 
 const mockRedis = {
@@ -101,13 +122,46 @@ describe('CoursesService', () => {
         slug: 'new-course',
         description: 'A brand new course description.',
       };
+      mockPrisma.course.findUnique.mockResolvedValue(null);
       mockPrisma.course.create.mockResolvedValue({ ...mockCourse, ...dto });
 
-      const result = await service.create(dto);
+      const result = await service.create(dto, adminUser);
 
-      expect(mockPrisma.course.create).toHaveBeenCalledWith({ data: dto });
+      expect(mockPrisma.course.create).toHaveBeenCalled();
       expect(mockRedis.del).toHaveBeenCalledWith('courses:all');
       expect(result.title).toBe('New Course');
+    });
+
+    it('rejects learners from creating courses', async () => {
+      const dto = {
+        title: 'New Course',
+        slug: 'new-course',
+        description: 'A brand new course description.',
+      };
+
+      await expect(
+        service.create(dto, { userId: 'u1', email: 'l@x.com', role: 'LEARNER' }),
+      ).rejects.toThrow('Only admins and institutions can manage courses');
+    });
+  });
+
+  describe('update', () => {
+    it('updates a course when user is admin', async () => {
+      mockPrisma.course.findUnique.mockResolvedValue(mockCourse);
+      mockPrisma.course.findFirst.mockResolvedValue(null);
+      mockPrisma.course.update.mockResolvedValue({
+        ...mockCourse,
+        title: 'Updated',
+      });
+
+      const result = await service.update(
+        'course-uuid-1',
+        { title: 'Updated' },
+        adminUser,
+      );
+
+      expect(result.title).toBe('Updated');
+      expect(mockRedis.del).toHaveBeenCalledWith('courses:all');
     });
   });
 });

@@ -53,6 +53,13 @@ const mockPrisma = {
     create: jest.fn(),
     findMany: jest.fn(),
     findUnique: jest.fn(),
+    count: jest.fn(),
+  },
+  jobSkill: {
+    groupBy: jest.fn(),
+  },
+  skill: {
+    findMany: jest.fn(),
   },
   application: {
     create: jest.fn(),
@@ -117,6 +124,7 @@ describe('JobsService', () => {
   // ── findAll ───────────────────────────────────────────────────────────────
   describe('findAll', () => {
     it('returns all active jobs with no filters', async () => {
+      mockPrisma.job.count.mockResolvedValue(1);
       mockPrisma.job.findMany.mockResolvedValue([mockJob]);
 
       const result = await service.findAll({});
@@ -124,10 +132,12 @@ describe('JobsService', () => {
       expect(mockPrisma.job.findMany).toHaveBeenCalledWith(
         expect.objectContaining({ where: expect.objectContaining({ isActive: true }) }),
       );
-      expect(result).toHaveLength(1);
+      expect(result.jobs).toHaveLength(1);
+      expect(result.total).toBe(1);
     });
 
     it('applies location filter', async () => {
+      mockPrisma.job.count.mockResolvedValue(1);
       mockPrisma.job.findMany.mockResolvedValue([mockJob]);
 
       await service.findAll({ location: 'Kigali' });
@@ -142,6 +152,7 @@ describe('JobsService', () => {
     });
 
     it('applies jobType filter', async () => {
+      mockPrisma.job.count.mockResolvedValue(1);
       mockPrisma.job.findMany.mockResolvedValue([mockJob]);
 
       await service.findAll({ jobType: JobType.REMOTE });
@@ -154,6 +165,7 @@ describe('JobsService', () => {
     });
 
     it('applies search filter across title and description', async () => {
+      mockPrisma.job.count.mockResolvedValue(1);
       mockPrisma.job.findMany.mockResolvedValue([mockJob]);
 
       await service.findAll({ search: 'engineer' });

@@ -17,12 +17,14 @@ import { EmployerModule } from './employer/employer.module';
 import { MentorshipModule } from './mentorship/mentorship.module';
 import { IntelligenceModule } from './intelligence/intelligence.module';
 import { AuditInterceptor } from './common/interceptors/audit.interceptor';
+import { StorageModule } from './storage/storage.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    StorageModule,
     ThrottlerModule.forRoot([{
       ttl: 900000, // 15 minutes in milliseconds
       limit: 100, // 100 requests per 15 minutes
