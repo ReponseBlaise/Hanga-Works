@@ -4,6 +4,7 @@ import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
 import { useAuth } from '../../context/AuthContext';
+import api from '../../services/api';
 import authService, { updateProfile, type AuthUser as RemoteAuthUser } from '../../services/auth.service';
 import { getMyCertificates, type LearnerCertificate } from '../../services/certificates.service';
 import type { ProfileSkill, Proficiency } from '../../types/user.types';
@@ -280,14 +281,32 @@ export default function Profile() {
               <Card className="studio-block">
                 <div className="studio-section__head">
                   <div>
-                    <strong>{skill.name}</strong>
-                    <div className="dashboard-list__meta">{skill.proficiency}</div>
+                    <p className="eyebrow">Skill timeline</p>
+                    <h2>Current strengths</h2>
                   </div>
                 </div>
-              ))}
-            </div>
-          </Card>
-        </section>
+                <div className="dashboard-list">
+                  {filteredSkills.length === 0 ? (
+                    <div className="dashboard-list__item">
+                      <div>
+                        <strong>No skills match this search.</strong>
+                        <div className="dashboard-list__meta">Try another keyword or add a new skill.</div>
+                      </div>
+                    </div>
+                  ) : (
+                    filteredSkills.map((skill) => (
+                      <div key={skill.id} className="dashboard-list__item">
+                        <div>
+                          <strong>{skill.name}</strong>
+                          <div className="dashboard-list__meta">{proficiencyLabels[skill.proficiency]}</div>
+                        </div>
+                        <span className="dashboard-chip">{skill.proficiency}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </Card>
+            </section>
 
             <section className="studio-profile__certs">
               <Card className="studio-block">
@@ -297,10 +316,29 @@ export default function Profile() {
                     <h2>Issued credentials</h2>
                   </div>
                 </div>
-              </div>
-            ))}
-          </Card>
-        </section>
+                {loadingCertificates ? (
+                  <CardMeta>Loading certificates...</CardMeta>
+                ) : certificates.length === 0 ? (
+                  <CardMeta>No certificates issued yet. Complete a course to unlock credentials.</CardMeta>
+                ) : (
+                  <div className="dashboard-list">
+                    {certificates.map((certificate) => (
+                      <div key={certificate.id} className="dashboard-list__item">
+                        <div>
+                          <strong>{certificate.courseTitle}</strong>
+                          <div className="dashboard-list__meta">
+                            Issued {new Date(certificate.issuedAt).toLocaleDateString()}
+                          </div>
+                        </div>
+                        <Button href={certificate.verifyUrl} variant="ghost">Verify</Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Card>
+            </section>
+          </>
+        )}
       </section>
     </SiteLayout>
   );

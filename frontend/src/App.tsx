@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import AuthLayout from './components/layout/AuthLayout';
 import Home from './pages/home/Home';
@@ -12,6 +13,7 @@ import { CourseDetail } from './pages/courses/CourseDetail';
 import CourseCreate from './pages/courses/CourseCreate';
 import JobList from './pages/jobs/JobList';
 import JobDetail from './pages/jobs/JobDetail';
+import JobApply from './pages/jobs/JobApply';
 import MyApplications from './pages/jobs/MyApplications';
 import { Dashboard } from './pages/dashboard/Dashboard';
 import Profile from './pages/profile/Profile';
@@ -55,6 +57,7 @@ export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<RoleBasedRedirect><Home /></RoleBasedRedirect>} />
           <Route element={<AuthLayout />}>
@@ -71,6 +74,7 @@ export default function App() {
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/jobs" element={<JobList />} />
           <Route path="/jobs/:id" element={<JobDetail />} />
+          <Route path="/jobs/:id/apply" element={<JobApply />} />
           <Route path="/applications" element={<ProtectedRoute><MyApplications /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/profile/:username" element={<Profile />} />
@@ -102,6 +106,16 @@ export default function App() {
       </BrowserRouter>
     </AuthProvider>
   );
+}
+
+function ScrollToTop() {
+  const location = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [location.pathname]);
+
+  return null;
 }
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {

@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
+import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
-import { applyForJob, getApplications, getJobById, getJobs, type JobSummary } from '../../services/jobs.service';
+import { getApplications, getJobById, getJobs, type JobSummary } from '../../services/jobs.service';
 import type { JobApplication } from '../../types/job.types';
 
 export default function JobDetail() {
@@ -13,22 +12,9 @@ export default function JobDetail() {
 	const [job, setJob] = useState<JobSummary | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState('');
-	const [status, setStatus] = useState('');
-	const [applying, setApplying] = useState(false);
 	const [application, setApplication] = useState<JobApplication | null>(null);
 	const { isAuthenticated } = useAuth();
-	const navigate = useNavigate();
-	const location = useLocation();
 	const [similarJobs, setSimilarJobs] = useState<JobSummary[]>([]);
-	const [formStep, setFormStep] = useState(1);
-	const [applicationForm, setApplicationForm] = useState({
-		fullName: '',
-		email: '',
-		phone: '',
-		portfolio: '',
-		coverLetter: '',
-		resumeSummary: '',
-	});
 	const role = (useAuth().user?.role ?? '').toUpperCase();
 	const canApply = !role || role === 'LEARNER';
 
@@ -43,9 +29,6 @@ export default function JobDetail() {
 				setJob(foundJob ?? null);
 				setSimilarJobs((allJobs.jobs ?? []).filter((item) => item.id !== id).slice(0, 4));
 				setApplication(items.find((item) => item.job.id === id) ?? null);
-				if (items.find((item) => item.job.id === id)) {
-					setStatus('Application already submitted. Use the applications page to track its status.');
-				}
 			})
 			.catch((fetchError) => {
 				console.error(fetchError);
@@ -70,46 +53,9 @@ export default function JobDetail() {
 			.join('');
 	}, [job?.employer.name]);
 
-	async function handleApply() {
-		if (!job) return;
-		if (applying) return;
-		if (application) {
-			setStatus('You already applied for this role. Open the applications page to view the current status and avoid duplicate submissions.');
-			return;
-		}
-		if (!isAuthenticated) {
-			// redirect to login and return here after auth
-			navigate('/login', { state: { from: location.pathname } });
-			return;
-		}
-		setApplying(true);
-		setStatus('Submitting your application. The request is sent once and the button is locked to prevent duplicate submissions.');
-		try {
-			await applyForJob(job.id);
-			setStatus('Application submitted successfully. The employer can now review your profile and submission.');
-		} catch (applyError) {
-			console.error(applyError);
-			if (axios.isAxiosError(applyError) && applyError.response?.status === 409) {
-				setStatus('You already applied for this job. The platform blocks duplicate applications so the employer sees one clean submission.');
-			} else {
-				setStatus('Could not submit application right now. Try again later or check your connection.');
-			}
-		} finally {
-			setApplying(false);
-		}
-	}
-
-	function moveToNextStep() {
-		setFormStep((prev) => Math.min(3, prev + 1));
-	}
-
-	function moveToPreviousStep() {
-		setFormStep((prev) => Math.max(1, prev - 1));
-	}
-
 	return (
 		<SiteLayout>
-			<section className="studio-job-detail">
+			<section className="studio-job-detail job-detail-redesign">
 				<Link to="/jobs" className="studio-inline-link">Back to jobs</Link>
 
 				{loading ? <p>Loading job details...</p> : null}
@@ -121,7 +67,7 @@ export default function JobDetail() {
 							<div>
 								<p className="eyebrow">{job.employer.name}</p>
 								<h1 className="display">{job.title}</h1>
-								<p className="lead">{job.description}</p>
+								<p className="lead">{job.description.slice(0, 260)}{job.description.length > 260 ? '...' : ''}</p>
 								<p className="muted">{job.location ?? 'Remote friendly'} · {job.jobType.replace('_', ' ')} · {formatSalary(job.salaryMin, job.salaryMax)}</p>
 							</div>
 							<div className="studio-employer-card">
@@ -133,97 +79,93 @@ export default function JobDetail() {
 							</div>
 						</header>
 
-						<section className="dashboard-layout dashboard-layout--two-col-left mt-lg">
-							<div className="dashboard-rail dashboard-rail--left">
+						<section className="job-detail-redesign__layout mt-lg">
+							<div className="job-detail-redesign__content">
 								<Card className="studio-block">
-									<CardEyebrow>Job highlights</CardEyebrow>
+									<CardEyebrow>Overview</CardEyebrow>
+									<div className="job-detail-redesign__overview">
+										<div><span>Industry</span><strong>{job.employer.name}</strong></div>
+										<div><span>Job level</span><strong>{job.jobType.replace('_', ' ')}</strong></div>
+										<div><span>Salary</span><strong>{formatSalary(job.salaryMin, job.salaryMax)}</strong></div>
+										<div><span>Location</span><strong>{job.location ?? 'Remote friendly'}</strong></div>
+									</div>
+									<CardMeta>{job.description}</CardMeta>
 									<div className="studio-chip-row">
-										{job.description
-											.split(' ')
-											.slice(0, 14)
-											.map((word) => (
-												<span key={word} className="dashboard-chip">{word.replace(/[.,]/g, '')}</span>
-											))}
+										{(job.skills ?? []).map((entry) => (
+											<span key={entry.id} className="dashboard-chip">{entry.skill.name}</span>
+										))}
 									</div>
 								</Card>
 
 								<Card className="studio-block">
 									<div className="studio-section__head">
 										<div>
-											<p className="eyebrow">Similar roles</p>
-											<h2>Explore related openings</h2>
+											<p className="eyebrow">Role details</p>
+											<h2>What the hiring team is looking for</h2>
 										</div>
 									</div>
-									<div className="studio-job-grid">
-										{similarJobs.map((item) => (
-											<Card key={item.id} className="studio-job-card">
-												<CardEyebrow>{item.employer.name}</CardEyebrow>
-												<CardTitle><Link to={`/jobs/${item.id}`}>{item.title}</Link></CardTitle>
-												<CardMeta>{item.location ?? 'Location flexible'}</CardMeta>
-												<Button to={`/jobs/${item.id}`} variant="secondary">View</Button>
-											</Card>
-										))}
+									<div className="job-detail-redesign__copy">
+										<h3>Responsibilities</h3>
+										<ul>
+											<li>Contribute to outcomes with strong ownership and clear communication.</li>
+											<li>Collaborate with cross-functional teams and share progress frequently.</li>
+											<li>Deliver quality work aligned with employer standards and timelines.</li>
+										</ul>
+										<h3>Preferred experience</h3>
+										<ul>
+											<li>Practical experience with the main skill stack listed above.</li>
+											<li>Ability to work in distributed teams and iterate quickly.</li>
+											<li>Portfolio or projects demonstrating problem-solving ability.</li>
+										</ul>
 									</div>
 								</Card>
 							</div>
 
-							<aside className="dashboard-main-column">
+							<aside className="job-detail-redesign__sidebar">
 								<Card className="studio-block">
-									<CardEyebrow>Application form</CardEyebrow>
-									<CardTitle>Step {formStep} of 3</CardTitle>
-									<div className="studio-stepper">
-										<span className={formStep >= 1 ? 'is-active' : ''}>1</span>
-										<span className={formStep >= 2 ? 'is-active' : ''}>2</span>
-										<span className={formStep >= 3 ? 'is-active' : ''}>3</span>
+									<CardEyebrow>Office & contact</CardEyebrow>
+									<div className="job-detail-redesign__map">Map preview unavailable in this view</div>
+									<CardMeta>{job.location ?? 'Location not specified'}</CardMeta>
+									<CardMeta>{job.employer.website ?? 'No public employer website provided'}</CardMeta>
+								</Card>
+
+								<Card className="studio-block">
+									<CardEyebrow>Similar jobs</CardEyebrow>
+									<div className="studio-stack">
+										{similarJobs.map((item) => (
+											<Link key={item.id} to={`/jobs/${item.id}`} className="studio-inline-item">
+												<div>
+													<strong>{item.title}</strong>
+													<p>{item.employer.name}</p>
+												</div>
+												<span>{item.location ?? 'Remote'}</span>
+											</Link>
+										))}
 									</div>
+								</Card>
 
-									{formStep === 1 ? (
-										<div className="form-stack">
-											<label>Full name<input value={applicationForm.fullName} onChange={(event) => setApplicationForm((prev) => ({ ...prev, fullName: event.target.value }))} placeholder="Your full name" /></label>
-											<label>Email<input type="email" value={applicationForm.email} onChange={(event) => setApplicationForm((prev) => ({ ...prev, email: event.target.value }))} placeholder="you@example.com" /></label>
-											<label>Phone<input value={applicationForm.phone} onChange={(event) => setApplicationForm((prev) => ({ ...prev, phone: event.target.value }))} placeholder="+250..." /></label>
-										</div>
-									) : null}
-
-									{formStep === 2 ? (
-										<div className="form-stack">
-											<label>Portfolio URL<input value={applicationForm.portfolio} onChange={(event) => setApplicationForm((prev) => ({ ...prev, portfolio: event.target.value }))} placeholder="https://portfolio.example" /></label>
-											<label>Resume summary<textarea rows={4} value={applicationForm.resumeSummary} onChange={(event) => setApplicationForm((prev) => ({ ...prev, resumeSummary: event.target.value }))} placeholder="Highlight your role-specific strengths" /></label>
-										</div>
-									) : null}
-
-									{formStep === 3 ? (
-										<div className="form-stack">
-											<label>Cover letter<textarea rows={6} value={applicationForm.coverLetter} onChange={(event) => setApplicationForm((prev) => ({ ...prev, coverLetter: event.target.value }))} placeholder="Explain why you are a fit for this role" /></label>
-											<CardMeta>Review your details then submit to finalize your application.</CardMeta>
-										</div>
-									) : null}
-
+								<Card className="studio-block">
+									<CardEyebrow>Apply</CardEyebrow>
+									<CardTitle>Submit your application on a dedicated page</CardTitle>
+									<CardMeta>
+										Use the application page for the guided 3-step form and final submission.
+									</CardMeta>
 									<div className="studio-action-row">
-										<Button type="button" variant="ghost" disabled={formStep === 1} onClick={moveToPreviousStep}>Back</Button>
-										{formStep < 3 ? (
-											<Button type="button" variant="secondary" onClick={moveToNextStep}>Next</Button>
-										) : null}
-											{!canApply ? (
-												<Button type="button" variant="secondary" disabled>
-													This role can view jobs only
-												</Button>
-											) : isAuthenticated ? (
-											<Button type="button" variant="primary" className="button--pill" onClick={handleApply} disabled={applying || !!application}>
-												{application ? 'Already applied' : applying ? 'Submitting...' : 'Submit application'}
+										{!canApply ? (
+											<Button type="button" variant="secondary" disabled>
+												This role can view jobs only
 											</Button>
-										) : (
+										) : !isAuthenticated ? (
 											<Button to="/login" variant="primary" className="button--pill">Sign in to apply</Button>
+										) : (
+											<Button to={`/jobs/${job.id}/apply`} variant="primary" className="button--pill">
+												Go to application form
+											</Button>
 										)}
 									</div>
-
 									{application ? (
 										<CardMeta>Application status: {application.status.toLowerCase()} · Updated {new Date(application.updatedAt).toLocaleDateString()}</CardMeta>
 									) : null}
-										{!canApply ? (
-											<CardMeta>Only learner accounts can submit applications. Use this page to review job details and share the link with the hiring team.</CardMeta>
-										) : null}
-									{status ? <CardMeta>{status}</CardMeta> : null}
 								</Card>
 							</aside>
 						</section>

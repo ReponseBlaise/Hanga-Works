@@ -191,7 +191,7 @@ export function CourseDetail() {
 
 	return (
 		<SiteLayout>
-			<div className="studio-course-detail">
+			<div className="studio-course-detail learning-redesign">
 				<section className="studio-course-head">
 					<Link to="/courses" className="studio-inline-link">Back to catalog</Link>
 					<p className="eyebrow">{course.institution?.name ?? 'Hanga Works'} · {course.published ? 'Published' : 'Draft'}</p>
@@ -204,8 +204,53 @@ export function CourseDetail() {
 					</div>
 				</section>
 
-				<section className="studio-course-stage">
-					<div className="studio-course-stage__video">
+				<section className="learning-redesign__summary">
+					<div>
+						<span>Progress</span>
+						<strong>{currentEnrollment?.progress ?? 0}%</strong>
+					</div>
+					<div>
+						<span>Modules</span>
+						<strong>{course.modules?.length ?? 0}</strong>
+					</div>
+					<div>
+						<span>Enrollment</span>
+						<strong>{currentEnrollment ? currentEnrollment.status.toLowerCase() : 'not enrolled'}</strong>
+					</div>
+					<div>
+						<span>Certificate</span>
+						<strong>{currentCertificate ? 'Available' : 'Pending'}</strong>
+					</div>
+				</section>
+
+				<section className="learning-redesign__layout">
+					<aside className="learning-redesign__sidebar">
+						<Card className="studio-block">
+							<CardEyebrow>Curriculum</CardEyebrow>
+							<div className="studio-module-list">
+								{(course.modules ?? []).map((module) => (
+									<button
+										key={module.id}
+										type="button"
+										className={`studio-module-item ${activeModuleId === module.id ? 'is-active' : ''}`.trim()}
+										onClick={() => setActiveModuleId(module.id)}
+									>
+										<span>Module {module.order}</span>
+										<strong>{module.title}</strong>
+									</button>
+								))}
+							</div>
+						</Card>
+
+						<Card className="studio-block">
+							<CardEyebrow>Instructor</CardEyebrow>
+							<CardTitle>{course.institution?.name ?? 'Hanga Works Academy Team'}</CardTitle>
+							<CardMeta>{course.institution?.website ?? 'Instructor profile and external links are available in the course metadata.'}</CardMeta>
+							<CardMeta>{course._count?.modules ?? course.modules?.length ?? 0} modules · {course._count?.enrollments ?? 0} learners enrolled</CardMeta>
+						</Card>
+					</aside>
+
+					<div className="learning-redesign__content">
 						<Card className="studio-block">
 							<CardEyebrow>Lesson stage</CardEyebrow>
 							<div className="studio-video-frame">
@@ -269,33 +314,26 @@ export function CourseDetail() {
 								) : null}
 							</div>
 						</Card>
-					</div>
 
-					<aside className="studio-course-stage__sidebar">
 						<Card className="studio-block">
-							<CardEyebrow>Curriculum</CardEyebrow>
-							<div className="studio-module-list">
-								{(course.modules ?? []).map((module) => (
-									<button
-										key={module.id}
-										type="button"
-										className={`studio-module-item ${activeModuleId === module.id ? 'is-active' : ''}`.trim()}
-										onClick={() => setActiveModuleId(module.id)}
-									>
-										<span>Module {module.order}</span>
-										<strong>{module.title}</strong>
-									</button>
+							<div className="studio-section__head">
+								<div>
+									<p className="eyebrow">Learning outcomes</p>
+									<h2>What you will master</h2>
+								</div>
+							</div>
+							<div className="learning-redesign__outcomes">
+								{(course.skills ?? []).map((skill) => (
+									<div key={skill.id} className="studio-inline-item">
+										<div>
+											<strong>{skill.skill.name}</strong>
+											<p>Applied in modules and assessments.</p>
+										</div>
+									</div>
 								))}
 							</div>
 						</Card>
-
-						<Card className="studio-block">
-							<CardEyebrow>Instructor</CardEyebrow>
-							<CardTitle>{course.institution?.name ?? 'Hanga Works Academy Team'}</CardTitle>
-							<CardMeta>{course.institution?.website ?? 'Instructor profile and external links are available in the course metadata.'}</CardMeta>
-							<CardMeta>{course._count?.modules ?? course.modules?.length ?? 0} modules · {course._count?.enrollments ?? 0} learners enrolled</CardMeta>
-						</Card>
-					</aside>
+					</div>
 				</section>
 
 				<section className="studio-section">
