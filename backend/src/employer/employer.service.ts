@@ -47,7 +47,20 @@ export class EmployerService {
 
     return this.prisma.application.findMany({
       where: { jobId },
-      include: { user: { select: { id: true, name: true, email: true, phone: true } } },
+      include: { 
+        user: { 
+          select: { 
+            id: true, 
+            name: true, 
+            email: true, 
+            phone: true,
+            bio: true,
+            location: true,
+            avatarUrl: true,
+            skills: { include: { skill: true } }
+          } 
+        } 
+      },
       orderBy: { appliedAt: 'desc' }
     });
   }
