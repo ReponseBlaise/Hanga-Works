@@ -1,6 +1,6 @@
 import { Controller, Post, Get, Patch, Body, Param, UseGuards, Request } from '@nestjs/common';
 import { EmployerService } from './employer.service';
-import { CreateJobDto } from './dto/create-job.dto';
+import { CreateJobDto } from '../jobs/dto/create-job.dto';
 import { UpdateStageDto } from './dto/update-stage.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
