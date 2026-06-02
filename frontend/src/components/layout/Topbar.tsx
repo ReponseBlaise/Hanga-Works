@@ -27,7 +27,6 @@ export default function Navbar() {
 
 		if (userRole === 'EMPLOYER') {
 			return [
-				{ label: 'Home', href: '/' },
 				{ label: 'Employer Home', href: '/employer' },
 				{ label: 'Post a Job', href: '/employer/post-job' },
 				{ label: 'Applicants', href: '/employer/applicants' },
@@ -36,20 +35,30 @@ export default function Navbar() {
 		}
 		if (userRole === 'ADMIN') {
 			return [
-				{ label: 'Home', href: '/' },
 				{ label: 'Admin Home', href: '/admin' },
 				{ label: 'Exports', href: '/admin/export' },
 				{ label: 'Moderation', href: '/admin/moderation' },
+			];
+		}
+		if (userRole === 'MENTOR') {
+			return [
+				{ label: 'Home', href: '/' },
+				{ label: 'Mentors', href: '/mentors' },
+				{ label: 'Profile', href: '/profile' },
+				{ label: 'Courses', href: '/courses' },
 			];
 		}
 		return [
 			{ label: 'Home', href: '/' },
 			{ label: 'Dashboard', href: '/dashboard' },
 			{ label: 'Jobs', href: '/jobs' },
+			{ label: 'Mentors', href: '/mentors' },
 			{ label: 'Courses', href: '/courses' },
+			{ label: 'Certifications', href: '/certifications' },
+			{ label: 'Mentors', href: '/mentors' },
 		];
 	}, [isAuthenticated, userRole]);
-	const visibleLinks = navLinks.slice(0, 4);
+	const visibleLinks = navLinks;
 
 	function isNavActive(href: string) {
 		if (href === '/') return location.pathname === '/';
@@ -95,13 +104,15 @@ export default function Navbar() {
 						})}
 					</div>
 
-						<div className="public-navbar__auth">
+						<div className="public-navbar__auth" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
 							{isAuthenticated ? (
 								<>
-									<NotificationBell
-										count={visibleUnread}
-										onClick={() => navigate('/notifications')}
-									/>
+									<div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+										<NotificationBell
+											count={visibleUnread}
+											onClick={() => navigate('/notifications')}
+										/>
+									</div>
 									<Link to="/profile" className="public-navbar__avatar-link" onClick={() => setMenuOpen(false)}>
 										<Avatar name={user?.name ?? 'User'} imageUrl={user?.avatarUrl ?? undefined} size="sm" />
 									</Link>

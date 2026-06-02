@@ -8,12 +8,19 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { PrismaService } from '../../prisma/prisma.service';
 
+type HttpAuditRequest = {
+  method: string;
+  url: string;
+  body?: unknown;
+  user?: { userId?: string };
+};
+
 @Injectable()
 export class AuditInterceptor implements NestInterceptor {
   constructor(private prisma: PrismaService) {}
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    const request = context.switchToHttp().getRequest();
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
+    const request = context.switchToHttp().getRequest<HttpAuditRequest>();
     const method = request.method;
     const url = request.url;
 
@@ -28,7 +35,7 @@ export class AuditInterceptor implements NestInterceptor {
               action: `${method} ${url}`,
               meta: JSON.stringify(request.body || {}).substring(0, 500),
             },
-          }).catch(err => console.error('Failed to write audit log', err));
+          }).catch((err: unknown) => console.error('Failed to write audit log', err));
         }),
       );
     }

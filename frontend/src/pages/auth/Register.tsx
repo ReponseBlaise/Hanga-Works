@@ -11,7 +11,7 @@ const ROLES = [
 
 export default function Register() {
   const [form, setForm] = useState({
-    name: '', email: '', password: '', role: '' as '' | 'LEARNER' | 'EMPLOYER',
+    name: '', email: '', phone: '', password: '', role: '' as '' | 'LEARNER' | 'EMPLOYER',
   });
   const navigate = useNavigate();
   const { signIn } = useAuth();
@@ -28,11 +28,24 @@ export default function Register() {
     e.preventDefault();
     setLoading(true);
     setError('');
-    authService.register({ name: form.name, email: form.email, password: form.password, role: form.role || undefined })
+    authService.register({ name: form.name, email: form.email, phone: form.phone, password: form.password, role: form.role || undefined })
         .then((user) => {
           if (user) {
             signIn('user' in user ? user.user : user);
-            navigate('/');
+            const userRole = ('user' in user ? user.user : user)?.role?.toUpperCase?.() ?? '';
+            if (userRole === 'MENTOR') {
+              navigate('/mentors');
+              return;
+            }
+            if (userRole === 'INSTITUTION') {
+              navigate('/courses');
+              return;
+            }
+            if (userRole === 'EMPLOYER') {
+              navigate('/employer');
+              return;
+            }
+            navigate('/dashboard');
           }
       })
       .catch((err) => {
@@ -43,7 +56,7 @@ export default function Register() {
   };
 
   return (
-    <div style={{
+    <div className="auth-card auth-card--centered" style={{
       width: '100%',
       maxWidth: '460px',
       background: 'var(--bg-elevated)',
@@ -75,10 +88,16 @@ export default function Register() {
             style={inputStyle} onFocus={focus} onBlur={blur} />
         </Field>
 
+        <Field label="Phone">
+          <input type="tel" placeholder="+250..." 
+            value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })}
+            style={inputStyle} onFocus={focus} onBlur={blur} />
+        </Field>
+
         <Field label="Role">
           <select
             value={form.role}
-            onChange={(e) => setForm({ ...form, role: e.target.value as any })}
+            onChange={(e) => setForm({ ...form, role: e.target.value as '' | 'LEARNER' | 'EMPLOYER' | 'INSTITUTION' | 'MENTOR' })}
             style={inputStyle}
             onFocus={focus}
             onBlur={blur}

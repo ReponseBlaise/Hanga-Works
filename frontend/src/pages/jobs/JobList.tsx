@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { BsFillGrid3X3GapFill, BsListUl } from 'react-icons/bs';
+import { MdWork, MdLocationOn, MdAttachMoney } from 'react-icons/md';
 import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
@@ -25,6 +27,8 @@ export default function JobList() {
     location: '',
     jobType: 'ALL',
     remoteOnly: false,
+    salaryMin: '',
+    salaryMax: '',
   });
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(12);
@@ -32,6 +36,7 @@ export default function JobList() {
   const [totalResults, setTotalResults] = useState(0);
   const [savedJobIds, setSavedJobIds] = useState<string[]>([]);
   const [savedOnly, setSavedOnly] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   useEffect(() => {
     try {
@@ -57,6 +62,8 @@ export default function JobList() {
       search: filters.search,
       location: filters.location,
       jobType: filters.jobType === 'ALL' ? undefined : filters.jobType,
+      salaryMin: filters.salaryMin ? Number(filters.salaryMin) : undefined,
+      salaryMax: filters.salaryMax ? Number(filters.salaryMax) : undefined,
       page,
       perPage,
     })
@@ -79,7 +86,8 @@ export default function JobList() {
     return () => {
       active = false;
     };
-  }, [filters.search, filters.location, filters.jobType, filters.remoteOnly, page, perPage]);
+  }, [filters.search, filters.location, filters.jobType, filters.remoteOnly, filters.salaryMin, filters.salaryMax, page, perPage]);
+  
 
   const filteredJobs = useMemo(() => {
     const query = filters.search.trim().toLowerCase();
@@ -94,7 +102,14 @@ export default function JobList() {
       const matchesType = filters.jobType === 'ALL' || job.jobType === filters.jobType;
       const matchesRemote = !filters.remoteOnly || job.jobType === 'REMOTE';
       const matchesSaved = !savedOnly || savedJobIds.includes(job.id);
-      return matchesQuery && matchesLocation && matchesType && matchesRemote && matchesSaved;
+      const minSalary = filters.salaryMin ? Number(filters.salaryMin) : null;
+      const maxSalary = filters.salaryMax ? Number(filters.salaryMax) : null;
+      const jobSalaryMin = job.salaryMin ?? null;
+      const jobSalaryMax = job.salaryMax ?? null;
+      const matchesSalary =
+        (minSalary == null || (jobSalaryMax != null && jobSalaryMax >= minSalary) || (jobSalaryMin != null && jobSalaryMin >= minSalary)) &&
+        (maxSalary == null || (jobSalaryMin != null && jobSalaryMin <= maxSalary) || (jobSalaryMax != null && jobSalaryMax <= maxSalary));
+      return matchesQuery && matchesLocation && matchesType && matchesRemote && matchesSaved && matchesSalary;
     });
   }, [filters.search, filters.location, filters.jobType, filters.remoteOnly, jobs, savedOnly, savedJobIds]);
 
@@ -128,22 +143,26 @@ export default function JobList() {
 
   return (
     <SiteLayout>
-      <section className="studio-jobs" id="results">
-        <header className="studio-jobs__hero">
-          <div>
-            <p className="eyebrow">Job seeker mode</p>
-            <h1 className="display">A rebuilt hiring board with saved roles and focused apply actions.</h1>
-            <p className="lead">Use advanced filters, sort priorities, and save roles to build your own shortlist before applying.</p>
-          </div>
-          <div className="studio-jobs__hero-stats">
-            <div><span>Results</span><strong>{totalResults}</strong></div>
-            <div><span>Saved</span><strong>{savedJobIds.length}</strong></div>
-            <div><span>Sort</span><strong>{sortBy}</strong></div>
-          </div>
-        </header>
+      <section className="studio-jobs joblist-redesign" id="results">
+          <header className="joblist-redesign__hero">
+            <div className="joblist-redesign__promo">
+              <div>
+                <p className="eyebrow">Career Marketplace</p>
+                <h1 className="display">Find your next opportunity</h1>
+                <p className="lead">Explore roles, save favorites, and apply when you are ready.</p>
+                <Button to="/applications" variant="secondary">Track applications</Button>
+              </div>
+            </div>
+            <div className="joblist-redesign__stats">
+              <div><span>Results</span><strong>{totalResults}</strong></div>
+              <div><span>Saved</span><strong>{savedJobIds.length}</strong></div>
+              <div><span>Page</span><strong>{page}/{totalPages}</strong></div>
+              <div><span>Sort</span><strong>{sortBy.replace('-', ' ')}</strong></div>
+            </div>
+          </header>
 
-        <section className="studio-jobs__layout">
-          <aside className="studio-jobs__filters">
+          <section className="joblist-redesign__layout">
+            <aside className="studio-jobs__filters">
             <Card className="studio-block">
               <CardEyebrow>Search filters</CardEyebrow>
               <div className="form-stack">
@@ -169,6 +188,28 @@ export default function JobList() {
                     {filterOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                   </select>
                 </label>
+                <div className="profile-form-grid">
+                  <label>
+                    Min salary
+                    <input
+                      type="number"
+                      min="0"
+                      value={filters.salaryMin}
+                      onChange={(e) => setFilters((prev) => ({ ...prev, salaryMin: e.target.value }))}
+                      placeholder="500000"
+                    />
+                  </label>
+                  <label>
+                    Max salary
+                    <input
+                      type="number"
+                      min="0"
+                      value={filters.salaryMax}
+                      onChange={(e) => setFilters((prev) => ({ ...prev, salaryMax: e.target.value }))}
+                      placeholder="1500000"
+                    />
+                  </label>
+                </div>
                 <label>
                   Sort by
                   <select value={sortBy} onChange={(e) => { setSortBy(e.target.value as typeof sortBy); setPage(1); }}>
@@ -196,54 +237,77 @@ export default function JobList() {
                 </label>
               </div>
               <div className="studio-action-row">
-                <Button type="button" variant="ghost" onClick={() => setFilters({ search: '', location: '', jobType: 'ALL', remoteOnly: false })}>Reset filters</Button>
+                <Button type="button" variant="ghost" onClick={() => setFilters({ search: '', location: '', jobType: 'ALL', remoteOnly: false, salaryMin: '', salaryMax: '' })}>Reset filters</Button>
                 <Button to="/applications" variant="secondary">My applications</Button>
               </div>
             </Card>
-          </aside>
+            </aside>
 
-          <main className="studio-jobs__results">
-            {loading ? <Card className="studio-block"><CardTitle>Loading jobs</CardTitle><CardMeta>Fetching the latest openings.</CardMeta></Card> : null}
-            {error ? <Card className="studio-block"><CardTitle>Unable to load jobs</CardTitle><CardMeta>{error}</CardMeta></Card> : null}
-            {!loading && !error && paginatedJobs.length === 0 ? <Card className="studio-block"><CardTitle>No jobs match your filters</CardTitle><CardMeta>Try broader terms or disable saved-only mode.</CardMeta></Card> : null}
-
-            <div className="studio-jobs-grid">
-              {paginatedJobs.map((job) => {
-                const isSaved = savedJobIds.includes(job.id);
-                return (
-                  <Card key={job.id} className="studio-job-card">
-                    <div className="studio-job-card__head">
-                      <div>
-                        <CardEyebrow>{job.employer.name}</CardEyebrow>
-                        <CardTitle><Link to={`/jobs/${job.id}`}>{job.title}</Link></CardTitle>
-                      </div>
-                      <span className="dashboard-chip">{job.jobType.replace('_', ' ')}</span>
-                    </div>
-                    <CardMeta>{job.location ?? 'Remote friendly'}</CardMeta>
-                    <CardMeta>{formatSalary(job.salaryMin, job.salaryMax)}</CardMeta>
-                    <p className="muted">{job.description}</p>
-                    <div className="studio-chip-row">
-                      {(job.skills ?? []).slice(0, 6).map((js) => <span key={js.id} className="dashboard-chip">{js.skill.name}</span>)}
-                    </div>
-                    <div className="studio-action-row">
-                      <Button type="button" variant="ghost" onClick={() => toggleSaved(job.id)}>{isSaved ? 'Unsave' : 'Save job'}</Button>
-                      <Button to={`/jobs/${job.id}`} variant="secondary">View details</Button>
-                      <Button to={`/jobs/${job.id}`} variant="primary" className="button--pill">Apply now</Button>
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
-
-            {totalResults > perPage ? (
-              <div className="studio-pagination">
-                <button className="button button-secondary" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Previous</button>
-                <span className="muted">Page {page} / {totalPages}</span>
-                <button className="button button-secondary" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>Next</button>
+            <main className="studio-jobs__results">
+              <div className="studio-catalog__toolbar">
+                <div>
+                  <p className="eyebrow">View options</p>
+                  <h2>{paginatedJobs.length} roles in this view</h2>
+                </div>
+                <div className="studio-toggle-group" role="tablist" aria-label="Job list view mode">
+                  <button
+                    type="button"
+                    className={`studio-toggle ${viewMode === 'grid' ? 'is-active' : ''}`.trim()}
+                    onClick={() => setViewMode('grid')}
+                  >
+                    <span className="ui-icon" aria-hidden="true"><BsFillGrid3X3GapFill /></span> Grid
+                  </button>
+                  <button
+                    type="button"
+                    className={`studio-toggle ${viewMode === 'list' ? 'is-active' : ''}`.trim()}
+                    onClick={() => setViewMode('list')}
+                  >
+                    <span className="ui-icon" aria-hidden="true"><BsListUl /></span> List
+                  </button>
+                </div>
               </div>
-            ) : null}
-          </main>
-        </section>
+
+              {loading ? <Card className="studio-block"><CardTitle>Loading jobs</CardTitle><CardMeta>Fetching the latest openings.</CardMeta></Card> : null}
+              {error ? <Card className="studio-block"><CardTitle>Unable to load jobs</CardTitle><CardMeta>{error}</CardMeta></Card> : null}
+              {!loading && !error && paginatedJobs.length === 0 ? <Card className="studio-block"><CardTitle>No jobs match your filters</CardTitle><CardMeta>Try broader terms or disable saved-only mode.</CardMeta></Card> : null}
+
+              <div className={viewMode === 'grid' ? 'joblist-redesign__cards' : 'joblist-redesign__cards joblist-redesign__cards--list'}>
+                {paginatedJobs.map((job) => {
+                  const isSaved = savedJobIds.includes(job.id);
+                  return (
+                    <Card key={job.id} className="studio-job-card joblist-redesign__card">
+                      <div className="studio-job-card__head">
+                        <div>
+                          <CardEyebrow>{job.employer.name}</CardEyebrow>
+                          <CardTitle><Link to={`/jobs/${job.id}`}>{job.title}</Link></CardTitle>
+                        </div>
+                        <span className="dashboard-chip"><span className="ui-icon" aria-hidden="true"><MdWork /></span>{job.jobType.replace('_', ' ')}</span>
+                      </div>
+                      <CardMeta><span className="ui-icon" aria-hidden="true"><MdLocationOn /></span>{job.location ?? 'Remote friendly'}</CardMeta>
+                      <CardMeta><span className="ui-icon" aria-hidden="true"><MdAttachMoney /></span>{formatSalary(job.salaryMin, job.salaryMax)}</CardMeta>
+                      <p className="muted">{job.description}</p>
+                      <div className="studio-chip-row">
+                        {(job.skills ?? []).slice(0, 6).map((js) => <span key={js.id} className="dashboard-chip">{js.skill.name}</span>)}
+                      </div>
+                      <div className="studio-action-row">
+                        <Button type="button" variant="ghost" onClick={() => toggleSaved(job.id)}>{isSaved ? 'Unsave' : 'Save job'}</Button>
+                        <Button to={`/jobs/${job.id}`} variant="secondary">View details</Button>
+                        <Button to={`/jobs/${job.id}`} variant="primary" className="button--pill">Apply now</Button>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+
+              {totalResults > perPage ? (
+                <div className="studio-pagination">
+                  <button className="button button-secondary" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Previous</button>
+                  <span className="muted">Page {page} / {totalPages}</span>
+                  <button className="button button-secondary" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>Next</button>
+                </div>
+              ) : null}
+            </main>
+          </section>
       </section>
     </SiteLayout>
   );

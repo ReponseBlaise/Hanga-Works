@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { BsFillGrid3X3GapFill, BsListUl } from 'react-icons/bs';
+import { MdSchool, MdGroups, MdCheckCircle, MdMenuBook } from 'react-icons/md';
 import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
@@ -110,9 +112,9 @@ export function CourseList() {
 						</div>
 					</div>
 					<div className="studio-catalog__stats">
-						<div><span>Total courses</span><strong>{courses.length}</strong></div>
-						<div><span>Total enrollments</span><strong>{totalEnrollments}</strong></div>
-						<div><span>Enrolled by you</span><strong>{enrolledCount}</strong></div>
+						<div><span><span className="ui-icon" aria-hidden="true"><MdSchool /></span>Total courses</span><strong>{courses.length}</strong></div>
+						<div><span><span className="ui-icon" aria-hidden="true"><MdGroups /></span>Total enrollments</span><strong>{totalEnrollments}</strong></div>
+						<div><span><span className="ui-icon" aria-hidden="true"><MdCheckCircle /></span>Enrolled by you</span><strong>{enrolledCount}</strong></div>
 					</div>
 				</section>
 
@@ -167,14 +169,14 @@ export function CourseList() {
 									className={`studio-toggle ${viewMode === 'grid' ? 'is-active' : ''}`.trim()}
 									onClick={() => setViewMode('grid')}
 								>
-									Grid
+									<span className="ui-icon" aria-hidden="true"><BsFillGrid3X3GapFill /></span> Grid
 								</button>
 								<button
 									type="button"
 									className={`studio-toggle ${viewMode === 'list' ? 'is-active' : ''}`.trim()}
 									onClick={() => setViewMode('list')}
 								>
-									List
+									<span className="ui-icon" aria-hidden="true"><BsListUl /></span> List
 								</button>
 							</div>
 						</div>
@@ -204,7 +206,7 @@ export function CourseList() {
 											</div>
 										</div>
 										<CardMeta>{course.description}</CardMeta>
-										<p className="muted">{course._count?.modules ?? course.modules?.length ?? 0} modules · {course._count?.enrollments ?? 0} enrollments</p>
+										<p className="muted"><span className="ui-icon" aria-hidden="true"><MdMenuBook /></span>{course._count?.modules ?? course.modules?.length ?? 0} modules · <span className="ui-icon" aria-hidden="true"><MdGroups /></span>{course._count?.enrollments ?? 0} enrollments</p>
 										<div className="studio-chip-row">
 											{(course.skills ?? []).slice(0, 5).map((skill) => (
 												<span key={skill.id} className="dashboard-chip">{skill.skill.name}</span>

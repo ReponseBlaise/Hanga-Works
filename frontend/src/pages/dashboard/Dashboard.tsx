@@ -6,7 +6,7 @@ import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card
 import { ProgressBar } from '../../components/shared/ProgressBar';
 import { useAuth } from '../../context/AuthContext';
 import { getApplications, getJobs, type JobSummary } from '../../services/jobs.service';
-import { getCourses, type BackendCourse } from '../../services/courses.service';
+import { getMyProgress, type CourseEnrollment } from '../../services/courses.service';
 import { getMyCertificates, type LearnerCertificate } from '../../services/certificates.service';
 import type { JobApplication } from '../../types/job.types';
 
@@ -31,7 +31,7 @@ function formatLocation(location?: string | null) {
 export function Dashboard() {
   const { user, isAuthenticated } = useAuth();
   const [jobs, setJobs] = useState<JobSummary[]>([]);
-  const [courses, setCourses] = useState<BackendCourse[]>([]);
+  const [enrollments, setEnrollments] = useState<CourseEnrollment[]>([]);
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [certificates, setCertificates] = useState<LearnerCertificate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,11 +39,11 @@ export function Dashboard() {
   useEffect(() => {
     let active = true;
 
-    Promise.all([getJobs(), getCourses(), getApplications(), getMyCertificates()])
-      .then(([jobsResponse, courseItems, applicationItems, certificateItems]) => {
+    Promise.all([getJobs(), getMyProgress(), getApplications(), getMyCertificates()])
+      .then(([jobsResponse, progressItems, applicationItems, certificateItems]) => {
         if (!active) return;
         setJobs(jobsResponse?.jobs ?? []);
-        setCourses(courseItems ?? []);
+        setEnrollments(progressItems ?? []);
         setApplications(applicationItems ?? []);
         setCertificates(certificateItems ?? []);
       })
@@ -62,14 +62,14 @@ export function Dashboard() {
   const roleLabel = user?.role ? user.role.charAt(0) + user.role.slice(1).toLowerCase() : 'Learner';
 
   const recentCourses = useMemo(() => {
-    return courses.slice(0, 3).map((course) => ({
-      id: course.id,
-      title: course.title,
-      provider: course.institution?.name ?? 'Hanga Works',
-      enrollments: course._count?.enrollments ?? 0,
-      modules: course._count?.modules ?? course.modules?.length ?? 0,
+    return enrollments.slice(0, 3).map((enrollment) => ({
+      id: enrollment.course.id,
+      title: enrollment.course.title,
+      provider: 'Hanga Works',
+      enrollments: 1,
+      modules: 0,
     }));
-  }, [courses]);
+  }, [enrollments]);
 
   const recommendedJobs = useMemo(() => {
     return [...jobs]
@@ -89,7 +89,7 @@ export function Dashboard() {
     if (continueLearningCourse) {
       tasks.push({
         title: `Continue ${continueLearningCourse.title}`,
-        detail: `${continueLearningCourse.modules} modules and ${continueLearningCourse.enrollments} enrollments in the queue.`,
+        detail: `Keep up your learning momentum.`,
         meta: 'Today',
         href: `/courses/${continueLearningCourse.id}`,
       });
@@ -138,7 +138,7 @@ export function Dashboard() {
   const skillCounts = useMemo(() => {
     const counts = new Map<string, number>();
 
-    [...jobs.flatMap((job) => job.skills ?? []), ...courses.flatMap((course) => course.skills ?? [])].forEach((entry) => {
+    [...jobs.flatMap((job) => job.skills ?? [])].forEach((entry) => {
       counts.set(entry.skill.name, (counts.get(entry.skill.name) ?? 0) + 1);
     });
 
@@ -146,14 +146,14 @@ export function Dashboard() {
       .sort((left, right) => right[1] - left[1])
       .slice(0, 5)
       .map(([name, count]) => ({ name, count }));
-  }, [courses, jobs]);
+  }, [jobs]);
 
   const progressValue = useMemo(() => {
     const applicationScore = Math.min(40, applications.length * 8);
     const certificateScore = Math.min(30, certificates.length * 15);
-    const learningScore = Math.min(30, courses.length * 6);
+    const learningScore = Math.min(30, enrollments.length * 6);
     return applicationScore + certificateScore + learningScore;
-  }, [applications.length, certificates.length, courses.length]);
+  }, [applications.length, certificates.length, enrollments.length]);
 
   const progressCards = useMemo(
     () => [
@@ -184,6 +184,7 @@ export function Dashboard() {
   }, [applications]);
 
   const learningMomentum = loading ? '...' : `${Math.min(100, progressValue)}%`;
+  const topSkills = skillCounts.slice(0, 4);
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -191,101 +192,75 @@ export function Dashboard() {
 
   return (
     <SiteLayout>
-      <div className="studio-dashboard studio-dashboard--learner" id="dashboard-home">
-        <section className="studio-hero">
-          <div className="studio-hero__intro">
-            <p className="eyebrow">{roleLabel} mode</p>
-            <h1 className="display-large">Design your week across learning and hiring.</h1>
-            <p className="lead">Your next lesson, strongest matching roles, and pending deadlines are arranged as one operating canvas.</p>
-            <div className="studio-hero__actions">
-              <Button to="/courses" variant="secondary" className="button--lg">Continue learning</Button>
-              <Button to="/jobs" variant="primary" className="button--lg button--pill">Match jobs</Button>
-              <Button to="/applications" variant="ghost">Application board</Button>
+      <div className="app-shell-layout">
+        <aside className="app-shell-sidebar">
+          <div className="app-shell-brand">
+            <strong>Hanga Works</strong>
+            <span>Main menu</span>
+          </div>
+          <nav className="app-shell-nav">
+            <Link to="/dashboard" className="app-shell-nav__item is-active">Dashboard</Link>
+            <Link to="/jobs" className="app-shell-nav__item">Job listings</Link>
+            <Link to="/applications" className="app-shell-nav__item">My applications</Link>
+            <Link to="/courses" className="app-shell-nav__item">Learning</Link>
+            <Link to="/profile" className="app-shell-nav__item">Edit profile</Link>
+            <Link to="/notifications" className="app-shell-nav__item">Messages</Link>
+            <Link to="/certifications" className="app-shell-nav__item">Certificates</Link>
+          </nav>
+        </aside>
+
+        <div className="studio-dashboard studio-dashboard--learner dashboard-redesign" id="dashboard-home">
+        <section className="dashboard-redesign__hero">
+          <div>
+            <p className="eyebrow">{roleLabel} dashboard</p>
+            <h1 className="display">Your learning and hiring command center</h1>
+            <p className="lead">
+              Keep the same workflow, now with clearer progress insights, action shortcuts, and a denser performance layout.
+            </p>
+            <div className="studio-action-row">
+              <Button to="/courses" variant="secondary">Continue learning</Button>
+              <Button to="/jobs" variant="primary" className="button--pill">Explore jobs</Button>
+              <Button to="/applications" variant="ghost">Track applications</Button>
             </div>
           </div>
-
-          <Card className="studio-hero__spotlight">
-            <CardEyebrow>Momentum index</CardEyebrow>
-            <div className="studio-ring">{learningMomentum}</div>
-            <div className="studio-stat-grid">
-              <div>
-                <span>Courses</span>
-                <strong>{loading ? '...' : courses.length}</strong>
-              </div>
-              <div>
-                <span>Applications</span>
-                <strong>{loading ? '...' : applications.length}</strong>
-              </div>
-              <div>
-                <span>Certificates</span>
-                <strong>{loading ? '...' : certificates.length}</strong>
-              </div>
-              <div>
-                <span>Top skill</span>
-                <strong>{skillCounts[0]?.name ?? 'N/A'}</strong>
-              </div>
+          <div className="dashboard-redesign__headline-stats">
+            <div>
+              <span>Learning momentum</span>
+              <strong>{learningMomentum}</strong>
             </div>
-          </Card>
+            <div>
+              <span>Open applications</span>
+              <strong>{loading ? '...' : applications.length}</strong>
+            </div>
+            <div>
+              <span>Courses active</span>
+              <strong>{loading ? '...' : enrollments.length}</strong>
+            </div>
+            <div>
+              <span>Certificates</span>
+              <strong>{loading ? '...' : certificates.length}</strong>
+            </div>
+          </div>
         </section>
 
-        <section className="studio-layout">
-          <aside className="studio-column studio-column--left">
-            <Card className="studio-block">
-              <CardEyebrow>Now learning</CardEyebrow>
-              <CardTitle>{continueLearningCourse ? continueLearningCourse.title : 'No active course yet'}</CardTitle>
-              <CardMeta>
-                {continueLearningCourse
-                  ? `${continueLearningCourse.provider} · ${continueLearningCourse.modules} modules`
-                  : 'Start from the course catalog to build your learning streak.'}
-              </CardMeta>
-              <ProgressBar value={Math.min(100, progressValue)} label="Learning momentum" />
-              <Button to={continueLearningCourse ? `/courses/${continueLearningCourse.id}` : '/courses'} variant="primary" className="button--pill">
-                {continueLearningCourse ? 'Resume course' : 'Browse courses'}
-              </Button>
+        <section className="dashboard-redesign__quick-metrics">
+          {progressCards.map((metric) => (
+            <Card key={metric.title} className="dashboard-redesign__metric">
+              <CardEyebrow>{metric.title}</CardEyebrow>
+              <strong>{loading ? '...' : metric.value}</strong>
+              <ProgressBar value={Math.min(100, metric.value)} />
+              <CardMeta>{metric.meta}</CardMeta>
             </Card>
+          ))}
+        </section>
 
+        <section className="dashboard-redesign__layout">
+          <main className="dashboard-main-column">
             <Card className="studio-block">
-              <CardEyebrow>Upcoming deadlines</CardEyebrow>
-              <div className="studio-stack">
-                {upcomingDeadlines.map((task) => (
-                  <Link key={task.title} to={task.href ?? '/dashboard'} className="studio-inline-item">
-                    <div>
-                      <strong>{task.title}</strong>
-                      <p>{task.detail}</p>
-                    </div>
-                    <span>{task.meta}</span>
-                  </Link>
-                ))}
-              </div>
-            </Card>
-          </aside>
-
-          <main className="studio-column studio-column--main">
-            <section className="studio-section">
               <div className="studio-section__head">
                 <div>
-                  <p className="eyebrow">Performance board</p>
-                  <h2>Your current momentum</h2>
-                </div>
-                <Button to="/profile" variant="ghost">Profile settings</Button>
-              </div>
-              <div className="studio-metric-grid">
-                {progressCards.map((metric) => (
-                  <Card key={metric.title} className="studio-metric">
-                    <CardEyebrow>{metric.title}</CardEyebrow>
-                    <strong>{loading ? '...' : metric.value}</strong>
-                    <ProgressBar value={Math.min(100, metric.value)} />
-                    <CardMeta>{metric.meta}</CardMeta>
-                  </Card>
-                ))}
-              </div>
-            </section>
-
-            <section className="studio-section">
-              <div className="studio-section__head">
-                <div>
-                  <p className="eyebrow">Cross-platform</p>
-                  <h2>Recommended jobs from your learning signals</h2>
+                  <p className="eyebrow">Recommended jobs</p>
+                  <h2>Matched from your profile and course signals</h2>
                 </div>
                 <Button to="/jobs" variant="secondary">Open marketplace</Button>
               </div>
@@ -313,12 +288,16 @@ export function Dashboard() {
                   </Card>
                 ))}
               </div>
-            </section>
-          </main>
+            </Card>
 
-          <aside className="studio-column studio-column--right">
             <Card className="studio-block">
-              <CardEyebrow>Recent activity</CardEyebrow>
+              <div className="studio-section__head">
+                <div>
+                  <p className="eyebrow">Activity timeline</p>
+                  <h2>Latest movement across your account</h2>
+                </div>
+                <Button to="/profile" variant="ghost">Profile settings</Button>
+              </div>
               <div className="studio-stack">
                 {recentActivity.length === 0 ? (
                   <div className="studio-inline-item">
@@ -340,6 +319,52 @@ export function Dashboard() {
                 )}
               </div>
             </Card>
+          </main>
+
+          <aside className="dashboard-rail">
+            <Card className="studio-block">
+              <CardEyebrow>Learning progress</CardEyebrow>
+              <CardTitle>{continueLearningCourse ? continueLearningCourse.title : 'No active course yet'}</CardTitle>
+              <CardMeta>
+                {continueLearningCourse
+                  ? `${continueLearningCourse.provider}`
+                  : 'Start from the course catalog to build your learning streak.'}
+              </CardMeta>
+              <ProgressBar value={Math.min(100, progressValue)} label="Learning momentum" />
+              <Button to={continueLearningCourse ? `/courses/${continueLearningCourse.id}` : '/courses'} variant="primary" className="button--pill">
+                {continueLearningCourse ? 'Resume course' : 'Browse courses'}
+              </Button>
+            </Card>
+
+            <Card className="studio-block">
+              <CardEyebrow>Upcoming actions</CardEyebrow>
+              <div className="studio-stack">
+                {upcomingDeadlines.map((task) => (
+                  <Link key={task.title} to={task.href ?? '/dashboard'} className="studio-inline-item">
+                    <div>
+                      <strong>{task.title}</strong>
+                      <p>{task.detail}</p>
+                    </div>
+                    <span>{task.meta}</span>
+                  </Link>
+                ))}
+              </div>
+            </Card>
+
+            <Card className="studio-block">
+              <CardEyebrow>Top skills in demand</CardEyebrow>
+              <div className="studio-chip-row">
+                {topSkills.length === 0 ? (
+                  <CardMeta>No skill demand yet from current jobs.</CardMeta>
+                ) : (
+                  topSkills.map((skill) => (
+                    <span key={skill.name} className="dashboard-chip">
+                      {skill.name} · {skill.count}
+                    </span>
+                  ))
+                )}
+              </div>
+            </Card>
 
             <Card className="studio-block">
               <CardEyebrow>Application stages</CardEyebrow>
@@ -351,14 +376,9 @@ export function Dashboard() {
                   </div>
                 ))}
               </div>
-              <Button to="/applications" variant="ghost">Open pipeline</Button>
             </Card>
           </aside>
         </section>
-
-        <div className="studio-floating-actions" aria-label="Quick learner actions">
-          <Button to="/jobs" variant="primary">Jobs</Button>
-          <Button to="/courses" variant="secondary">Courses</Button>
         </div>
       </div>
     </SiteLayout>

@@ -4,7 +4,7 @@ import { Role } from '@prisma/client';
 import { CertificationsService } from '../certifications.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PdfService } from '../pdf.service';
-import { StorageService } from '../storage.service';
+import { StorageService } from '../../storage/storage.service';
 
 // ── fixtures ──────────────────────────────────────────────────────────────
 const USER_ID   = 'user-uuid-1';

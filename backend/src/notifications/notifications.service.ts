@@ -1,13 +1,17 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import { NotificationsGateway } from './notifications.gateway';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name);
   private transporter: nodemailer.Transporter | null = null;
 
-  constructor(private readonly gateway: NotificationsGateway) {
+  constructor(
+    private readonly gateway: NotificationsGateway,
+    private readonly prisma: PrismaService,
+  ) {
     const appPassword = process.env.APP_PASSWORD;
     if (appPassword) {
       this.transporter = nodemailer.createTransport({
@@ -50,8 +54,72 @@ export class NotificationsService {
     await this.sendEmail(
       email,
       'Welcome to Hanga Works!',
-      `Hi ${name}, welcome to Hanga Works. Your registration is successfully complete.`
+      `Hi ${name}, welcome to Hanga Works. Your registration is successfully complete.`,
     );
+  }
+
+  async sendEmailVerification(email: string, name: string, token: string) {
+    const verifyUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email?token=${token}`;
+    await this.sendEmail(
+      email,
+      'Verify your Hanga Works email',
+      `Hi ${name}, verify your email: ${verifyUrl}`,
+      `<p>Hi ${name},</p><p><a href="${verifyUrl}">Click here to verify your email</a></p>`,
+    );
+  }
+
+  async createInApp(
+    userId: string,
+    type: string,
+    payload: Record<string, unknown>,
+  ) {
+    const row = await this.prisma.notification.create({
+      data: {
+        userId,
+        type,
+        payload: JSON.stringify(payload),
+      },
+    });
+
+    this.gateway.server?.emit(`notification-${userId}`, {
+      id: row.id,
+      type: row.type,
+      payload,
+      createdAt: row.createdAt,
+    });
+
+    return row;
+  }
+
+  async listForUser(userId: string, unreadOnly = false) {
+    return this.prisma.notification.findMany({
+      where: {
+        userId,
+        ...(unreadOnly ? { read: false } : {}),
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
+  }
+
+  async markRead(userId: string, notificationId: string) {
+    const row = await this.prisma.notification.findFirst({
+      where: { id: notificationId, userId },
+    });
+    if (!row) throw new NotFoundException('Notification not found');
+
+    return this.prisma.notification.update({
+      where: { id: notificationId },
+      data: { read: true },
+    });
+  }
+
+  async markAllRead(userId: string) {
+    const result = await this.prisma.notification.updateMany({
+      where: { userId, read: false },
+      data: { read: true },
+    });
+    return { updated: result.count };
   }
 
   async sendPasswordReset(email: string, token: string) {
@@ -65,6 +133,10 @@ export class NotificationsService {
 
   emitUserLoggedIn(userId: string) {
     this.gateway.emitUserLoggedIn(userId);
+  }
+
+  emitCourseComplete(userId: string, courseData: Record<string, unknown>) {
+    this.gateway.emitCourseComplete(userId, courseData);
   }
 
   // --- TEAMMATE HOOKS (LMS / JOBS) ---

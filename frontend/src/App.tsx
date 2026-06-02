@@ -1,7 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import AuthLayout from './components/layout/AuthLayout';
-import Home from './pages/home';
+import Home from './pages/home/Home';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import VerifyEmail from './pages/auth/VerifyEmail';
@@ -12,6 +13,7 @@ import { CourseDetail } from './pages/courses/CourseDetail';
 import CourseCreate from './pages/courses/CourseCreate';
 import JobList from './pages/jobs/JobList';
 import JobDetail from './pages/jobs/JobDetail';
+import JobApply from './pages/jobs/JobApply';
 import MyApplications from './pages/jobs/MyApplications';
 import { Dashboard } from './pages/dashboard/Dashboard';
 import Profile from './pages/profile/Profile';
@@ -35,12 +37,29 @@ import Blog from './pages/blog/Blog';
 import Intelligence from './pages/intelligence/Intelligence';
 import Notifications from './pages/notifications/Notifications';
 
+function RoleBasedRedirect({ children }: { children: JSX.Element }) {
+  const { user, isAuthenticated } = useAuth();
+  
+  if (!isAuthenticated || !user) {
+    return children;
+  }
+
+  const role = user.role?.toUpperCase();
+  if (role === 'ADMIN') return <Navigate to="/admin" replace />;
+  if (role === 'EMPLOYER') return <Navigate to="/employer" replace />;
+  if (role === 'MENTOR') return <Navigate to="/mentors/dashboard" replace />;
+  if (role === 'INSTITUTION') return <Navigate to="/institution/dashboard" replace />;
+  
+  return children;
+}
+
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <ScrollToTop />
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<RoleBasedRedirect><Home /></RoleBasedRedirect>} />
           <Route element={<AuthLayout />}>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -50,11 +69,12 @@ export default function App() {
             <Route path="/verify-email" element={<VerifyEmail />} />
           </Route>
           <Route path="/courses" element={<CourseList />} />
-          <Route path="/courses/new" element={<ProtectedRoute><CourseCreate /></ProtectedRoute>} />
+          <Route path="/courses/new" element={<InstitutionOrAdminRoute><CourseCreate /></InstitutionOrAdminRoute>} />
           <Route path="/courses/:id" element={<CourseDetail />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/jobs" element={<JobList />} />
           <Route path="/jobs/:id" element={<JobDetail />} />
+          <Route path="/jobs/:id/apply" element={<JobApply />} />
           <Route path="/applications" element={<ProtectedRoute><MyApplications /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/profile/:username" element={<Profile />} />
@@ -63,6 +83,11 @@ export default function App() {
           <Route path="/mentors" element={<MentorList />} />
           <Route path="/mentors/:id" element={<MentorProfile />} />
           <Route path="/mentors/:id/book" element={<MentorBooking />} />
+          
+          {/* New placeholders for specialized dashboards */}
+          <Route path="/mentors/dashboard" element={<ProtectedRoute><div>Mentor Dashboard Placeholder</div></ProtectedRoute>} />
+          <Route path="/institution/dashboard" element={<ProtectedRoute><div>Institution Dashboard Placeholder</div></ProtectedRoute>} />
+
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/candidates" element={<Candidates />} />
           <Route path="/blog" element={<Blog />} />
@@ -83,6 +108,16 @@ export default function App() {
   );
 }
 
+function ScrollToTop() {
+  const location = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [location.pathname]);
+
+  return null;
+}
+
 function ProtectedRoute({ children }: { children: JSX.Element }) {
   const { user, isAuthenticated } = useAuth();
   const location = useLocation();
@@ -101,9 +136,17 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
     return <Navigate to="/register" replace />;
   }
 
-  function AdminRoute({ children }: { children: JSX.Element }) {
+  function InstitutionOrAdminRoute({ children }: { children: JSX.Element }) {
     const { user } = useAuth();
     const role = user?.role ?? '';
-    if (role && role.toUpperCase() === 'ADMIN') return children;
-    return <Navigate to="/" replace />;
+    const upper = role.toUpperCase();
+    if (upper === 'INSTITUTION' || upper === 'ADMIN') return children;
+    return <Navigate to="/courses" replace />;
   }
+
+function AdminRoute({ children }: { children: JSX.Element }) {
+  const { user } = useAuth();
+  const role = user?.role ?? '';
+  if (role && role.toUpperCase() === 'ADMIN') return children;
+  return <Navigate to="/" replace />;
+}

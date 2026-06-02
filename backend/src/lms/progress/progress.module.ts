@@ -6,6 +6,7 @@ import { ProgressService } from './progress.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { JwtStrategy } from '../../auth/strategies/jwt.strategy';
 import { CertificationsModule } from '../../certifications/certifications.module';
+import { NotificationsModule } from '../../notifications/notifications.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { CertificationsModule } from '../../certifications/certifications.module
       signOptions: { expiresIn: '1d' },
     }),
     CertificationsModule,
+    NotificationsModule,
   ],
   controllers: [ProgressController],
   providers: [ProgressService, PrismaService, JwtStrategy],

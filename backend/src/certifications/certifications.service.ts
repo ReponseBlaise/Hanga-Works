@@ -7,7 +7,7 @@ import {
 import { Role } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { PdfService } from './pdf.service';
-import { StorageService } from './storage.service';
+import { StorageService } from '../storage/storage.service';
 
 @Injectable()
 export class CertificationsService {
@@ -110,5 +110,18 @@ export class CertificationsService {
       throw new ForbiddenException('Only employers can validate certificates');
     }
     return this.verify(token);
+  }
+
+  // Generate PDF on the fly for downloading
+  async generatePdfFor(code: string): Promise<Buffer> {
+    const cert = await this.verify(code);
+    return this.pdf.generate({
+      userName: cert.user.name,
+      courseName: cert.course?.title ?? 'Course',
+      issuedAt: cert.issuedAt,
+      code: cert.code,
+      issuerName: cert.issuer?.name ?? 'Hanga Works',
+      appUrl: process.env.APP_URL ?? 'http://localhost:3000',
+    });
   }
 }

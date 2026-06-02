@@ -74,89 +74,74 @@ export default function Home() {
 
   return (
     <SiteLayout>
-      <section className="dashboard-page">
-        <section className="dashboard-hero card card--hero">
-          <div className="dashboard-hero__copy">
+      <section className="studio-catalog" id="home">
+        <section className="studio-hero">
+          <div className="studio-hero__intro">
             <p className="eyebrow">Talent and learning platform</p>
             <h1 className="display-large">Find work, build skills, and move faster in one workspace.</h1>
-            <p className="dashboard-hero__lead">
+            <p className="lead">
               Hanga Works connects live jobs, active courses, and hiring workflows in a layout built for serious learners, recruiters, and institutions.
             </p>
-            <div className="dashboard-hero__actions">
+            <div className="studio-hero__actions">
               <Button to={isAuthenticated ? '/jobs' : '/register'} variant="primary" className="button--lg button--pill">
                 {isAuthenticated ? 'Browse jobs' : 'Create account'}
               </Button>
               <Button to="/login" variant="secondary" className="button--lg">Sign in</Button>
             </div>
-            <div className="dashboard-hero__metrics">
+            <div className="studio-stat-grid mt-lg">
               {stats.map((item) => (
-                <div key={item.label} className="dashboard-metric">
+                <div key={item.label}>
                   <span>{item.label}</span>
                   <strong>{item.value}</strong>
-                  <p className="muted">Loaded live from the backend.</p>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="dashboard-hero__visual">
-            <Card className="dashboard-panel">
-              <CardEyebrow>Smart search</CardEyebrow>
-              <CardTitle>Search jobs and courses together</CardTitle>
-              <div className="form-stack">
-                <label>Keyword<input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Frontend, analytics, mentorship..." /></label>
-                <label>Location<input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Kigali, remote..." /></label>
-                <label>Role type<select value={roleType} onChange={(e) => setRoleType(e.target.value)}><option value="ALL">All roles</option><option value="FULL_TIME">Full time</option><option value="PART_TIME">Part time</option><option value="REMOTE">Remote</option><option value="HYBRID">Hybrid</option><option value="INTERNSHIP">Internship</option><option value="FREELANCE">Freelance</option></select></label>
-              </div>
-              <div className="dashboard-card__actions">
-                <Button to="#featured-jobs" variant="primary">Find jobs</Button>
-                <Button to="#courses" variant="secondary">View courses</Button>
-              </div>
-            </Card>
-            <Card className="dashboard-panel">
-              <CardEyebrow>Top skills</CardEyebrow>
-              <CardTitle>Most common across live data</CardTitle>
-              <div className="dashboard-summary__grid">
-                {topSkills.map((skill) => (
-                  <div key={skill.name} className="dashboard-summary__stat">
-                    <span>{skill.name}</span>
-                    <strong>{skill.count}</strong>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </div>
+          <Card className="studio-hero__spotlight">
+            <CardEyebrow>Smart search</CardEyebrow>
+            <CardTitle>Search jobs and courses</CardTitle>
+            <div className="form-stack mt-md mb-md">
+              <label>Keyword<input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Frontend, analytics, mentorship..." /></label>
+              <label>Location<input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Kigali, remote..." /></label>
+              <label>Role type<select value={roleType} onChange={(e) => setRoleType(e.target.value)}><option value="ALL">All roles</option><option value="FULL_TIME">Full time</option><option value="PART_TIME">Part time</option><option value="REMOTE">Remote</option><option value="HYBRID">Hybrid</option><option value="INTERNSHIP">Internship</option><option value="FREELANCE">Freelance</option></select></label>
+            </div>
+            <div className="studio-action-row">
+              <Button to="#featured-jobs" variant="primary">Find jobs</Button>
+              <Button to="#courses" variant="secondary">View courses</Button>
+            </div>
+          </Card>
         </section>
 
-        <div className="dashboard-layout">
+        <section className="dashboard-layout dashboard-layout--two-col-right mt-lg">
           <main className="dashboard-main-column">
-            <section className="dashboard-section" id="featured-jobs">
-              <div className="dashboard-section__head">
+            <section className="studio-section" id="featured-jobs">
+              <div className="studio-section__head">
                 <div><p className="eyebrow">Jobs</p><h2>Featured roles</h2></div>
-                <Button to="/jobs" variant="ghost" className="dashboard-section__action">View all jobs</Button>
+                <Button to="/jobs" variant="ghost">View all jobs</Button>
               </div>
-              <div className="dashboard-card-grid dashboard-card-grid--wide">
+              <div className="studio-job-grid">
                 {featuredJobs.length === 0 ? (
-                  <Card className="dashboard-panel"><CardTitle>No jobs match this filter</CardTitle><CardMeta>Adjust the fields in the search card to uncover more live openings.</CardMeta></Card>
+                  <Card className="studio-block"><CardTitle>No jobs match this filter</CardTitle><CardMeta>Adjust the fields in the search card to uncover more live openings.</CardMeta></Card>
                 ) : (
                   featuredJobs.map((job) => (
-                    <Card key={job.id} className="dashboard-card">
-                      <div className="dashboard-card__top">
+                    <Card key={job.id} className="studio-job-card">
+                      <div className="studio-job-card__head">
                         <div>
                           <CardEyebrow>{job.employer.name}</CardEyebrow>
-                          <div className="dashboard-card__title"><Link to={`/jobs/${job.id}`}>{job.title}</Link></div>
+                          <CardTitle><Link to={`/jobs/${job.id}`}>{job.title}</Link></CardTitle>
                         </div>
-                        <div className="job-card__match">{job.jobType.replace('_', ' ')}</div>
+                        <span className="dashboard-chip">{job.jobType.replace('_', ' ')}</span>
                       </div>
                       <CardMeta>{formatLocation(job.location)}</CardMeta>
                       <CardMeta>{formatSalary(job.salaryMin, job.salaryMax)}</CardMeta>
-                      <p className="dashboard-card__meta">{job.description}</p>
-                      <div className="dashboard-card__tags">
+                      <p className="muted">{job.description}</p>
+                      <div className="studio-chip-row">
                         {(job.skills ?? []).slice(0, 3).map((skill) => <span key={skill.id} className="dashboard-chip">{skill.skill.name}</span>)}
                       </div>
-                      <div className="dashboard-card__actions">
+                      <div className="studio-action-row mt-md">
                         <Button to={`/jobs/${job.id}`} variant="secondary">Open details</Button>
-                        <Button to={`/jobs/${job.id}`} variant="primary" className="button--lg button--pill">Apply now</Button>
+                        <Button to={`/jobs/${job.id}`} variant="primary" className="button--pill">Apply now</Button>
                       </div>
                     </Card>
                   ))
@@ -164,18 +149,18 @@ export default function Home() {
               </div>
             </section>
 
-            <section className="dashboard-section" id="courses">
-              <div className="dashboard-section__head">
+            <section className="studio-section" id="courses">
+              <div className="studio-section__head">
                 <div><p className="eyebrow">Learning</p><h2>Recently published courses</h2></div>
-                <Button to="/courses" variant="ghost" className="dashboard-section__action">Browse courses</Button>
+                <Button to="/courses" variant="ghost">Browse courses</Button>
               </div>
-              <div className="dashboard-card-grid">
+              <div className="studio-job-grid">
                 {courses.map((course) => (
-                  <Card key={course.id} className="dashboard-card">
+                  <Card key={course.id} className="studio-job-card">
                     <CardEyebrow>{course.institution?.name ?? 'Hanga Works'}</CardEyebrow>
-                    <div className="dashboard-card__title"><Link to={`/courses/${course.id}`}>{course.title}</Link></div>
+                    <CardTitle><Link to={`/courses/${course.id}`}>{course.title}</Link></CardTitle>
                     <CardMeta>{course.description}</CardMeta>
-                    <div className="dashboard-card__actions">
+                    <div className="studio-action-row mt-md">
                       <Button to={`/courses/${course.id}`} variant="ghost">Open course</Button>
                       <Button to={`/courses/${course.id}`} variant="primary">Start course</Button>
                     </div>
@@ -186,27 +171,27 @@ export default function Home() {
           </main>
 
           <aside className="dashboard-rail dashboard-rail--right">
-            <Card className="dashboard-panel">
+            <Card className="studio-block">
               <CardEyebrow>Quick actions</CardEyebrow>
               <CardTitle>Move faster</CardTitle>
-              <div className="dashboard-panel__actions">
+              <div className="studio-stack mt-md">
                 <Button to="/login" variant="secondary">Sign in</Button>
                 <Button to="/jobs" variant="ghost">Search jobs</Button>
                 <Button to="/courses" variant="ghost">Explore courses</Button>
                 <Button to="/register" variant="ghost">Create account</Button>
               </div>
             </Card>
-            <Card className="dashboard-panel">
+            <Card className="studio-block">
               <CardEyebrow>Why it works</CardEyebrow>
               <CardTitle>Designed for trust</CardTitle>
-              <div className="dashboard-list">
-                <div className="dashboard-list__item"><div><strong>Unified state</strong><div className="dashboard-list__meta">Jobs, learning, and profiles remain connected.</div></div></div>
-                <div className="dashboard-list__item"><div><strong>Live data</strong><div className="dashboard-list__meta">Every card uses the backend feed.</div></div></div>
-                <div className="dashboard-list__item"><div><strong>Clear hierarchy</strong><div className="dashboard-list__meta">Primary actions stay visually dominant.</div></div></div>
+              <div className="studio-stack mt-md">
+                <div className="studio-inline-item"><div><strong>Unified state</strong><p>Jobs, learning, and profiles remain connected.</p></div></div>
+                <div className="studio-inline-item"><div><strong>Live data</strong><p>Every card uses the backend feed.</p></div></div>
+                <div className="studio-inline-item"><div><strong>Clear hierarchy</strong><p>Primary actions stay visually dominant.</p></div></div>
               </div>
             </Card>
           </aside>
-        </div>
+        </section>
       </section>
     </SiteLayout>
   );
