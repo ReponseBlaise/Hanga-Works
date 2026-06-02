@@ -50,6 +50,8 @@ export type CreateJobPayload = {
 export async function getJobs(params?: {
 	search?: string;
 	location?: string;
+	salaryMin?: number;
+	salaryMax?: number;
 	page?: number;
 	perPage?: number;
 	jobType?: string;

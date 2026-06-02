@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import AuthLayout from './components/layout/AuthLayout';
 import Home from './pages/home/Home';
@@ -12,6 +13,7 @@ import { CourseDetail } from './pages/courses/CourseDetail';
 import CourseCreate from './pages/courses/CourseCreate';
 import JobList from './pages/jobs/JobList';
 import JobDetail from './pages/jobs/JobDetail';
+import JobApply from './pages/jobs/JobApply';
 import MyApplications from './pages/jobs/MyApplications';
 import { Dashboard } from './pages/dashboard/Dashboard';
 import Profile from './pages/profile/Profile';
@@ -55,6 +57,7 @@ export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<RoleBasedRedirect><Home /></RoleBasedRedirect>} />
           <Route element={<AuthLayout />}>
@@ -66,11 +69,12 @@ export default function App() {
             <Route path="/verify-email" element={<VerifyEmail />} />
           </Route>
           <Route path="/courses" element={<CourseList />} />
-          <Route path="/courses/new" element={<ProtectedRoute><CourseCreate /></ProtectedRoute>} />
+          <Route path="/courses/new" element={<InstitutionOrAdminRoute><CourseCreate /></InstitutionOrAdminRoute>} />
           <Route path="/courses/:id" element={<CourseDetail />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/jobs" element={<JobList />} />
           <Route path="/jobs/:id" element={<JobDetail />} />
+          <Route path="/jobs/:id/apply" element={<JobApply />} />
           <Route path="/applications" element={<ProtectedRoute><MyApplications /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/profile/:username" element={<Profile />} />
@@ -104,6 +108,16 @@ export default function App() {
   );
 }
 
+function ScrollToTop() {
+  const location = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [location.pathname]);
+
+  return null;
+}
+
 function ProtectedRoute({ children }: { children: JSX.Element }) {
   const { user, isAuthenticated } = useAuth();
   const location = useLocation();
@@ -115,12 +129,20 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
   return children;
 }
 
-function EmployerRoute({ children }: { children: JSX.Element }) {
-  const { user } = useAuth();
-  const role = user?.role ?? '';
-  if (role && role.toUpperCase() === 'EMPLOYER') return children;
-  return <Navigate to="/register" replace />;
-}
+  function EmployerRoute({ children }: { children: JSX.Element }) {
+    const { user } = useAuth();
+    const role = user?.role ?? '';
+    if (role && role.toUpperCase() === 'EMPLOYER') return children;
+    return <Navigate to="/register" replace />;
+  }
+
+  function InstitutionOrAdminRoute({ children }: { children: JSX.Element }) {
+    const { user } = useAuth();
+    const role = user?.role ?? '';
+    const upper = role.toUpperCase();
+    if (upper === 'INSTITUTION' || upper === 'ADMIN') return children;
+    return <Navigate to="/courses" replace />;
+  }
 
 function AdminRoute({ children }: { children: JSX.Element }) {
   const { user } = useAuth();

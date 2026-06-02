@@ -5,7 +5,7 @@ import {
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
-import { Role } from '@prisma/client';
+import { Prisma, Role } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { FilterJobsDto } from './dto/filter-jobs.dto';
 import { CreateJobDto } from './dto/create-job.dto';
@@ -55,9 +55,9 @@ export class JobsService {
 
   // ── GET /jobs (with filters) ──────────────────────────────────────────────
   async findAll(filters: FilterJobsDto) {
-    const { search, location, jobType, skillId, skillIds, skillMatch = 'any', page = 1, perPage = 20 } = filters as any;
+    const { search, location, jobType, skillId, skillIds, skillMatch = 'any', salaryMin, salaryMax, page = 1, perPage = 20 } = filters;
 
-    const where: any = {
+    const where: Prisma.JobWhereInput = {
       isActive: true,
       ...(location && { location: { contains: location, mode: 'insensitive' } }),
       ...(jobType && { jobType }),
@@ -67,6 +67,8 @@ export class JobsService {
           { description: { contains: search, mode: 'insensitive' } },
         ],
       }),
+      ...(salaryMin != null && { salaryMax: { gte: salaryMin } }),
+      ...(salaryMax != null && { salaryMin: { lte: salaryMax } }),
     };
 
     // prefer multiple skillIds if provided, otherwise single skillId
@@ -199,7 +201,7 @@ export class JobsService {
       by: ['skillId'],
       where: { job: { isActive: true } },
       _count: { _all: true },
-    } as any);
+    });
 
     const skillIds = groups.map((g) => g.skillId);
 

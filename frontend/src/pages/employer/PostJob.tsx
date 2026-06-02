@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Card, CardMeta, CardTitle } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
@@ -39,7 +40,7 @@ export default function PostJob() {
 
   return (
     <SiteLayout>
-      <section className="studio-post-job">
+      <section className="studio-post-job studio-post-job--employer">
         <header className="studio-post-job__head">
           <div>
             <p className="eyebrow">Recruiter mode</p>
@@ -112,7 +113,7 @@ export default function PostJob() {
             {publishedJob ? (
               <Card className="studio-block">
                 <CardTitle>Published successfully</CardTitle>
-                <CardMeta>{publishedJob.title}</CardMeta>
+                  <CardMeta><Link to={`/jobs/${publishedJob.id}`}>{publishedJob.title}</Link></CardMeta>
                 <p className="muted">{publishedJob.location ?? 'No location'} · {publishedJob.jobType}</p>
                 <p>{publishedJob.description}</p>
               </Card>

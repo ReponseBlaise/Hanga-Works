@@ -1,16 +1,17 @@
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import Navbar from './Topbar';
 import Footer from './Footer';
 
 export default function AuthLayout() {
-  const location = useLocation();
-  const isRegister = location.pathname.includes('/register');
-
   return (
     <div className="auth-page">
       <Navbar />
-      <main className="auth-page__main" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '40px 20px' }}>
-        <Outlet />
+      <main className="auth-page__main">
+        <div className="auth-studio-shell auth-studio-shell--centered">
+          <section className="auth-studio-content auth-studio-content--centered">
+            <Outlet />
+          </section>
+        </div>
       </main>
       <Footer />
     </div>

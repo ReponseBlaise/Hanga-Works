@@ -101,3 +101,14 @@ The source code is organized modularly inside the `src/` directory:
 - `src/intelligence/` - AI Gap analysis and pathway recommendations.
 - `src/notifications/` - WebSocket events and email/SMS alerts.
 - `src/analytics/` - Platform and workforce metrics.
+
+## Current API Coverage
+
+- Auth, profile, and role-based access for learner, employer, institution, mentor, and admin users.
+- Job marketplace endpoints for search, filters, applications, recommendations, and skill aggregation.
+- Salary-range filtering is supported on `GET /jobs` through `salaryMin` and `salaryMax` query parameters.
+- Mentorship, certifications, LMS, intelligence, notifications, and analytics modules are wired into the NestJS app.
+
+## SRS Alignment Notes
+
+The job marketplace now includes the advanced salary filter required by the SRS. Remaining documentation and UI refinements should be tracked against the SRS before new scope is added.

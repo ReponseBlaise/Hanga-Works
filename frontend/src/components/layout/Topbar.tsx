@@ -40,10 +40,19 @@ export default function Navbar() {
 				{ label: 'Moderation', href: '/admin/moderation' },
 			];
 		}
+		if (userRole === 'MENTOR') {
+			return [
+				{ label: 'Home', href: '/' },
+				{ label: 'Mentors', href: '/mentors' },
+				{ label: 'Profile', href: '/profile' },
+				{ label: 'Courses', href: '/courses' },
+			];
+		}
 		return [
 			{ label: 'Home', href: '/' },
 			{ label: 'Dashboard', href: '/dashboard' },
 			{ label: 'Jobs', href: '/jobs' },
+			{ label: 'Mentors', href: '/mentors' },
 			{ label: 'Courses', href: '/courses' },
 			{ label: 'Certifications', href: '/certifications' },
 			{ label: 'Mentors', href: '/mentors' },

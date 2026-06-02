@@ -37,6 +37,18 @@ export class FilterJobsDto {
   @IsOptional()
   @Type(() => Number)
   @IsInt()
+  @Min(0)
+  salaryMin?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  salaryMax?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
   @Min(1)
   page?: number;
 
