@@ -55,6 +55,8 @@ export type CreateModulePayload = {
 	order?: number;
 };
 
+export type UpdateModulePayload = Partial<CreateModulePayload>;
+
 export type CourseEnrollment = {
 	id: string;
 	progress: number;
@@ -94,6 +96,33 @@ export async function createCourseModule(courseId: string, payload: CreateModule
 	const res = await api.post(`/courses/${courseId}/modules`, payload);
 	const data = res.data?.data ?? res.data;
 	return data as BackendCourseModule;
+}
+
+export async function updateCourseModule(courseId: string, moduleId: string, payload: UpdateModulePayload) {
+	const res = await api.patch(`/courses/${courseId}/modules/${moduleId}`, payload);
+	const data = res.data?.data ?? res.data;
+	return data as BackendCourseModule;
+}
+
+export async function deleteCourseModule(courseId: string, moduleId: string) {
+	const res = await api.delete(`/courses/${courseId}/modules/${moduleId}`);
+	const data = res.data?.data ?? res.data;
+	return data;
+}
+
+export async function uploadModuleMedia(file: File, purpose: 'course-video' | 'course-document', courseId?: string, moduleId?: string): Promise<{ publicUrl: string; provider: string; format: string; resourceType: string }> {
+	const formData = new FormData();
+	formData.append('file', file);
+	formData.append('purpose', purpose);
+	if (courseId) formData.append('courseId', courseId);
+	if (moduleId) formData.append('moduleId', moduleId);
+
+	const res = await api.post('/media/upload', formData, {
+		headers: {
+			'Content-Type': 'multipart/form-data',
+		},
+	});
+	return res.data?.data ?? res.data;
 }
 
 export async function enrollInCourse(courseId: string) {
