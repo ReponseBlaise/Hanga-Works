@@ -96,12 +96,12 @@ export default function Applicants() {
 
   return (
     <SiteLayout>
-      <section className="studio-applicants studio-applicants--employer">
-        <header className="studio-applicants__head">
+      <section className="studio-applicants studio-applicants--employer employer-page">
+        <header className="studio-applicants__head employer-page__head">
           <div>
             <p className="eyebrow">Applicant review</p>
-            <h1 className="display">Pipeline board with integrated profile review.</h1>
-            <p className="lead">Select a job, review candidates by stage, and add qualitative feedback from the same screen.</p>
+            <h1 className="display">Review candidates by stage</h1>
+            <p className="lead">Choose a job posting, then move applicants through Applied, Reviewing, Shortlisted, Hired, or Rejected.</p>
           </div>
           <div className="studio-action-row">
             <Button to="/employer/post-job" variant="primary">Post job</Button>
@@ -109,10 +109,14 @@ export default function Applicants() {
           </div>
         </header>
 
-        <Card className="studio-block">
-          <label className="form-stack">
-            Job posting
-            <select value={selectedJobId} onChange={(e) => setSelectedJobId(e.target.value)}>
+        <Card className="studio-block employer-form-card">
+          <label className="employer-form__label">
+            <span className="employer-form__label-row">Job posting</span>
+            <select
+              className="employer-form__select"
+              value={selectedJobId}
+              onChange={(e) => setSelectedJobId(e.target.value)}
+            >
               {jobs.length === 0 ? <option value="">No jobs available</option> : jobs.map((job) => <option key={job.id} value={job.id}>{job.title}</option>)}
             </select>
           </label>
