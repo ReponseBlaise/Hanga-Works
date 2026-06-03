@@ -23,7 +23,8 @@ export default function JobDetail() {
 		let active = true;
 		setLoading(true);
 		setError('');
-		Promise.all([getJobById(id), getJobs(), getApplications()])
+		const applicationsPromise = isAuthenticated ? getApplications() : Promise.resolve([]);
+		Promise.all([getJobById(id), getJobs(), applicationsPromise])
 			.then(([foundJob, allJobs, items]) => {
 				if (!active) return;
 				setJob(foundJob ?? null);

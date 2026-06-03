@@ -59,6 +59,7 @@ api.interceptors.response.use(
 			if (refreshResponse.status !== 200) {
 				console.error('Refresh endpoint returned non-200', { status: refreshResponse.status, data: refreshResponse.data });
 				setAuthToken(null);
+				if (typeof window !== 'undefined') window.dispatchEvent(new Event('auth:unauthorized'));
 				return Promise.reject(error);
 			}
 
@@ -67,6 +68,7 @@ api.interceptors.response.use(
 			if (!refreshedToken) {
 				console.error('No access token in refresh response', { data: refreshResponse.data });
 				setAuthToken(null);
+				if (typeof window !== 'undefined') window.dispatchEvent(new Event('auth:unauthorized'));
 				return Promise.reject(error);
 			}
 
@@ -80,6 +82,7 @@ api.interceptors.response.use(
 		} catch (err) {
 			console.error('Error while refreshing token', err);
 			setAuthToken(null);
+			if (typeof window !== 'undefined') window.dispatchEvent(new Event('auth:unauthorized'));
 			return Promise.reject(error);
 		}
 	}
