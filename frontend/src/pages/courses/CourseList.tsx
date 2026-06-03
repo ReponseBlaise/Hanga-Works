@@ -113,7 +113,7 @@ export function CourseList() {
 						<h1 className="display" style={{ color: 'white' }}>A redesigned learning marketplace with faster discovery.</h1>
 						<p className="lead" style={{ color: 'rgba(255,255,255,0.9)' }}>Switch between card and row formats, combine keyword and publication filters, and jump into enrolled courses directly.</p>
 						<div className="studio-action-row">
-							<Button to="/jobs" variant="secondary" style={{ background: 'rgba(255,255,255,0.1)', color: 'white', borderColor: 'rgba(255,255,255,0.2)' }}>View jobs</Button>
+							<Button to="/jobs" variant="secondary">View jobs</Button>
 							{canCreateCourse ? <Button to="/courses/new" variant="primary">Create course</Button> : null}
 						</div>
 					</div>

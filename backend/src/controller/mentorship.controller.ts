@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Request, Param } from '@nestjs/common';
 import { MentorshipService } from '../mentorship/mentorship.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -32,6 +32,11 @@ export class MentorshipController {
   @Get('mentors')
   async getMentors() {
     return this.mentorshipService.findAllMentors();
+  }
+
+  @Get('mentors/:id')
+  async getMentorById(@Param('id') id: string) {
+    return this.mentorshipService.findMentorById(id);
   }
 
   @Post('sessions/book')

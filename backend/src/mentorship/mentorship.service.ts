@@ -69,6 +69,19 @@ export class MentorshipService {
     });
   }
 
+  async findMentorById(id: string) {
+    const mentor = await this.prisma.mentorProfile.findUnique({
+      where: { id },
+      include: {
+        user: {
+          select: { id: true, name: true, avatarUrl: true },
+        },
+      },
+    });
+    if (!mentor) throw new NotFoundException('Mentor not found');
+    return mentor;
+  }
+
   async bookSession(menteeId: string, dto: BookSessionDto) {
     const mentor = await this.prisma.mentorProfile.findUnique({
       where: { id: dto.mentorId },

@@ -13,6 +13,10 @@ import { UpdateCourseDto } from './dto/update-course.dto';
 import { CreateModuleDto } from './dto/create-module.dto';
 import { UpdateModuleDto } from './dto/update-module.dto';
 import { AttachModuleMediaDto } from './dto/attach-module-media.dto';
+import { CreateCourseTestDto, SubmitTestAttemptDto } from './dto/course-test.dto';
+import { CertificationsService } from '../../certifications/certifications.service';
+import { NotificationsService } from '../../notifications/notifications.service';
+import { EnrollmentStatus } from '@prisma/client';
 
 const COURSES_CACHE_KEY = 'courses:all';
 const COURSES_TTL = 300; // 5 minutes
@@ -35,6 +39,8 @@ export class CoursesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly redis: RedisService,
+    private readonly certifications: CertificationsService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   private async invalidateCache() {
@@ -398,5 +404,131 @@ export class CoursesService {
       );
     }
     return module;
+  }
+
+  async createCourseTest(courseId: string, dto: CreateCourseTestDto, user: CurrentUserPayload) {
+    await this.getCourseForManage(courseId, user);
+
+    // Delete existing test if any
+    await this.prisma.courseTest.deleteMany({ where: { courseId } });
+
+    const test = await this.prisma.courseTest.create({
+      data: {
+        courseId,
+        instructions: dto.instructions,
+        passingScore: dto.passingScore ?? 80,
+        questions: {
+          create: dto.questions.map((q) => ({
+            question: q.question,
+            options: {
+              create: q.options.map((o) => ({
+                text: o.text,
+                isCorrect: o.isCorrect,
+              })),
+            },
+          })),
+        },
+      },
+    });
+
+    return { message: 'Test created successfully', testId: test.id };
+  }
+
+  async getCourseTest(courseId: string, user: CurrentUserPayload) {
+    const test = await this.prisma.courseTest.findUnique({
+      where: { courseId },
+      include: {
+        questions: {
+          include: {
+            options: { select: { id: true, text: true } }, // Don't expose isCorrect
+          },
+        },
+      },
+    });
+
+    if (!test) throw new NotFoundException('Test not found for this course');
+
+    return test;
+  }
+
+  async submitTestAttempt(courseId: string, userId: string, dto: SubmitTestAttemptDto) {
+    const test = await this.prisma.courseTest.findUnique({
+      where: { courseId },
+      include: {
+        questions: { include: { options: true } },
+      },
+    });
+
+    if (!test) throw new NotFoundException('Test not found');
+
+    let correctCount = 0;
+    const totalQuestions = test.questions.length;
+
+    for (const question of test.questions) {
+      const selectedOptionId = dto.answers[question.id];
+      const correctOption = question.options.find((o) => o.isCorrect);
+      if (correctOption && selectedOptionId === correctOption.id) {
+        correctCount++;
+      }
+    }
+
+    const score = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
+    const passed = score >= test.passingScore;
+
+    const attempt = await this.prisma.testAttempt.create({
+      data: {
+        testId: test.id,
+        userId,
+        score,
+        passed,
+      },
+    });
+
+    if (passed) {
+      const enrollment = await this.prisma.enrollment.findUnique({
+        where: { userId_courseId: { userId, courseId } },
+        include: { course: true },
+      });
+
+      if (enrollment && enrollment.status !== EnrollmentStatus.COMPLETED) {
+        await this.prisma.enrollment.update({
+          where: { id: enrollment.id },
+          data: {
+            status: EnrollmentStatus.COMPLETED,
+            progress: 100,
+            completedAt: new Date(),
+          },
+        });
+
+        await this.certifications.issue(userId, courseId);
+
+        const learner = await this.prisma.user.findUnique({
+          where: { id: userId },
+          select: { email: true, name: true },
+        });
+
+        const courseTitle = enrollment.course.title;
+        if (learner?.email) {
+          await this.notifications.sendCourseCompletion(learner.email, courseTitle);
+        }
+
+        await this.notifications.createInApp(userId, 'course-complete', {
+          title: 'Course completed',
+          message: `Congratulations! You passed the test and finished ${courseTitle}.`,
+          courseId,
+        });
+        this.notifications.emitCourseComplete(userId, {
+          courseTitle,
+          courseId,
+        });
+      }
+    }
+
+    return {
+      score,
+      passed,
+      passingScore: test.passingScore,
+      message: passed ? 'Congratulations, you passed!' : 'Keep trying! You did not meet the passing score.',
+    };
   }
 }

@@ -148,26 +148,19 @@ export function CourseDetail() {
 		}
 	}
 
-	async function handleSaveProgress(forceComplete = false) {
+	async function handleSaveProgress() {
 		if (!currentEnrollment) {
 			setTrackingMessage('Enroll first so the platform has an enrollment record to update.');
 			return;
 		}
 
-		const nextProgress = forceComplete ? 100 : progressValue;
 		setSavingProgress(true);
-		setTrackingMessage(forceComplete ? 'Marking the course complete so the certificate can be issued.' : 'Saving your study progress.');
+		setTrackingMessage('Saving your study progress.');
 		try {
-			const updated = await updateLessonProgress(currentEnrollment.id, nextProgress);
+			const updated = await updateLessonProgress(currentEnrollment.id, progressValue);
 			setEnrollments((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
-			setProgressValue(updated.progress ?? nextProgress);
-			if ((updated.progress ?? nextProgress) >= 100) {
-				const refreshedCertificates = await getMyCertificates();
-				setCertificates(refreshedCertificates ?? []);
-				setTrackingMessage('Course completed. Your certificate is now available under Certificates.');
-			} else {
-				setTrackingMessage(`Progress saved at ${updated.progress ?? nextProgress}%. Keep going to unlock the completion certificate.`);
-			}
+			setProgressValue(updated.progress ?? progressValue);
+			setTrackingMessage(`Progress saved at ${updated.progress ?? progressValue}%. Take the final test to complete the course.`);
 		} catch (saveError) {
 			console.error(saveError);
 			setTrackingMessage('Progress could not be saved right now. Try again later or check your connection.');
@@ -299,16 +292,21 @@ export function CourseDetail() {
 				<section className="learning-redesign__layout">
 					<aside className="learning-redesign__sidebar">
 						<Card className="studio-block">
-							<div className="studio-section__head" style={{ marginBottom: '12px' }}>
+							<div className="studio-section__head" style={{ marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
 								<CardEyebrow>Curriculum</CardEyebrow>
 								{isManager && (
-									<Button variant="ghost" type="button" onClick={() => {
-										setIsAddingModule(!isAddingModule);
-										setEditingModuleId(null);
-										setModuleForm({ title: '', content: '', videoUrl: '', order: (course.modules?.length ?? 0) + 1, file: null });
-									}}>
-										{isAddingModule && !editingModuleId ? 'Cancel' : '+ Add Lesson'}
-									</Button>
+									<div style={{ display: 'flex', gap: '8px' }}>
+										<Button variant="ghost" type="button" onClick={() => {
+											setIsAddingModule(!isAddingModule);
+											setEditingModuleId(null);
+											setModuleForm({ title: '', content: '', videoUrl: '', order: (course.modules?.length ?? 0) + 1, file: null });
+										}}>
+											{isAddingModule && !editingModuleId ? 'Cancel' : '+ Add Lesson'}
+										</Button>
+										<Button to={`/courses/${course.id}/test/edit`} variant="secondary">
+											Manage Test
+										</Button>
+									</div>
 								)}
 							</div>
 
@@ -400,35 +398,26 @@ export function CourseDetail() {
 											type="button"
 											variant="primary"
 											disabled={!currentEnrollment || savingProgress}
-											onClick={() => handleSaveProgress(false)}
+											onClick={() => handleSaveProgress()}
 										>
 											Save progress
 										</Button>
-										<Button
-											type="button"
-											variant="ghost"
-											disabled={!currentEnrollment || savingProgress}
-											onClick={() => handleSaveProgress(true)}
-										>
-											Mark complete
-										</Button>
+										{currentEnrollment ? (
+											<Button to={`/courses/${course.id}/test`} variant="primary">
+												Take Final Test
+											</Button>
+										) : (
+											<Button variant="primary" disabled>
+												Take Final Test
+											</Button>
+										)}
 									</div>
 									<div className="studio-progress-stack">
 										<CardMeta>
 											{currentEnrollment
-												? `Enrollment status: ${currentEnrollment.status.toLowerCase()} · ${currentEnrollment.progress}% complete`
+												? `Enrollment status: ${currentEnrollment.status.toLowerCase()}`
 												: 'Enroll to start tracking your progress and unlock a certificate.'}
 										</CardMeta>
-										<ProgressBar value={currentEnrollment?.progress ?? 0} label="Course completion" />
-										<input
-											type="range"
-											min={0}
-											max={100}
-											step={10}
-											value={progressValue}
-											disabled={!currentEnrollment}
-											onChange={(event) => setProgressValue(Number(event.target.value))}
-										/>
 										{trackingMessage ? <p className="muted">{trackingMessage}</p> : null}
 										{currentCertificate ? (
 											<div className="studio-action-row">

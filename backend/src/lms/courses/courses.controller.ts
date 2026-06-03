@@ -8,13 +8,14 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CoursesService } from './courses.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { CreateModuleDto } from './dto/create-module.dto';
 import { UpdateModuleDto } from './dto/update-module.dto';
 import { AttachModuleMediaDto } from './dto/attach-module-media.dto';
+import { CreateCourseTestDto, SubmitTestAttemptDto } from './dto/course-test.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../../auth/guards/optional-jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
@@ -145,5 +146,45 @@ export class CoursesController {
     @CurrentUser() user: CurrentUserPayload,
   ) {
     return this.coursesService.removeModule(courseId, moduleId, user);
+  }
+
+  @Post(':id/test')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'INSTITUTION', 'MENTOR')
+  @ApiOperation({ summary: 'Create or replace a test for a course' })
+  @ApiResponse({ status: 201, description: 'Test created successfully' })
+  createCourseTest(
+    @Param('id') courseId: string,
+    @Body() dto: CreateCourseTestDto,
+    @CurrentUser() user: CurrentUserPayload,
+  ) {
+    return this.coursesService.createCourseTest(courseId, dto, user);
+  }
+
+  @Get(':id/test')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Get the test for a course (options are randomized, correct answers hidden)' })
+  @ApiResponse({ status: 200, description: 'Returns the test questions' })
+  getCourseTest(
+    @Param('id') courseId: string,
+    @CurrentUser() user: CurrentUserPayload,
+  ) {
+    return this.coursesService.getCourseTest(courseId, user);
+  }
+
+  @Post(':id/test/attempt')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('LEARNER')
+  @ApiOperation({ summary: 'Submit answers for a course test' })
+  @ApiResponse({ status: 201, description: 'Returns score and whether passed' })
+  submitTestAttempt(
+    @Param('id') courseId: string,
+    @Body() dto: SubmitTestAttemptDto,
+    @CurrentUser() user: CurrentUserPayload,
+  ) {
+    return this.coursesService.submitTestAttempt(courseId, user.userId, dto);
   }
 }
