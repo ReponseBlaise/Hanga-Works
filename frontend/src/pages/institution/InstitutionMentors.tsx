@@ -6,7 +6,7 @@ import { Button } from '../../components/ui/Button';
 import { createInstitutionMentor, getMentors, MentorProfile } from '../../services/mentorship.service';
 
 export default function InstitutionMentors() {
-  const [form, setForm] = useState({ name: '', email: '', expertise: '', hourlyRate: 0 });
+  const [form, setForm] = useState({ name: '', email: '', password: '', expertise: '', hourlyRate: 0 });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -29,7 +29,7 @@ export default function InstitutionMentors() {
     try {
       await createInstitutionMentor(form);
       setSuccess('Mentor created successfully!');
-      setForm({ name: '', email: '', expertise: '', hourlyRate: 0 });
+      setForm({ name: '', email: '', password: '', expertise: '', hourlyRate: 0 });
       setIsAdding(false);
       
       const updated = await getMentors();
@@ -78,11 +78,12 @@ export default function InstitutionMentors() {
                 <Card className="studio-block mb-md">
                   <CardEyebrow>New Mentor</CardEyebrow>
                   <CardTitle>Create Mentor Account</CardTitle>
-                  <CardMeta>They will receive an email to set their password later.</CardMeta>
+                  <CardMeta>Set up a profile and secure login for them.</CardMeta>
                   
                   <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
                     <input type="text" required placeholder="Full Name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} style={{ padding: '10px', borderRadius: '4px', border: '1px solid var(--border)' }} />
                     <input type="email" required placeholder="Email Address" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} style={{ padding: '10px', borderRadius: '4px', border: '1px solid var(--border)' }} />
+                    <input type="password" required placeholder="Password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} style={{ padding: '10px', borderRadius: '4px', border: '1px solid var(--border)' }} />
                     <input type="text" required placeholder="Expertise (e.g., UI/UX, Data Science)" value={form.expertise} onChange={e => setForm(f => ({ ...f, expertise: e.target.value }))} style={{ padding: '10px', borderRadius: '4px', border: '1px solid var(--border)' }} />
                     <label style={{ fontSize: '0.85rem' }}>Hourly Rate ($) (Optional)</label>
                     <input type="number" min="0" placeholder="0" value={form.hourlyRate} onChange={e => setForm(f => ({ ...f, hourlyRate: Number(e.target.value) }))} style={{ padding: '10px', borderRadius: '4px', border: '1px solid var(--border)' }} />

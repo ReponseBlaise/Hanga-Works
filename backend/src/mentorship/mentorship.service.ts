@@ -19,7 +19,7 @@ export class MentorshipService {
     });
   }
 
-  async createInstitutionMentor(institutionUserId: string, data: { name: string, email: string, expertise: string, hourlyRate?: number }) {
+  async createInstitutionMentor(institutionUserId: string, data: { name: string, email: string, password?: string, expertise: string, hourlyRate?: number }) {
     const institutionUser = await this.prisma.user.findUnique({
       where: { id: institutionUserId },
       select: { organizationId: true, role: true }
@@ -34,7 +34,8 @@ export class MentorshipService {
     const existing = await this.prisma.user.findUnique({ where: { email: data.email } });
     if (existing) throw new ConflictException('Email already in use');
 
-    const passwordHash = await bcrypt.hash('Mentor@123!', 10);
+    const passwordToHash = data.password && data.password.trim().length > 0 ? data.password : 'Mentor@123!';
+    const passwordHash = await bcrypt.hash(passwordToHash, 10);
 
     const user = await this.prisma.user.create({
       data: {
@@ -66,6 +67,19 @@ export class MentorshipService {
         },
       },
     });
+  }
+
+  async findMentorById(id: string) {
+    const mentor = await this.prisma.mentorProfile.findUnique({
+      where: { id },
+      include: {
+        user: {
+          select: { id: true, name: true, avatarUrl: true },
+        },
+      },
+    });
+    if (!mentor) throw new NotFoundException('Mentor not found');
+    return mentor;
   }
 
   async bookSession(menteeId: string, dto: BookSessionDto) {

@@ -16,6 +16,11 @@ export class AdminController {
     return this.adminService.getUsers();
   }
 
+  @Get('users/:id')
+  getUserDetail(@Param('id') id: string) {
+    return this.adminService.getUserDetail(id);
+  }
+
   @Patch('users/:id/status')
   updateUserStatus(
     @Param('id') id: string,

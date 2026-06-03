@@ -20,7 +20,10 @@ async function hash(password: string): Promise<string> {
 async function main() {
   console.log('🌱 Seeding Hanga-Works database...');
 
-  // ── Clean slate (order respects FK constraints) ───────────────────────────
+  await prisma.testAttempt.deleteMany();
+  await prisma.testOption.deleteMany();
+  await prisma.testQuestion.deleteMany();
+  await prisma.courseTest.deleteMany();
   await prisma.sessionReview.deleteMany();
   await prisma.mentorSession.deleteMany();
   await prisma.mentorProfile.deleteMany();
@@ -189,6 +192,42 @@ async function main() {
       await prisma.courseSkill.create({ data: { courseId: course.id, skillId: skill(n).id } });
     }
     courses.push(course);
+
+    // Add a test to the first course
+    if (courses.length === 1) {
+      await prisma.courseTest.create({
+        data: {
+          courseId: course.id,
+          instructions: 'Please answer all questions carefully. You need 80% to pass and earn your certificate.',
+          passingScore: 80,
+          questions: {
+            create: [
+              {
+                question: 'What does HTML stand for?',
+                options: {
+                  create: [
+                    { text: 'Hyper Text Markup Language', isCorrect: true },
+                    { text: 'High Tech Modern Language', isCorrect: false },
+                    { text: 'Hyper Transfer Markup Logic', isCorrect: false }
+                  ]
+                }
+              },
+              {
+                question: 'Which company developed React?',
+                options: {
+                  create: [
+                    { text: 'Google', isCorrect: false },
+                    { text: 'Meta (Facebook)', isCorrect: true },
+                    { text: 'Microsoft', isCorrect: false }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      });
+      console.log(`✅ Created course test for ${course.title}`);
+    }
   }
   console.log(`✅ ${courses.length} courses with full content modules`);
 
