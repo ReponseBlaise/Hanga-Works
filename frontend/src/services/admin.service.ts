@@ -5,6 +5,11 @@ export async function getAdminUsers() {
   return response.data?.data ?? response.data;
 }
 
+export async function getAdminUserDetail(id: string) {
+  const response = await api.get(`/admin/moderation/users/${id}`);
+  return response.data?.data ?? response.data;
+}
+
 export async function updateAdminUserStatus(id: string, status: string) {
   const response = await api.patch(`/admin/moderation/users/${id}/status`, { status });
   return response.data?.data ?? response.data;

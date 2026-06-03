@@ -19,19 +19,30 @@ export default function AdminModerationPage() {
   useEffect(() => {
     let active = true;
     setLoading(true);
-    Promise.all([getAdminUsers(), getAdminJobs(), getAdminCourses()])
-      .then(([usersData, jobsData, coursesData]) => {
-        if (!active) return;
-        setUsers(usersData ?? []);
-        setJobs(jobsData ?? []);
-        setCourses(coursesData ?? []);
-      })
-      .catch(console.error)
-      .finally(() => {
+
+    const fetchData = async () => {
+      try {
+        if (activeTab === 'users' && users.length === 0) {
+          const data = await getAdminUsers();
+          if (active) setUsers(data ?? []);
+        } else if (activeTab === 'jobs' && jobs.length === 0) {
+          const data = await getAdminJobs();
+          if (active) setJobs(data ?? []);
+        } else if (activeTab === 'courses' && courses.length === 0) {
+          const data = await getAdminCourses();
+          if (active) setCourses(data ?? []);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
         if (active) setLoading(false);
-      });
+      }
+    };
+
+    fetchData();
+
     return () => { active = false; };
-  }, []);
+  }, [activeTab]);
 
   const handleToggleUser = async (id: string, currentStatus: string) => {
     const nextStatus = currentStatus === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
@@ -99,11 +110,18 @@ export default function AdminModerationPage() {
                       <div key={u.id} className="studio-inline-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', border: '1px solid var(--border)', borderRadius: '8px' }}>
                         <div>
                           <strong>{u.name}</strong> <span style={{ color: 'var(--text-muted)' }}>({u.email})</span>
-                          <p>Role: {u.role} · Status: <span style={{ color: u.status === 'ACTIVE' ? 'green' : 'red' }}>{u.status}</span></p>
+                          <p>Role: {u.role} · Status: <span style={{ color: u.status === 'ACTIVE' ? 'green' : u.status === 'PENDING' ? 'orange' : 'red' }}>{u.status}</span></p>
                         </div>
-                        <Button variant={u.status === 'ACTIVE' ? 'secondary' : 'primary'} onClick={() => handleToggleUser(u.id, u.status)}>
-                          {u.status === 'ACTIVE' ? 'Suspend' : 'Reactivate'}
-                        </Button>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          {u.status === 'PENDING' && (
+                            <Link to={`/admin/users/${u.id}`} className="studio-btn studio-btn--secondary">
+                              Review Details
+                            </Link>
+                          )}
+                          <Button variant={u.status === 'ACTIVE' ? 'secondary' : 'primary'} onClick={() => handleToggleUser(u.id, u.status)}>
+                            {u.status === 'ACTIVE' ? 'Suspend' : 'Reactivate'}
+                          </Button>
+                        </div>
                       </div>
                     ))
                   ) : activeTab === 'jobs' ? (

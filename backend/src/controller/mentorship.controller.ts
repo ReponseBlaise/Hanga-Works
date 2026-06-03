@@ -24,7 +24,7 @@ export class MentorshipController {
   @Post('create')
   async createInstitutionMentor(
     @Request() req: { user: { userId: string } },
-    @Body() data: { name: string, email: string, expertise: string, hourlyRate?: number },
+    @Body() data: { name: string, email: string, password?: string, expertise: string, hourlyRate?: number },
   ) {
     return this.mentorshipService.createInstitutionMentor(req.user.userId, data);
   }
