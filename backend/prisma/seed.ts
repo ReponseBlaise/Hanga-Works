@@ -56,26 +56,24 @@ async function main() {
     { name: 'PostgreSQL',         tag: 'database' },
   ];
 
-  const skills = await Promise.all(
-    skillDefs.map((s) => prisma.skill.create({ data: s })),
-  );
+  const skills = [];
+  for (const s of skillDefs) {
+    skills.push(await prisma.skill.create({ data: s }));
+  }
   const skill = (name: string) => skills.find((s) => s.name === name)!;
   console.log(`✅ ${skills.length} skills`);
 
   // ── Institutions ──────────────────────────────────────────────────────────
-  const [alx, kit] = await Promise.all([
-    prisma.organization.create({ data: { name: 'ALX Rwanda',                   type: OrgType.INSTITUTION, website: 'https://alxafrica.com', trainingCertificate: 'https://res.cloudinary.com/demo/image/upload/sample.jpg' } }),
-    prisma.organization.create({ data: { name: 'Kigali Institute of Technology', type: OrgType.INSTITUTION, website: 'https://kit.rw',       trainingCertificate: 'https://res.cloudinary.com/demo/image/upload/sample.jpg' } }),
-  ]);
+  const alx = await prisma.organization.create({ data: { name: 'ALX Rwanda',                   type: OrgType.INSTITUTION, website: 'https://alxafrica.com', trainingCertificate: 'https://res.cloudinary.com/demo/image/upload/sample.jpg' } });
+  const kit = await prisma.organization.create({ data: { name: 'Kigali Institute of Technology', type: OrgType.INSTITUTION, website: 'https://kit.rw',       trainingCertificate: 'https://res.cloudinary.com/demo/image/upload/sample.jpg' } });
 
   // ── Employer organisations (5) ────────────────────────────────────────────
-  const employerOrgs = await Promise.all([
-    prisma.organization.create({ data: { name: 'Andela Rwanda',  type: OrgType.EMPLOYER, website: 'https://andela.com',   companyCertificate: 'https://res.cloudinary.com/demo/image/upload/sample.jpg' } }),
-    prisma.organization.create({ data: { name: 'MTN Rwanda',     type: OrgType.EMPLOYER, website: 'https://mtn.rw',       companyCertificate: 'https://res.cloudinary.com/demo/image/upload/sample.jpg' } }),
-    prisma.organization.create({ data: { name: 'Bank of Kigali', type: OrgType.EMPLOYER, website: 'https://bk.rw',        companyCertificate: 'https://res.cloudinary.com/demo/image/upload/sample.jpg' } }),
-    prisma.organization.create({ data: { name: 'Irembo Ltd',     type: OrgType.EMPLOYER, website: 'https://irembo.com',   companyCertificate: 'https://res.cloudinary.com/demo/image/upload/sample.jpg' } }),
-    prisma.organization.create({ data: { name: 'RwandAir',       type: OrgType.EMPLOYER, website: 'https://rwandair.com', companyCertificate: 'https://res.cloudinary.com/demo/image/upload/sample.jpg' } }),
-  ]);
+  const employerOrgs = [];
+  employerOrgs.push(await prisma.organization.create({ data: { name: 'Andela Rwanda',  type: OrgType.EMPLOYER, website: 'https://andela.com',   companyCertificate: 'https://res.cloudinary.com/demo/image/upload/sample.jpg' } }));
+  employerOrgs.push(await prisma.organization.create({ data: { name: 'MTN Rwanda',     type: OrgType.EMPLOYER, website: 'https://mtn.rw',       companyCertificate: 'https://res.cloudinary.com/demo/image/upload/sample.jpg' } }));
+  employerOrgs.push(await prisma.organization.create({ data: { name: 'Bank of Kigali', type: OrgType.EMPLOYER, website: 'https://bk.rw',        companyCertificate: 'https://res.cloudinary.com/demo/image/upload/sample.jpg' } }));
+  employerOrgs.push(await prisma.organization.create({ data: { name: 'Irembo Ltd',     type: OrgType.EMPLOYER, website: 'https://irembo.com',   companyCertificate: 'https://res.cloudinary.com/demo/image/upload/sample.jpg' } }));
+  employerOrgs.push(await prisma.organization.create({ data: { name: 'RwandAir',       type: OrgType.EMPLOYER, website: 'https://rwandair.com', companyCertificate: 'https://res.cloudinary.com/demo/image/upload/sample.jpg' } }));
 
   // ── 20 Learner users ──────────────────────────────────────────────────────
   const learnerPwd = await hash('Learner@123');
@@ -102,13 +100,12 @@ async function main() {
     { name: 'Thierry Hakizimana', email: 'thierry.hakizimana@email.rw', phone: '+250780100020' },
   ];
 
-  const learners = await Promise.all(
-    learnerRows.map((u) =>
-      prisma.user.create({
-        data: { ...u, passwordHash: learnerPwd, role: Role.LEARNER, status: AccountStatus.ACTIVE },
-      }),
-    ),
-  );
+  const learners = [];
+  for (const u of learnerRows) {
+    learners.push(await prisma.user.create({
+      data: { ...u, passwordHash: learnerPwd, role: Role.LEARNER, status: AccountStatus.ACTIVE },
+    }));
+  }
   console.log(`✅ ${learners.length} learner users`);
 
   // ── 5 Employer users (one per org) ────────────────────────────────────────
@@ -121,19 +118,18 @@ async function main() {
     { name: 'Elise Murekatete', email: 'elise@rwandair.com',     phone: '+250780200005', orgIdx: 4 },
   ];
 
-  const employers = await Promise.all(
-    employerRows.map(({ orgIdx, ...u }) =>
-      prisma.user.create({
-        data: {
-          ...u,
-          passwordHash: employerPwd,
-          role: Role.EMPLOYER,
-          status: AccountStatus.ACTIVE,
-          organizationId: employerOrgs[orgIdx].id,
-        },
-      }),
-    ),
-  );
+  const employers = [];
+  for (const { orgIdx, ...u } of employerRows) {
+    employers.push(await prisma.user.create({
+      data: {
+        ...u,
+        passwordHash: employerPwd,
+        role: Role.EMPLOYER,
+        status: AccountStatus.ACTIVE,
+        organizationId: employerOrgs[orgIdx].id,
+      },
+    }));
+  }
   console.log(`${employers.length} employer users`);
 
   // ── 10 Courses with modules ───────────────────────────────────────────────
@@ -206,18 +202,17 @@ async function main() {
     },
   ];
 
-  const courses = await Promise.all(
-    courseDefs.map(async ({ skillNames, modules, ...fields }) => {
-      const course = await prisma.course.create({ data: { ...fields, published: true } });
-      await Promise.all(modules.map((title, i) =>
-        prisma.courseModule.create({ data: { courseId: course.id, title, order: i + 1 } }),
-      ));
-      await Promise.all(skillNames.map((n) =>
-        prisma.courseSkill.create({ data: { courseId: course.id, skillId: skill(n).id } }),
-      ));
-      return course;
-    }),
-  );
+  const courses = [];
+  for (const { skillNames, modules, ...fields } of courseDefs) {
+    const course = await prisma.course.create({ data: { ...fields, published: true } });
+    for (let i = 0; i < modules.length; i++) {
+      await prisma.courseModule.create({ data: { courseId: course.id, title: modules[i], order: i + 1 } });
+    }
+    for (const n of skillNames) {
+      await prisma.courseSkill.create({ data: { courseId: course.id, skillId: skill(n).id } });
+    }
+    courses.push(course);
+  }
   console.log(`✅ ${courses.length} courses with modules`);
 
   // ── 20 Jobs ───────────────────────────────────────────────────────────────
@@ -250,17 +245,16 @@ async function main() {
     { title: 'Graduate Software Trainee',      slug: 'grad-trainee-bk',             description: 'Entry-level rotational programme.',                  location: 'Kigali', jobType: JobType.INTERNSHIP, salaryMin: 250000, salaryMax: 400000,  orgIdx: 2, skillNames: ['JavaScript', 'Python'] },
   ];
 
-  const jobs = await Promise.all(
-    jobDefs.map(async ({ skillNames, orgIdx, ...fields }) => {
-      const job = await prisma.job.create({
-        data: { ...fields, employerId: employerOrgs[orgIdx].id },
-      });
-      await Promise.all(skillNames.map((n) =>
-        prisma.jobSkill.create({ data: { jobId: job.id, skillId: skill(n).id } }),
-      ));
-      return job;
-    }),
-  );
+  const jobs = [];
+  for (const { skillNames, orgIdx, ...fields } of jobDefs) {
+    const job = await prisma.job.create({
+      data: { ...fields, employerId: employerOrgs[orgIdx].id },
+    });
+    for (const n of skillNames) {
+      await prisma.jobSkill.create({ data: { jobId: job.id, skillId: skill(n).id } });
+    }
+    jobs.push(job);
+  }
   console.log(`✅ ${jobs.length} jobs`);
 
   // ── Enrollments (learner ↔ course pairs) ─────────────────────────────────
@@ -284,20 +278,18 @@ async function main() {
     EnrollmentStatus.COMPLETED,
   ];
 
-  await Promise.all(
-    enrollmentPairs.map(([li, ci]) => {
-      const pct = Math.floor(Math.random() * 90) + 10;
-      const status = pct === 100 ? EnrollmentStatus.COMPLETED : statusOptions[li % statusOptions.length];
-      return prisma.enrollment.create({
-        data: {
-          userId: learners[li].id,
-          courseId: courses[ci].id,
-          progress: pct,
-          status,
-        },
-      });
-    }),
-  );
+  for (const [li, ci] of enrollmentPairs) {
+    const pct = Math.floor(Math.random() * 90) + 10;
+    const status = pct === 100 ? EnrollmentStatus.COMPLETED : statusOptions[li % statusOptions.length];
+    await prisma.enrollment.create({
+      data: {
+        userId: learners[li].id,
+        courseId: courses[ci].id,
+        progress: pct,
+        status,
+      },
+    });
+  }
   console.log(`✅ ${enrollmentPairs.length} enrollments`);
 
   // ── Applications (learner ↔ job) ──────────────────────────────────────────
@@ -316,17 +308,15 @@ async function main() {
     [15, 14],[16, 15],[17, 16],[18, 17],[19, 19],
   ];
 
-  await Promise.all(
-    appPairs.map(([li, ji]) =>
-      prisma.application.create({
-        data: {
-          userId: learners[li].id,
-          jobId: jobs[ji].id,
-          status: appStatuses[li % appStatuses.length],
-        },
-      }),
-    ),
-  );
+  for (const [li, ji] of appPairs) {
+    await prisma.application.create({
+      data: {
+        userId: learners[li].id,
+        jobId: jobs[ji].id,
+        status: appStatuses[li % appStatuses.length],
+      },
+    });
+  }
   console.log(`✅ ${appPairs.length} job applications`);
 
   // ── UserSkills ────────────────────────────────────────────────────────────
@@ -351,52 +341,49 @@ async function main() {
     [11, ['PostgreSQL', 'SQL']],
   ];
 
-  await Promise.all(
-    userSkillDefs.flatMap(([li, names]) =>
-      names.map((n, i) =>
-        prisma.userSkill.create({
-          data: {
-            userId: learners[li].id,
-            skillId: skill(n).id,
-            level: levels[(li + i) % levels.length],
-          },
-        }),
-      ),
-    ),
-  );
+  for (const [li, names] of userSkillDefs) {
+    for (let i = 0; i < names.length; i++) {
+      const n = names[i];
+      await prisma.userSkill.create({
+        data: {
+          userId: learners[li].id,
+          skillId: skill(n).id,
+          level: levels[(li + i) % levels.length],
+        },
+      });
+    }
+  }
   console.log(` user skill assignments`);
 
   // ── Mentorship System ─────────────────────────────────────────────────────
   const mentorPwd = await hash('Mentor@123');
-  const mentorUsers = await Promise.all([
-    prisma.user.create({
-      data: { name: 'Dr. Jane Smith', email: 'jane.smith@mentor.rw', phone: '+250783000001', passwordHash: mentorPwd, role: Role.MENTOR },
-    }),
-    prisma.user.create({
-      data: { name: 'Alex Johnson', email: 'alex.johnson@mentor.rw', phone: '+250783000002', passwordHash: mentorPwd, role: Role.MENTOR },
-    }),
-  ]);
+  const mentorUsers = [];
+  mentorUsers.push(await prisma.user.create({
+    data: { name: 'Dr. Jane Smith', email: 'jane.smith@mentor.rw', phone: '+250783000001', passwordHash: mentorPwd, role: Role.MENTOR },
+  }));
+  mentorUsers.push(await prisma.user.create({
+    data: { name: 'Alex Johnson', email: 'alex.johnson@mentor.rw', phone: '+250783000002', passwordHash: mentorPwd, role: Role.MENTOR },
+  }));
 
-  const mentorProfiles = await Promise.all([
-    prisma.mentorProfile.create({
-      data: {
-        userId: mentorUsers[0].id,
-        expertise: 'Software Engineering & Career Growth',
-        bio: '10+ years at Big Tech. Here to help you navigate your career.',
-        hourlyRate: 50000,
-        availability: 'Mon-Wed 5PM-8PM',
-      },
-    }),
-    prisma.mentorProfile.create({
-      data: {
-        userId: mentorUsers[1].id,
-        expertise: 'Data Science & Machine Learning',
-        bio: 'Senior Data Scientist. Let\'s talk algorithms and data.',
-        hourlyRate: 40000,
-        availability: 'Sat-Sun 10AM-2PM',
-      },
-    }),
-  ]);
+  const mentorProfiles = [];
+  mentorProfiles.push(await prisma.mentorProfile.create({
+    data: {
+      userId: mentorUsers[0].id,
+      expertise: 'Software Engineering & Career Growth',
+      bio: '10+ years at Big Tech. Here to help you navigate your career.',
+      hourlyRate: 50000,
+      availability: 'Mon-Wed 5PM-8PM',
+    },
+  }));
+  mentorProfiles.push(await prisma.mentorProfile.create({
+    data: {
+      userId: mentorUsers[1].id,
+      expertise: 'Data Science & Machine Learning',
+      bio: 'Senior Data Scientist. Let\'s talk algorithms and data.',
+      hourlyRate: 40000,
+      availability: 'Sat-Sun 10AM-2PM',
+    },
+  }));
 
   await prisma.mentorSession.create({
     data: {
