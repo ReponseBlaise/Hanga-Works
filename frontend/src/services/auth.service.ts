@@ -80,6 +80,19 @@ export async function updateProfile(payload: {
 	return (res.data?.data ?? res.data) as AuthUser;
 }
 
+export async function uploadProfilePicture(file: File) {
+	const formData = new FormData();
+	formData.append('file', file);
+	formData.append('purpose', 'avatar');
+
+	const res = await api.post('/media/upload', formData, {
+		headers: {
+			'Content-Type': 'multipart/form-data',
+		},
+	});
+	return res.data?.data ?? res.data;
+}
+
 export async function logout() {
 	await api.post('/auth/logout');
 	setAuthToken(null);
