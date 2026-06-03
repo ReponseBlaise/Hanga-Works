@@ -145,12 +145,15 @@ export default function JobList() {
     <SiteLayout>
       <section className="studio-jobs joblist-redesign" id="results">
           <header className="joblist-redesign__hero">
-            <div className="joblist-redesign__promo">
-              <div>
+            <div className="joblist-redesign__promo" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '2rem' }}>
+              <div style={{ flex: '1 1 300px' }}>
                 <p className="eyebrow">Career Marketplace</p>
                 <h1 className="display">Find your next opportunity</h1>
                 <p className="lead">Explore roles, save favorites, and apply when you are ready.</p>
                 <Button to="/applications" variant="secondary">Track applications</Button>
+              </div>
+              <div style={{ flex: '1 1 300px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+                <img src="/career-banner.png" alt="Career Marketplace" style={{ maxWidth: '100%', height: 'auto', borderRadius: 'var(--radius-lg)', maxHeight: '200px', objectFit: 'cover' }} />
               </div>
             </div>
             <div className="joblist-redesign__stats">
