@@ -134,7 +134,7 @@ async function main() {
       }),
     ),
   );
-  console.log(`✅ ${employers.length} employer users`);
+  console.log(`${employers.length} employer users`);
 
   // ── 10 Courses with modules ───────────────────────────────────────────────
   type CourseInput = {
