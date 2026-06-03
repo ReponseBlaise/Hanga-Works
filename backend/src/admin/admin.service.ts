@@ -1,10 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AccountStatus } from '@prisma/client';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class AdminService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifications: NotificationsService
+  ) {}
 
   async getUsers() {
     return this.prisma.user.findMany({
@@ -23,11 +27,24 @@ export class AdminService {
   async updateUserStatus(id: string, status: AccountStatus) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
-    return this.prisma.user.update({
+    const updatedUser = await this.prisma.user.update({
       where: { id },
       data: { status },
-      select: { id: true, status: true },
+      select: { id: true, email: true, status: true },
     });
+
+    if (user.status === 'PENDING' && status !== 'PENDING') {
+      try {
+        await this.notifications.sendRegistrationFeedbackEmail(
+          updatedUser.email,
+          status === 'ACTIVE' ? 'APPROVED' : status
+        );
+      } catch (err) {
+        console.error('Failed to send registration feedback email', err);
+      }
+    }
+
+    return updatedUser;
   }
 
   async getJobs() {
