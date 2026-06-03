@@ -59,14 +59,15 @@ export default function CourseCreate() {
 				}
 			}
 
-			const course = await createCourse({
+			const payload: Parameters<typeof createCourse>[0] = {
 				title: form.title.trim(),
 				slug: form.slug.trim() || slugify(form.title),
 				description: form.description.trim(),
-				thumbnailUrl: uploadedUrl || undefined,
-				institutionId: form.institutionId.trim() || undefined,
 				published: form.published,
-			});
+			};
+			if (uploadedUrl) payload.thumbnailUrl = uploadedUrl;
+			if (form.institutionId.trim()) payload.institutionId = form.institutionId.trim();
+			const course = await createCourse(payload);
 			navigate(`/courses/${course.id}`);
 		} catch (creationError) {
 			console.error('Failed to create course', creationError);

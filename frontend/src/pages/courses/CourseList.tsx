@@ -103,9 +103,9 @@ export function CourseList() {
 		<SiteLayout>
 			<section className="studio-catalog">
 				<section className="studio-catalog__hero" style={{ 
-					backgroundImage: "linear-gradient(rgba(0, 10, 30, 0.7), rgba(0, 10, 30, 0.8)), url('https://images.unsplash.com/photo-1513258496099-481620202951?auto=format&fit=crop&q=80')",
+					backgroundImage: "linear-gradient(to right, rgba(0, 10, 40, 0.82) 0%, rgba(0, 10, 40, 0.5) 100%), url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1600&q=80')",
 					backgroundSize: 'cover',
-					backgroundPosition: 'center',
+					backgroundPosition: 'center top',
 					color: 'white',
 				}}>
 					<div className="studio-catalog__headline">
@@ -118,9 +118,9 @@ export function CourseList() {
 						</div>
 					</div>
 					<div className="studio-catalog__stats">
-						<div><span><span className="ui-icon" aria-hidden="true"><MdSchool /></span>Total courses</span><strong>{courses.length}</strong></div>
-						<div><span><span className="ui-icon" aria-hidden="true"><MdGroups /></span>Total enrollments</span><strong>{totalEnrollments}</strong></div>
-						<div><span><span className="ui-icon" aria-hidden="true"><MdCheckCircle /></span>Enrolled by you</span><strong>{enrolledCount}</strong></div>
+						<div><span><span className="ui-icon" aria-hidden="true"><MdSchool /></span>Total courses</span><strong style={{ color: 'white' }}>{courses.length}</strong></div>
+						<div><span><span className="ui-icon" aria-hidden="true"><MdGroups /></span>Total enrollments</span><strong style={{ color: 'white' }}>{totalEnrollments}</strong></div>
+						<div><span><span className="ui-icon" aria-hidden="true"><MdCheckCircle /></span>Enrolled by you</span><strong style={{ color: 'white' }}>{enrolledCount}</strong></div>
 					</div>
 				</section>
 

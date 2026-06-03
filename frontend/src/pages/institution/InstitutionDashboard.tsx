@@ -73,15 +73,15 @@ export default function InstitutionDashboard() {
             <div className="dashboard-redesign__headline-stats">
               <div>
                 <span>Total Courses</span>
-                <strong>{loading ? '...' : courses.length}</strong>
+                <strong style={{ color: 'var(--text)' }}>{loading ? '...' : courses.length}</strong>
               </div>
               <div>
                 <span>Published</span>
-                <strong>{loading ? '...' : publishedCourses}</strong>
+                <strong style={{ color: 'var(--text)' }}>{loading ? '...' : publishedCourses}</strong>
               </div>
               <div>
                 <span>Total Enrollments</span>
-                <strong>{loading ? '...' : totalEnrollments}</strong>
+                <strong style={{ color: 'var(--text)' }}>{loading ? '...' : totalEnrollments}</strong>
               </div>
             </div>
           </section>
