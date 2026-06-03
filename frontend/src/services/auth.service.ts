@@ -41,11 +41,7 @@ export async function register(payload: {
 	if (payload.role) formData.append('role', payload.role);
 	if (payload.certificate) formData.append('certificate', payload.certificate);
 
-	await api.post('/auth/register', formData, {
-		headers: {
-			'Content-Type': 'multipart/form-data',
-		},
-	});
+	await api.post('/auth/register', formData);
 	// Immediately log in to get the token
 	return await login({ email: payload.email, password: payload.password });
 }
@@ -83,9 +79,8 @@ export async function updateProfile(payload: {
 export async function uploadProfilePicture(file: File) {
 	const formData = new FormData();
 	formData.append('file', file);
-	formData.append('purpose', 'avatar');
 
-	const res = await api.post('/media/upload', formData, {
+	const res = await api.post('/media/upload?purpose=avatar', formData, {
 		headers: {
 			'Content-Type': 'multipart/form-data',
 		},

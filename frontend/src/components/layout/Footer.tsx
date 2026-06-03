@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { MdEmail, MdHelpOutline, MdSchool } from 'react-icons/md';
 
 type FooterColumn = {
   title: string;
@@ -133,15 +134,15 @@ export default function Footer() {
             Hanga Works unifies learning, hiring, and workforce intelligence in one enterprise-ready workspace.
           </p>
           <div className="site-footer__social">
-            {[
-              { label: 'email', href: 'mailto:hello@hanga.works' },
-              { label: 'support', href: '/contact' },
-              { label: 'learn', href: '/courses' },
-            ].map((item) => (
-              <a key={item.label} href={item.href} className="site-footer__social-link" aria-label={item.label}>
-                {item.label[0].toUpperCase()}
-              </a>
-            ))}
+            <a href="mailto:hello@hanga.works" className="site-footer__social-link" aria-label="email">
+              <MdEmail size={20} />
+            </a>
+            <a href="/contact" className="site-footer__social-link" aria-label="support">
+              <MdHelpOutline size={20} />
+            </a>
+            <a href="/courses" className="site-footer__social-link" aria-label="learn">
+              <MdSchool size={20} />
+            </a>
           </div>
         </div>
 

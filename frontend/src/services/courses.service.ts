@@ -110,18 +110,50 @@ export async function deleteCourseModule(courseId: string, moduleId: string) {
 	return data;
 }
 
-export async function uploadModuleMedia(file: File, purpose: 'course-video' | 'course-document' | 'course-thumbnail', courseId?: string, moduleId?: string): Promise<{ publicUrl: string; provider: string; format: string; resourceType: string }> {
+export async function uploadModuleMedia(
+	file: File, 
+	purpose: 'course-video' | 'course-document' | 'course-thumbnail', 
+	courseId?: string, 
+	moduleId?: string
+): Promise<{ publicUrl: string; provider: string; format: string; resourceType: string }> {
 	const formData = new FormData();
 	formData.append('file', file);
-	formData.append('purpose', purpose);
-	if (courseId) formData.append('courseId', courseId);
-	if (moduleId) formData.append('moduleId', moduleId);
 
-	const res = await api.post('/media/upload', formData, {
+	let url = `/media/upload?purpose=${purpose}`;
+	if (courseId) url += `&courseId=${courseId}`;
+	if (moduleId) url += `&moduleId=${moduleId}`;
+
+	const res = await api.post(url, formData, {
 		headers: {
 			'Content-Type': 'multipart/form-data',
 		},
 	});
+	return res.data?.data ?? res.data;
+}
+
+export async function uploadIntelligenceMedia(file: File, purpose: 'course-video' | 'course-document', courseId: string) {
+	const formData = new FormData();
+	formData.append('file', file);
+	formData.append('purpose', purpose);
+	formData.append('courseId', courseId);
+	const res = await api.post('/api/v1/intelligence/upload', formData, {
+		headers: { 'Content-Type': 'multipart/form-data' }
+	});
+	return res.data?.data ?? res.data;
+}
+
+export async function createCourseTest(courseId: string, testData: any) {
+	const res = await api.post(`/api/v1/courses/${courseId}/test`, testData);
+	return res.data?.data ?? res.data;
+}
+
+export async function getCourseTest(courseId: string) {
+	const res = await api.get(`/api/v1/courses/${courseId}/test`);
+	return res.data?.data ?? res.data;
+}
+
+export async function submitTestAttempt(courseId: string, answers: Record<string, string>) {
+	const res = await api.post(`/api/v1/courses/${courseId}/test/attempt`, { answers });
 	return res.data?.data ?? res.data;
 }
 

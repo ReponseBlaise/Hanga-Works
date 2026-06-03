@@ -61,7 +61,7 @@ export async function getMySessions(): Promise<MentorSession[]> {
   return response.data?.data ?? response.data;
 }
 
-export async function createInstitutionMentor(data: { name: string, email: string, expertise: string, hourlyRate?: number }) {
+export async function createInstitutionMentor(data: { name: string, email: string, password?: string, expertise: string, hourlyRate?: number }) {
   const response = await api.post('/mentorship/create', data);
   return response.data?.data ?? response.data;
 }

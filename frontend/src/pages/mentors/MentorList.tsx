@@ -4,8 +4,10 @@ import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Card, CardEyebrow, CardTitle, CardMeta } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { getMentors, MentorSummary } from '../../services/mentors.service';
+import { useAuth } from '../../context/AuthContext';
 
 export default function MentorList() {
+  const { user } = useAuth();
   const [mentors, setMentors] = useState<MentorSummary[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -46,10 +48,12 @@ export default function MentorList() {
                 <div className="mentor-skills">{(m.skills ?? []).slice(0,3).map((s) => <span key={s}>{s}</span>)}</div>
               </div>
               <CardMeta>{m.bio ?? 'Industry practitioner available for mentoring sessions.'}</CardMeta>
-              {m.availability?.length ? <CardMeta>{m.availability.join(' · ')}</CardMeta> : null}
+              {m.availability ? <CardMeta>{Array.isArray(m.availability) ? m.availability.join(' · ') : m.availability}</CardMeta> : null}
               <div className="mentor-card__actions">
                 <Button to={`/mentors/${m.id}`} variant="secondary">View profile</Button>
-                <Button to={`/mentors/${m.id}/book`} variant="primary">Book session</Button>
+                {user?.role === 'LEARNER' && (
+                  <Button to={`/mentors/${m.id}/book`} variant="primary">Book session</Button>
+                )}
               </div>
             </Card>
           ))}

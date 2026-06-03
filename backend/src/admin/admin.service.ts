@@ -12,6 +12,7 @@ export class AdminService {
 
   async getUsers() {
     return this.prisma.user.findMany({
+      take: 50,
       select: {
         id: true,
         name: true,
@@ -49,6 +50,7 @@ export class AdminService {
 
   async getJobs() {
     return this.prisma.job.findMany({
+      take: 50,
       select: {
         id: true,
         title: true,
@@ -72,6 +74,7 @@ export class AdminService {
 
   async getCourses() {
     return this.prisma.course.findMany({
+      take: 50,
       select: {
         id: true,
         title: true,
@@ -91,5 +94,18 @@ export class AdminService {
       data: { published },
       select: { id: true, published: true },
     });
+  }
+
+  async getUserDetail(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: {
+        organization: true,
+      },
+    });
+    if (!user) throw new NotFoundException('User not found');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (user as any).passwordHash;
+    return user;
   }
 }
