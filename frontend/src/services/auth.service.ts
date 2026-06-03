@@ -79,9 +79,12 @@ export async function updateProfile(payload: {
 export async function uploadProfilePicture(file: File) {
 	const formData = new FormData();
 	formData.append('file', file);
-	formData.append('purpose', 'avatar');
 
-	const res = await api.post('/media/upload', formData);
+	const res = await api.post('/media/upload?purpose=avatar', formData, {
+		headers: {
+			'Content-Type': 'multipart/form-data',
+		},
+	});
 	return res.data?.data ?? res.data;
 }
 

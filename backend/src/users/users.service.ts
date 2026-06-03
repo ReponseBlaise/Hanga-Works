@@ -78,40 +78,45 @@ export class UsersService {
   }
 
   async updateProfile(userId: string, dto: UpdateUserDto) {
-    const { skills, ...userData } = dto;
+    try {
+      const { skills, ...userData } = dto;
 
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: userData,
-    });
-
-    if (skills) {
-      await this.prisma.userSkill.deleteMany({
-        where: { userId },
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: userData,
       });
 
-      for (const s of skills) {
-        let skill = await this.prisma.skill.findUnique({
-          where: { name: s.skillName },
+      if (skills) {
+        await this.prisma.userSkill.deleteMany({
+          where: { userId },
         });
 
-        if (!skill) {
-          skill = await this.prisma.skill.create({
-            data: { name: s.skillName },
+        for (const s of skills) {
+          let skill = await this.prisma.skill.findUnique({
+            where: { name: s.skillName },
+          });
+
+          if (!skill) {
+            skill = await this.prisma.skill.create({
+              data: { name: s.skillName },
+            });
+          }
+
+          await this.prisma.userSkill.create({
+            data: {
+              userId,
+              skillId: skill.id,
+              level: s.level,
+            },
           });
         }
-
-        await this.prisma.userSkill.create({
-          data: {
-            userId,
-            skillId: skill.id,
-            level: s.level,
-          },
-        });
       }
-    }
 
-    return this.getProfile(userId);
+      return this.getProfile(userId);
+    } catch (error: any) {
+      require('fs').writeFileSync('updateProfile-error.log', String(error) + '\n' + (error.stack || ''));
+      throw error;
+    }
   }
 
   async getProfileSetupStatus(userId: string) {

@@ -6,7 +6,7 @@
     "node": ">=18"
   },
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/main.ts",
+    "dev": "nodemon --watch src --ext ts,js --exec ts-node src/main.ts",
     "build": "node build.js",
     "start": "node dist/main.js",
     "test": "jest",
@@ -16,7 +16,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
-    "prisma:seed": "ts-node --transpile-only prisma/seed.ts"
+    "prisma:seed": "ts-node -r dotenv/config --transpile-only prisma/seed.ts"
   },
   "jest": {
     "moduleFileExtensions": [
@@ -36,7 +36,7 @@
     "testEnvironment": "node"
   },
   "prisma": {
-    "seed": "ts-node --transpile-only prisma/seed.ts"
+    "seed": "ts-node -r dotenv/config --transpile-only prisma/seed.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1051.0",
@@ -88,6 +88,7 @@
     "eslint": "^8.46.0",
     "eslint-config-prettier": "^9.0.0",
     "jest": "^30.4.2",
+    "nodemon": "^3.1.14",
     "prisma": "^5.0.0",
     "supertest": "^7.2.2",
     "ts-jest": "^29.4.10",
