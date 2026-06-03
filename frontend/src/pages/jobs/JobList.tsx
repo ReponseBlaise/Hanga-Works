@@ -162,7 +162,7 @@ export default function JobList() {
                 <p className="eyebrow" style={{ color: 'rgba(255,255,255,0.85)' }}>Career Marketplace</p>
                 <h1 className="display" style={{ color: 'white', marginBottom: '1rem' }}>Find your next opportunity</h1>
                 <p className="lead" style={{ color: 'rgba(255,255,255,0.9)', marginBottom: '1.5rem' }}>Explore roles, save favorites, and apply when you are ready.</p>
-                <Button to="/applications" variant="secondary" style={{ backgroundColor: 'white', color: 'black', border: 'none' }}>Track applications</Button>
+                <Button to="/applications" variant="secondary">Track applications</Button>
               </div>
             </div>
             <div className="joblist-redesign__stats">

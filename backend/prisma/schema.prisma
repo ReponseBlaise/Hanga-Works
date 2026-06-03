@@ -36,6 +36,7 @@ model User {
   refreshTokens      RefreshToken[]
   organization       Organization?   @relation(fields: [organizationId], references: [id])
   skills             UserSkill[]
+  testAttempts       TestAttempt[]
 
   @@index([email])
   @@index([role])
@@ -104,6 +105,7 @@ model Course {
   modules        CourseModule[]
   skills         CourseSkill[]
   enrollments    Enrollment[]
+  test           CourseTest?
 
   @@index([published])
 }
@@ -248,6 +250,53 @@ model MentorProfile {
   updatedAt    DateTime        @updatedAt
   user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   sessions     MentorSession[]
+}
+
+model CourseTest {
+  id           String         @id @default(uuid())
+  courseId     String         @unique
+  instructions String?
+  passingScore Int            @default(80)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  course       Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  questions    TestQuestion[]
+  attempts     TestAttempt[]
+}
+
+model TestQuestion {
+  id        String       @id @default(uuid())
+  testId    String
+  question  String
+  createdAt DateTime     @default(now())
+  options   TestOption[]
+  test      CourseTest   @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  @@index([testId])
+}
+
+model TestOption {
+  id         String       @id @default(uuid())
+  questionId String
+  text       String
+  isCorrect  Boolean      @default(false)
+  question   TestQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
+}
+
+model TestAttempt {
+  id        String     @id @default(uuid())
+  testId    String
+  userId    String
+  score     Int
+  passed    Boolean
+  createdAt DateTime   @default(now())
+  test      CourseTest @relation(fields: [testId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([testId])
+  @@index([userId])
 }
 
 model MentorSession {
