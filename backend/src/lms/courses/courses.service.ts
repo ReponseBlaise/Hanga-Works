@@ -48,8 +48,8 @@ export class CoursesService {
   }
 
   private assertCanManage(role: string) {
-    if (role !== Role.ADMIN && role !== Role.INSTITUTION) {
-      throw new ForbiddenException('Only admins and institutions can manage courses');
+    if (role !== Role.ADMIN && role !== Role.INSTITUTION && role !== Role.MENTOR) {
+      throw new ForbiddenException('Only admins, institutions, and mentors can manage courses');
     }
   }
 
@@ -60,6 +60,10 @@ export class CoursesService {
   ): Promise<string | undefined> {
     if (role === Role.ADMIN) {
       return institutionId;
+    }
+
+    if (role === Role.MENTOR) {
+      return institutionId ?? undefined;
     }
 
     const user = await this.prisma.user.findUnique({
@@ -101,6 +105,10 @@ export class CoursesService {
       ) {
         return course;
       }
+    }
+
+    if (user.role === Role.MENTOR) {
+      return course;
     }
 
     throw new ForbiddenException('You cannot manage this course');
