@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Card, CardMeta, CardTitle, CardEyebrow } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
@@ -104,45 +105,68 @@ export default function AdminExportPage() {
 
   return (
     <SiteLayout>
-      <section className="studio-dashboard">
-        <header className="studio-hero">
-          <div className="studio-hero__intro">
-            <p className="eyebrow">Data export</p>
-            <h1 className="display-large">Download platform data</h1>
-            <p className="lead">Export users and courses in CSV, Excel, or PDF formats for offline reporting and compliance.</p>
+      <div className="app-shell-layout">
+        <aside className="app-shell-sidebar">
+          <div className="app-shell-brand">
+            <strong>Hanga Works</strong>
+            <span>Admin Control</span>
           </div>
-        </header>
+          <nav className="app-shell-nav">
+            <Link to="/admin" className="app-shell-nav__item">Platform Overview</Link>
+            <Link to="/admin/export" className="app-shell-nav__item is-active">Data Exports</Link>
+            <Link to="/admin/moderation" className="app-shell-nav__item">Moderation Queue</Link>
+            <Link to="/profile" className="app-shell-nav__item">Admin Profile</Link>
+          </nav>
+        </aside>
 
-        <section className="studio-section mt-lg">
-          <main className="studio-column studio-column--main">
-            {message ? <div className="studio-block mb-md" style={{ padding: '16px', background: 'var(--surface-muted)', borderRadius: 'var(--radius-md)' }}><strong>Status:</strong> {message}</div> : null}
-            
-            <div className="studio-job-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
-              <Card className="studio-block">
-                <CardEyebrow>Users Database</CardEyebrow>
-                <CardTitle>Export all users</CardTitle>
-                <CardMeta>Includes ID, name, email, role, and creation dates.</CardMeta>
-                <div className="studio-action-row mt-md">
-                  <Button type="button" onClick={() => exportData('users', 'csv')} disabled={exporting}>CSV</Button>
-                  <Button type="button" onClick={() => exportData('users', 'excel')} disabled={exporting}>Excel</Button>
-                  <Button type="button" onClick={() => exportData('users', 'pdf')} disabled={exporting} variant="primary">PDF</Button>
-                </div>
-              </Card>
-
-              <Card className="studio-block">
-                <CardEyebrow>Course Catalog</CardEyebrow>
-                <CardTitle>Export all courses</CardTitle>
-                <CardMeta>Includes course details, institution, publish status, and enrollment counts.</CardMeta>
-                <div className="studio-action-row mt-md">
-                  <Button type="button" onClick={() => exportData('courses', 'csv')} disabled={exporting}>CSV</Button>
-                  <Button type="button" onClick={() => exportData('courses', 'excel')} disabled={exporting}>Excel</Button>
-                  <Button type="button" onClick={() => exportData('courses', 'pdf')} disabled={exporting} variant="primary">PDF</Button>
-                </div>
-              </Card>
+        <div className="studio-dashboard dashboard-redesign">
+          <header className="dashboard-redesign__hero">
+            <div>
+              <p className="eyebrow">Data export</p>
+              <h1 className="display">Download platform data</h1>
+              <p className="lead">Export users and courses in CSV, Excel, or PDF formats for offline reporting and compliance.</p>
             </div>
-          </main>
-        </section>
-      </section>
+          </header>
+
+          <section className="dashboard-redesign__layout mt-lg">
+            <main className="dashboard-main-column">
+              {message ? <div className="studio-block mb-md" style={{ padding: '16px', background: 'var(--surface-muted)', borderRadius: 'var(--radius-md)' }}><strong>Status:</strong> {message}</div> : null}
+              
+              <div className="studio-jobs-grid">
+                <Card className="studio-block">
+                  <div className="studio-section__head">
+                    <div>
+                      <p className="eyebrow">Users Database</p>
+                      <h2>Export all users</h2>
+                    </div>
+                  </div>
+                  <CardMeta>Includes ID, name, email, role, and creation dates.</CardMeta>
+                  <div className="studio-action-row mt-md">
+                    <Button type="button" onClick={() => exportData('users', 'csv')} disabled={exporting}>CSV</Button>
+                    <Button type="button" onClick={() => exportData('users', 'excel')} disabled={exporting}>Excel</Button>
+                    <Button type="button" onClick={() => exportData('users', 'pdf')} disabled={exporting} variant="primary">PDF</Button>
+                  </div>
+                </Card>
+
+                <Card className="studio-block">
+                  <div className="studio-section__head">
+                    <div>
+                      <p className="eyebrow">Course Catalog</p>
+                      <h2>Export all courses</h2>
+                    </div>
+                  </div>
+                  <CardMeta>Includes course details, institution, publish status, and enrollment counts.</CardMeta>
+                  <div className="studio-action-row mt-md">
+                    <Button type="button" onClick={() => exportData('courses', 'csv')} disabled={exporting}>CSV</Button>
+                    <Button type="button" onClick={() => exportData('courses', 'excel')} disabled={exporting}>Excel</Button>
+                    <Button type="button" onClick={() => exportData('courses', 'pdf')} disabled={exporting} variant="primary">PDF</Button>
+                  </div>
+                </Card>
+              </div>
+            </main>
+          </section>
+        </div>
+      </div>
     </SiteLayout>
   );
 }

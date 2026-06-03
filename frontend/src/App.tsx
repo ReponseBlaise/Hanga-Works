@@ -30,6 +30,10 @@ import CertificationVerify from './pages/certifications/CertificationVerify';
 import MentorList from './pages/mentors/MentorList';
 import MentorProfile from './pages/mentors/MentorProfile';
 import MentorBooking from './pages/mentors/MentorBooking';
+import MentorDashboard from './pages/mentors/MentorDashboard';
+import InstitutionDashboard from './pages/institution/InstitutionDashboard';
+import InstitutionMentors from './pages/institution/InstitutionMentors';
+import InstitutionCertifications from './pages/institution/InstitutionCertifications';
 import Contact from './pages/contact/Contact';
 import Pricing from './pages/pricing/Pricing';
 import Candidates from './pages/candidates/Candidates';
@@ -84,9 +88,11 @@ export default function App() {
           <Route path="/mentors/:id" element={<MentorProfile />} />
           <Route path="/mentors/:id/book" element={<MentorBooking />} />
           
-          {/* New placeholders for specialized dashboards */}
-          <Route path="/mentors/dashboard" element={<ProtectedRoute><div>Mentor Dashboard Placeholder</div></ProtectedRoute>} />
-          <Route path="/institution/dashboard" element={<ProtectedRoute><div>Institution Dashboard Placeholder</div></ProtectedRoute>} />
+          {/* New specialized dashboards */}
+          <Route path="/mentors/dashboard" element={<MentorRoute><MentorDashboard /></MentorRoute>} />
+          <Route path="/institution/dashboard" element={<InstitutionOrAdminRoute><InstitutionDashboard /></InstitutionOrAdminRoute>} />
+          <Route path="/institution/mentors" element={<InstitutionOrAdminRoute><InstitutionMentors /></InstitutionOrAdminRoute>} />
+          <Route path="/institution/certifications" element={<InstitutionOrAdminRoute><InstitutionCertifications /></InstitutionOrAdminRoute>} />
 
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/candidates" element={<Candidates />} />
@@ -142,6 +148,13 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
     const upper = role.toUpperCase();
     if (upper === 'INSTITUTION' || upper === 'ADMIN') return children;
     return <Navigate to="/courses" replace />;
+  }
+
+  function MentorRoute({ children }: { children: JSX.Element }) {
+    const { user } = useAuth();
+    const role = user?.role ?? '';
+    if (role && role.toUpperCase() === 'MENTOR') return children;
+    return <Navigate to="/register" replace />;
   }
 
 function AdminRoute({ children }: { children: JSX.Element }) {

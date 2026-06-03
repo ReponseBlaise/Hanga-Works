@@ -5,7 +5,7 @@ import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
-import authService, { updateProfile, type AuthUser as RemoteAuthUser } from '../../services/auth.service';
+import authService, { updateProfile, uploadProfilePicture, type AuthUser as RemoteAuthUser } from '../../services/auth.service';
 import { getMyCertificates, type LearnerCertificate } from '../../services/certificates.service';
 import type { ProfileSkill, Proficiency } from '../../types/user.types';
 
@@ -41,6 +41,7 @@ export default function Profile() {
   const [newProficiency, setNewProficiency] = useState<Proficiency>('BEGINNER');
   const [skillSearch, setSkillSearch] = useState('');
   const [previewUrl, setPreviewUrl] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [onboardingStep, setOnboardingStep] = useState(1);
 
   useEffect(() => {
@@ -123,16 +124,24 @@ export default function Profile() {
     setProfileMessage('Saving your profile so employers can see the latest version of your details.');
 
     try {
+      let finalAvatarUrl = avatarUrl;
+      if (selectedFile) {
+        const uploadRes = await uploadProfilePicture(selectedFile);
+        finalAvatarUrl = uploadRes.publicUrl;
+      }
+
       const updated = await updateProfile({
         name,
         bio,
-        avatarUrl: avatarUrl || undefined,
+        avatarUrl: finalAvatarUrl || undefined,
         location,
         skills: skills.map((skill) => ({ skillName: skill.name, level: skill.proficiency })),
       });
 
       signIn({ ...(authUser ?? {}), ...updated });
       if (updated?.name) setName(updated.name);
+      if (finalAvatarUrl) setAvatarUrl(finalAvatarUrl);
+      setSelectedFile(null); // Clear selected file after successful upload
       setProfileMessage('Profile saved successfully. The page now reflects your updated public information.');
     } catch (error) {
       console.error('Failed to save profile', error);
@@ -150,73 +159,89 @@ export default function Profile() {
             <p className="eyebrow">{recruiterMode ? 'Recruiter profile' : 'Learner profile'}</p>
             <h1 className="display">{name}</h1>
             <p className="lead">{headline}</p>
-            <div className="studio-action-row">
+            <div className="studio-action-row" style={{ marginTop: '24px' }}>
               <Button to={publicProfileLink} variant="secondary">Public profile</Button>
               {!isPublicView ? (
-                <Button type="button" variant="primary" className="button--pill" onClick={handleSaveProfile} disabled={savingProfile || loadingProfile}>
+                <Button type="button" variant="primary" onClick={handleSaveProfile} disabled={savingProfile || loadingProfile}>
                   {savingProfile ? 'Saving profile...' : 'Save profile'}
                 </Button>
               ) : null}
             </div>
-            {profileMessage ? <CardMeta>{profileMessage}</CardMeta> : null}
+            {profileMessage ? <div style={{ marginTop: '16px', color: 'var(--accent)' }}><strong>{profileMessage}</strong></div> : null}
           </div>
-
-          <Card className="studio-block">
-            <CardEyebrow>Identity</CardEyebrow>
-            {previewUrl ? (
-              <img src={previewUrl} alt="Profile preview" className="profile-avatar-preview" />
-            ) : (
-              <div className="profile-avatar-fallback">{(authUser?.name ?? 'HW').slice(0, 2).toUpperCase()}</div>
-            )}
-            <label className="form-stack">
-              Avatar URL
-              <input value={avatarUrl} onChange={(event) => setAvatarUrl(event.target.value)} placeholder="https://example.com/avatar.jpg" />
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                if (!file) return;
-                setPreviewUrl(URL.createObjectURL(file));
-              }}
-            />
-          </Card>
         </header>
 
-        <section className="studio-profile__base">
-          <Card className="studio-block">
-            <CardEyebrow>About</CardEyebrow>
-            <div className="profile-form-grid">
-              <label>Name<input value={name} onChange={(event) => setName(event.target.value)} /></label>
-              <label>Location<input value={location} onChange={(event) => setLocation(event.target.value)} /></label>
-              <label>Headline<textarea value={headline} onChange={(event) => setHeadline(event.target.value)} rows={2} /></label>
-              <label>Bio<textarea value={bio} onChange={(event) => setBio(event.target.value)} rows={4} /></label>
-            </div>
-          </Card>
+        <section className="learning-redesign__layout" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '32px', marginTop: '32px' }}>
+          <aside className="learning-redesign__sidebar" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <Card className="studio-block">
+              <CardEyebrow>Profile Picture</CardEyebrow>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', marginTop: '16px' }}>
+                <div style={{ width: '120px', height: '120px', borderRadius: '50%', overflow: 'hidden', background: 'var(--surface-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border)' }}>
+                  {previewUrl || avatarUrl ? (
+                    <img src={previewUrl || avatarUrl} alt="Profile preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <span style={{ fontSize: '2rem', fontWeight: 600, color: 'var(--text-soft)' }}>{(authUser?.name ?? 'HW').slice(0, 2).toUpperCase()}</span>
+                  )}
+                </div>
+                {!isPublicView && (
+                  <div style={{ width: '100%' }}>
+                    <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-soft)', display: 'block', marginBottom: '8px' }}>Upload new picture</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      style={{ width: '100%', padding: '8px', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)' }}
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        if (!file) return;
+                        setSelectedFile(file);
+                        setPreviewUrl(URL.createObjectURL(file));
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            </Card>
 
-          <Card className="studio-block">
-            <CardEyebrow>Onboarding</CardEyebrow>
-            <div className="dashboard-summary__grid">
-              {['Identity', 'Skills', recruiterMode ? 'Hiring preferences' : 'Interests'].map((step, index) => (
-                <button
-                  key={step}
-                  type="button"
-                  className={`onboarding-step ${index + 1 === onboardingStep ? 'is-active' : ''}`.trim()}
-                  onClick={() => setOnboardingStep(index + 1)}
-                >
-                  <span>{index + 1}</span>
-                  {step}
-                </button>
-              ))}
-            </div>
-            <div className="onboarding-wizard__content">
-              {onboardingStep === 1 ? <p>Complete key profile identity fields so your account appears trustworthy.</p> : null}
-              {onboardingStep === 2 ? <p>List strengths that guide matching across roles and platform opportunities.</p> : null}
-              {onboardingStep === 3 ? <p>{recruiterMode ? 'Set hiring intent and candidate priorities for better discovery.' : 'Set job interests to improve recommendation quality.'}</p> : null}
-            </div>
-          </Card>
-        </section>
+            <Card className="studio-block">
+              <CardEyebrow>Onboarding Status</CardEyebrow>
+              <div className="dashboard-summary__grid" style={{ marginTop: '16px' }}>
+                {['Identity', 'Skills', recruiterMode ? 'Hiring preferences' : 'Interests'].map((step, index) => (
+                  <button
+                    key={step}
+                    type="button"
+                    className={`onboarding-step ${index + 1 === onboardingStep ? 'is-active' : ''}`.trim()}
+                    onClick={() => setOnboardingStep(index + 1)}
+                  >
+                    <span>{index + 1}</span>
+                    {step}
+                  </button>
+                ))}
+              </div>
+            </Card>
+          </aside>
+
+          <div className="learning-redesign__content" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <Card className="studio-block">
+              <CardEyebrow>Basic Information</CardEyebrow>
+              <div className="profile-form-grid" style={{ marginTop: '16px', display: 'grid', gap: '16px' }}>
+                <label className="form-stack">
+                  <span style={{ fontWeight: 600 }}>Full Name</span>
+                  <input value={name} onChange={(event) => setName(event.target.value)} disabled={isPublicView} />
+                </label>
+                <label className="form-stack">
+                  <span style={{ fontWeight: 600 }}>Location</span>
+                  <input value={location} onChange={(event) => setLocation(event.target.value)} disabled={isPublicView} />
+                </label>
+                <label className="form-stack">
+                  <span style={{ fontWeight: 600 }}>Professional Headline</span>
+                  <input value={headline} onChange={(event) => setHeadline(event.target.value)} disabled={isPublicView} placeholder="e.g. Senior Frontend Engineer" />
+                </label>
+                <label className="form-stack">
+                  <span style={{ fontWeight: 600 }}>About Me (Bio)</span>
+                  <textarea value={bio} onChange={(event) => setBio(event.target.value)} rows={5} disabled={isPublicView} placeholder="Write a brief introduction..." />
+                </label>
+              </div>
+            </Card>
 
         {recruiterMode ? (
           <section className="studio-profile__recruiter">
@@ -339,6 +364,8 @@ export default function Profile() {
             </section>
           </>
         )}
+          </div>
+        </section>
       </section>
     </SiteLayout>
   );

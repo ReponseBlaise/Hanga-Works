@@ -105,12 +105,6 @@ export function useNotificationsFeed(userId?: string) {
 
 		socket.on('connect', () => {
 			setConnected(true);
-			push({
-				title: 'Connected to live notifications',
-				body: 'The Socket.IO gateway is active and ready to stream backend events.',
-				kind: 'success',
-				source: 'System',
-			});
 		});
 
 		socket.on('disconnect', () => {
@@ -118,12 +112,7 @@ export function useNotificationsFeed(userId?: string) {
 		});
 
 		socket.on('auth-event', (payload: unknown) => {
-			push({
-				title: 'Account event',
-				body: toHumanText(payload) || 'A backend auth event was received.',
-				kind: 'info',
-				source: 'Authentication',
-			});
+			// Intentionally empty: removed spammy auth event notifications
 		});
 
 		if (userId) {

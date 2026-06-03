@@ -97,7 +97,7 @@ export class MediaController {
 
   @Post('presign/course-asset')
   @UseGuards(RolesGuard)
-  @Roles('ADMIN', 'INSTITUTION')
+  @Roles('ADMIN', 'INSTITUTION', 'MENTOR')
   presignCourseAsset(
     @CurrentUser() user: CurrentUserPayload,
     @Body() dto: PresignUploadDto,

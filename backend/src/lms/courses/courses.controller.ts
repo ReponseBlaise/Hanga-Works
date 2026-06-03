@@ -37,7 +37,7 @@ export class CoursesController {
   @Get('manage')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN', 'INSTITUTION')
+  @Roles('ADMIN', 'INSTITUTION', 'MENTOR')
   findAllManageable(@CurrentUser() user: CurrentUserPayload) {
     return this.coursesService.findAllManageable(user);
   }
@@ -64,7 +64,7 @@ export class CoursesController {
   @Post()
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN', 'INSTITUTION')
+  @Roles('ADMIN', 'INSTITUTION', 'MENTOR')
   create(
     @Body() dto: CreateCourseDto,
     @CurrentUser() user: CurrentUserPayload,
@@ -75,7 +75,7 @@ export class CoursesController {
   @Patch(':id')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN', 'INSTITUTION')
+  @Roles('ADMIN', 'INSTITUTION', 'MENTOR')
   update(
     @Param('id') id: string,
     @Body() dto: UpdateCourseDto,
@@ -87,7 +87,7 @@ export class CoursesController {
   @Delete(':id')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN', 'INSTITUTION')
+  @Roles('ADMIN', 'INSTITUTION', 'MENTOR')
   remove(@Param('id') id: string, @CurrentUser() user: CurrentUserPayload) {
     return this.coursesService.remove(id, user);
   }
@@ -95,7 +95,7 @@ export class CoursesController {
   @Post(':id/modules')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN', 'INSTITUTION')
+  @Roles('ADMIN', 'INSTITUTION', 'MENTOR')
   addModule(
     @Param('id') courseId: string,
     @Body() dto: CreateModuleDto,
@@ -107,7 +107,7 @@ export class CoursesController {
   @Patch(':id/modules/:moduleId/media')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN', 'INSTITUTION')
+  @Roles('ADMIN', 'INSTITUTION', 'MENTOR')
   attachModuleMedia(
     @Param('id') courseId: string,
     @Param('moduleId') moduleId: string,
@@ -125,7 +125,7 @@ export class CoursesController {
   @Patch(':id/modules/:moduleId')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN', 'INSTITUTION')
+  @Roles('ADMIN', 'INSTITUTION', 'MENTOR')
   updateModule(
     @Param('id') courseId: string,
     @Param('moduleId') moduleId: string,
@@ -138,7 +138,7 @@ export class CoursesController {
   @Delete(':id/modules/:moduleId')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN', 'INSTITUTION')
+  @Roles('ADMIN', 'INSTITUTION', 'MENTOR')
   removeModule(
     @Param('id') courseId: string,
     @Param('moduleId') moduleId: string,

@@ -149,6 +149,22 @@ export class NotificationsService {
     );
   }
 
+  async sendAdminReviewEmail(adminEmail: string, newUserEmail: string, role: string) {
+    await this.sendEmail(
+      adminEmail,
+      `Action Required: Review New ${role} Registration`,
+      `A new user has registered as a ${role} with the email: ${newUserEmail}. Their account requires your review and approval before they can log in.`
+    );
+  }
+
+  async sendRegistrationFeedbackEmail(userEmail: string, status: string, feedback?: string) {
+    await this.sendEmail(
+      userEmail,
+      `Registration Status: ${status}`,
+      `Your registration status has been updated to: ${status}.${feedback ? ` Feedback: ${feedback}` : ''}`
+    );
+  }
+
   async sendCourseCompletion(email: string, courseTitle: string) {
     await this.sendEmail(
       email,

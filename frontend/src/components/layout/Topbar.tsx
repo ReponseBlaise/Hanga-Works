@@ -40,6 +40,14 @@ export default function Navbar() {
 				{ label: 'Moderation', href: '/admin/moderation' },
 			];
 		}
+		if (userRole === 'INSTITUTION') {
+			return [
+				{ label: 'Dashboard', href: '/institution/dashboard' },
+				{ label: 'Our Courses', href: '/courses' },
+				{ label: 'Our Mentors', href: '/institution/mentors' },
+				{ label: 'Certifications', href: '/institution/certifications' },
+			];
+		}
 		if (userRole === 'MENTOR') {
 			return [
 				{ label: 'Home', href: '/' },
@@ -55,7 +63,6 @@ export default function Navbar() {
 			{ label: 'Mentors', href: '/mentors' },
 			{ label: 'Courses', href: '/courses' },
 			{ label: 'Certifications', href: '/certifications' },
-			{ label: 'Mentors', href: '/mentors' },
 		];
 	}, [isAuthenticated, userRole]);
 	const visibleLinks = navLinks;

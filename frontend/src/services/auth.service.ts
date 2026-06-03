@@ -24,9 +24,28 @@ type AuthResponse = {
 
 type RegisterResponse = AuthUser | AuthResponse;
 
-export async function register(payload: { name: string; email: string; phone?: string; password: string; role?: 'LEARNER' | 'EMPLOYER' }) {
+export async function register(payload: {
+	name: string;
+	email: string;
+	phone?: string;
+	password: string;
+	role?: 'LEARNER' | 'EMPLOYER' | 'INSTITUTION' | 'MENTOR';
+	certificate?: File;
+}) {
 	// Create the account
-	await api.post('/auth/register', payload);
+	const formData = new FormData();
+	formData.append('name', payload.name);
+	formData.append('email', payload.email);
+	if (payload.phone) formData.append('phone', payload.phone);
+	formData.append('password', payload.password);
+	if (payload.role) formData.append('role', payload.role);
+	if (payload.certificate) formData.append('certificate', payload.certificate);
+
+	await api.post('/auth/register', formData, {
+		headers: {
+			'Content-Type': 'multipart/form-data',
+		},
+	});
 	// Immediately log in to get the token
 	return await login({ email: payload.email, password: payload.password });
 }
@@ -59,6 +78,19 @@ export async function updateProfile(payload: {
 }) {
 	const res = await api.patch('/users/me', payload);
 	return (res.data?.data ?? res.data) as AuthUser;
+}
+
+export async function uploadProfilePicture(file: File) {
+	const formData = new FormData();
+	formData.append('file', file);
+	formData.append('purpose', 'avatar');
+
+	const res = await api.post('/media/upload', formData, {
+		headers: {
+			'Content-Type': 'multipart/form-data',
+		},
+	});
+	return res.data?.data ?? res.data;
 }
 
 export async function logout() {
@@ -96,4 +128,14 @@ export async function resetPassword(payload: { token: string; password: string }
 	return res.data?.data ?? res.data;
 }
 
-export default { register, login, profile, updateProfile, logout, refresh };
+export async function verifyEmail(token: string) {
+	const res = await api.get(`/auth/verify-email?token=${token}`);
+	return res.data?.data ?? res.data;
+}
+
+export async function resendVerification() {
+	const res = await api.post('/auth/resend-verification');
+	return res.data?.data ?? res.data;
+}
+
+export default { register, login, profile, updateProfile, logout, refresh, verifyEmail, resendVerification };

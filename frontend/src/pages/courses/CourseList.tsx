@@ -5,9 +5,8 @@ import { MdSchool, MdGroups, MdCheckCircle, MdMenuBook } from 'react-icons/md';
 import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
-import { getCourses, type BackendCourse } from '../../services/courses.service';
+import { getCourses, getManageableCourses, getMyProgress, type BackendCourse } from '../../services/courses.service';
 import { useAuth } from '../../context/AuthContext';
-import { getMyProgress } from '../../services/courses.service';
 
 export function CourseList() {
 	const { isAuthenticated, user } = useAuth();
@@ -21,7 +20,9 @@ export function CourseList() {
 
 	useEffect(() => {
 		let active = true;
-		getCourses()
+		const fetcher = (user?.role === 'INSTITUTION') ? getManageableCourses : getCourses;
+		
+		fetcher()
 			.then((items) => {
 				if (active) setCourses(items ?? []);
 			})

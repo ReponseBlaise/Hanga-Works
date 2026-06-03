@@ -8,6 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import { getApplications, getJobs, type JobSummary } from '../../services/jobs.service';
 import { getMyProgress, type CourseEnrollment } from '../../services/courses.service';
 import { getMyCertificates, type LearnerCertificate } from '../../services/certificates.service';
+import { getProfileSetupStatus, type ProfileSetupStatus } from '../../services/users.service';
 import type { JobApplication } from '../../types/job.types';
 
 type DashboardTask = {
@@ -34,18 +35,20 @@ export function Dashboard() {
   const [enrollments, setEnrollments] = useState<CourseEnrollment[]>([]);
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [certificates, setCertificates] = useState<LearnerCertificate[]>([]);
+  const [profileSetup, setProfileSetup] = useState<ProfileSetupStatus | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
 
-    Promise.all([getJobs(), getMyProgress(), getApplications(), getMyCertificates()])
-      .then(([jobsResponse, progressItems, applicationItems, certificateItems]) => {
+    Promise.all([getJobs(), getMyProgress(), getApplications(), getMyCertificates(), getProfileSetupStatus()])
+      .then(([jobsResponse, progressItems, applicationItems, certificateItems, setupStatus]) => {
         if (!active) return;
         setJobs(jobsResponse?.jobs ?? []);
         setEnrollments(progressItems ?? []);
         setApplications(applicationItems ?? []);
         setCertificates(certificateItems ?? []);
+        setProfileSetup(setupStatus ?? null);
       })
       .catch((error) => {
         console.error('Failed to load dashboard data', error);
@@ -104,15 +107,24 @@ export function Dashboard() {
       });
     }
 
-    tasks.push({
-      title: 'Refresh your public profile',
-      detail: 'Keep your summary, skills, and profile photo aligned with the roles you want.',
-      meta: 'Next step',
-      href: '/profile',
-    });
+    if (profileSetup && !profileSetup.complete) {
+      tasks.push({
+        title: 'Complete your profile',
+        detail: `${profileSetup.completedSteps} of ${profileSetup.totalSteps} profile steps done — add missing details so employers see a full picture.`,
+        meta: `${profileSetup.percentComplete}%`,
+        href: '/profile',
+      });
+    } else {
+      tasks.push({
+        title: 'Refresh your public profile',
+        detail: 'Keep your summary, skills, and profile photo aligned with the roles you want.',
+        meta: 'Next step',
+        href: '/profile',
+      });
+    }
 
     return tasks.slice(0, 3);
-  }, [applications, continueLearningCourse]);
+  }, [applications, continueLearningCourse, profileSetup]);
 
   const recentActivity = useMemo(() => {
     const items = [
@@ -159,8 +171,10 @@ export function Dashboard() {
     () => [
       {
         title: 'Profile completion',
-        value: Math.min(100, progressValue),
-        meta: 'Based on applications, certificates, and learning activity.',
+        value: profileSetup?.percentComplete ?? Math.min(100, progressValue),
+        meta: profileSetup
+          ? `${profileSetup.completedSteps} of ${profileSetup.totalSteps} steps from your account profile.`
+          : 'Based on applications, certificates, and learning activity.',
       },
       {
         title: 'Applications in review',
@@ -173,7 +187,7 @@ export function Dashboard() {
         meta: 'Digital certificates available on your profile.',
       },
     ],
-    [applications, certificates.length, progressValue],
+    [applications, certificates.length, progressValue, profileSetup],
   );
 
   const applicationStages = useMemo(() => {
@@ -189,6 +203,12 @@ export function Dashboard() {
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
+
+  const role = user?.role?.toUpperCase();
+  if (role === 'INSTITUTION') return <Navigate to="/institution/dashboard" replace />;
+  if (role === 'EMPLOYER') return <Navigate to="/employer" replace />;
+  if (role === 'MENTOR') return <Navigate to="/mentors/dashboard" replace />;
+  if (role === 'ADMIN') return <Navigate to="/admin" replace />;
 
   return (
     <SiteLayout>

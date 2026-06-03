@@ -9,8 +9,13 @@ import {
   Res,
   Query,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthService } from '../auth/auth.service';
+import { CloudinaryService } from '../storage/cloudinary.service';
 import { RegisterDto } from '../auth/dto/register.dto';
 import { LoginDto } from '../auth/dto/login.dto';
 import { ForgotPasswordDto } from '../auth/dto/forgot-password.dto';
@@ -21,14 +26,49 @@ import {
   CurrentUser,
   CurrentUserPayload,
 } from '../auth/decorators/current-user.decorator';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Role } from '@prisma/client';
+
+import { ApiConsumes } from '@nestjs/swagger';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly cloudinary: CloudinaryService
+  ) {}
 
   @Post('register')
-  async register(@Body() registerDto: RegisterDto) {
-    return this.authService.register(registerDto);
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileInterceptor('certificate'))
+  async register(
+    @Body() registerDto: RegisterDto,
+    @UploadedFile() file?: Express.Multer.File
+  ) {
+    if ((registerDto.role === 'EMPLOYER' || registerDto.role === 'INSTITUTION') && !file) {
+      throw new BadRequestException('A certificate file is required for Employer and Institution registration.');
+    }
+    
+    let certificateUrl: string | undefined;
+    if (file) {
+      const upload = await this.cloudinary.uploadBuffer({
+        buffer: file.buffer,
+        folder: 'hanga-works/certificates',
+        resourceType: 'auto',
+        originalName: file.originalname,
+      });
+      certificateUrl = upload.secureUrl;
+    }
+
+    return this.authService.register(registerDto, certificateUrl);
+  }
+
+  @Post('register-mentor')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.INSTITUTION)
+  async registerMentor(@Body() registerDto: RegisterDto) {
+    return this.authService.registerMentor(registerDto);
   }
 
   @HttpCode(HttpStatus.OK)

@@ -21,11 +21,11 @@ export default function Login() {
           signIn(data.user);
           const role = (data.user.role ?? '').toLowerCase();
           if (role === 'mentor') {
-            navigate('/mentors');
+            navigate('/mentors/dashboard');
             return;
           }
           if (role === 'institution') {
-            navigate('/courses');
+            navigate('/institution/dashboard');
             return;
           }
           if (role === 'employer') {

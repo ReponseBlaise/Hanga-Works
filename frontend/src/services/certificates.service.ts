@@ -19,6 +19,14 @@ export async function getMyCertificates() {
 	return (res.data?.data?.certificates ?? res.data?.certificates ?? []) as LearnerCertificate[];
 }
 
+export async function getManageableCertificates() {
+	const res = await api.get('/certificates/manage');
+	if (Array.isArray(res.data)) {
+		return res.data;
+	}
+	return res.data?.data ?? [];
+}
+
 export async function verifyCertificate(token: string) {
 	const res = await api.get(`/certificates/verify/${token}`);
 	return (res.data?.data?.certificate ?? res.data?.certificate ?? res.data) as LearnerCertificate;
