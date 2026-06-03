@@ -18,6 +18,7 @@ import { MentorshipModule } from './mentorship/mentorship.module';
 import { IntelligenceModule } from './intelligence/intelligence.module';
 import { AuditInterceptor } from './common/interceptors/audit.interceptor';
 import { StorageModule } from './storage/storage.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { StorageModule } from './storage/storage.module';
     EmployerModule,
     MentorshipModule,
     IntelligenceModule,
+    AdminModule,
   ],
   providers: [
     PrismaService, 

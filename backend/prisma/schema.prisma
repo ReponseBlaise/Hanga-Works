@@ -8,34 +8,34 @@ datasource db {
 }
 
 model User {
-  id                String          @id @default(uuid())
-  name              String
-  email             String          @unique
-  phone             String?         @unique
-  passwordHash      String
-  role              Role            @default(LEARNER)
-  status            AccountStatus   @default(ACTIVE)
-  bio               String?
-  avatarUrl         String?
-  location          String?
-  resetToken        String?
-  resetTokenExpires DateTime?
-  emailVerified     Boolean         @default(false)
-  emailVerifyToken  String?
+  id                 String          @id @default(uuid())
+  name               String
+  email              String          @unique
+  phone              String?         @unique
+  passwordHash       String
+  role               Role            @default(LEARNER)
+  status             AccountStatus   @default(ACTIVE)
+  bio                String?
+  avatarUrl          String?
+  location           String?
+  resetToken         String?
+  resetTokenExpires  DateTime?
+  emailVerified      Boolean         @default(false)
+  emailVerifyToken   String?
   emailVerifyExpires DateTime?
-  organizationId    String?
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-  applications      Application[]
-  auditLogs         AuditLog[]
-  certifications    Certification[]
-  enrollments       Enrollment[]
-  mentorProfile     MentorProfile?
-  mentorSessions    MentorSession[]
-  notifications     Notification[]
-  refreshTokens     RefreshToken[]
-  organization      Organization?   @relation(fields: [organizationId], references: [id])
-  skills            UserSkill[]
+  organizationId     String?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  applications       Application[]
+  auditLogs          AuditLog[]
+  certifications     Certification[]
+  enrollments        Enrollment[]
+  mentorProfile      MentorProfile?
+  mentorSessions     MentorSession[]
+  notifications      Notification[]
+  refreshTokens      RefreshToken[]
+  organization       Organization?   @relation(fields: [organizationId], references: [id])
+  skills             UserSkill[]
 
   @@index([email])
   @@index([role])
@@ -54,15 +54,17 @@ model RefreshToken {
 }
 
 model Organization {
-  id             String          @id @default(uuid())
-  name           String
-  type           OrgType
-  website        String?
-  createdAt      DateTime        @default(now())
-  certifications Certification[]
-  courses        Course[]
-  jobs           Job[]
-  users          User[]
+  id                  String          @id @default(uuid())
+  name                String
+  type                OrgType
+  website             String?
+  companyCertificate  String?
+  trainingCertificate String?
+  createdAt           DateTime        @default(now())
+  certifications      Certification[]
+  courses             Course[]
+  jobs                Job[]
+  users               User[]
 }
 
 model Skill {
@@ -285,6 +287,7 @@ enum Role {
 }
 
 enum AccountStatus {
+  PENDING
   ACTIVE
   SUSPENDED
   DEACTIVATED

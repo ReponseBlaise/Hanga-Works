@@ -6,7 +6,7 @@ import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
 import { ProgressBar } from '../../components/shared/ProgressBar';
-import { getCourseById, getMyProgress, enrollInCourse, updateLessonProgress, type BackendCourse, type CourseEnrollment } from '../../services/courses.service';
+import { getCourseById, getMyProgress, enrollInCourse, updateLessonProgress, createCourseModule, updateCourseModule, deleteCourseModule, uploadModuleMedia, type BackendCourse, type CourseEnrollment } from '../../services/courses.service';
 import { getMyCertificates, type LearnerCertificate } from '../../services/certificates.service';
 import { getJobs, type JobSummary } from '../../services/jobs.service';
 
@@ -24,6 +24,12 @@ export function CourseDetail() {
 	const [savingProgress, setSavingProgress] = useState(false);
 	const [activeModuleId, setActiveModuleId] = useState('');
 	const [relatedJobs, setRelatedJobs] = useState<JobSummary[]>([]);
+	const { user } = useAuth();
+	const isManager = user?.role === 'INSTITUTION' || user?.role === 'ADMIN';
+	const [isAddingModule, setIsAddingModule] = useState(false);
+	const [editingModuleId, setEditingModuleId] = useState<string | null>(null);
+	const [moduleForm, setModuleForm] = useState<{ title: string; content: string; videoUrl: string; order: number; file: File | null }>({ title: '', content: '', videoUrl: '', order: 1, file: null });
+	const [savingModule, setSavingModule] = useState(false);
 
 	useEffect(() => {
 		if (!id) return;
@@ -152,6 +158,55 @@ export function CourseDetail() {
 		}
 	}
 
+	async function handleSaveModule(e: React.FormEvent) {
+		e.preventDefault();
+		if (!course) return;
+		setSavingModule(true);
+		try {
+			let finalVideoUrl = moduleForm.videoUrl;
+			if (moduleForm.file) {
+				const purpose = moduleForm.file.type.startsWith('video/') ? 'course-video' : 'course-document';
+				const uploadRes = await uploadModuleMedia(moduleForm.file, purpose, course.id);
+				finalVideoUrl = uploadRes.publicUrl;
+			}
+
+			const payload = {
+				title: moduleForm.title,
+				content: moduleForm.content || undefined,
+				videoUrl: finalVideoUrl || undefined,
+				order: Number(moduleForm.order)
+			};
+
+			if (editingModuleId) {
+				const updatedModule = await updateCourseModule(course.id, editingModuleId, payload);
+				setCourse(prev => prev ? { ...prev, modules: prev.modules?.map(m => m.id === editingModuleId ? updatedModule : m) } : null);
+				setEditingModuleId(null);
+			} else {
+				const newModule = await createCourseModule(course.id, payload);
+				setCourse(prev => prev ? { ...prev, modules: [...(prev.modules || []), newModule] } : null);
+				setIsAddingModule(false);
+			}
+			setModuleForm({ title: '', content: '', videoUrl: '', order: (course.modules?.length ?? 0) + (editingModuleId ? 1 : 2), file: null });
+		} catch (err) {
+			console.error(err);
+			alert('Failed to save module. Check inputs and Cloudinary configuration.');
+		} finally {
+			setSavingModule(false);
+		}
+	}
+
+	async function handleDeleteModule(moduleId: string) {
+		if (!course || !confirm('Are you sure you want to delete this module?')) return;
+		try {
+			await deleteCourseModule(course.id, moduleId);
+			setCourse(prev => prev ? { ...prev, modules: prev.modules?.filter(m => m.id !== moduleId) } : null);
+			if (activeModuleId === moduleId) setActiveModuleId('');
+		} catch (err) {
+			console.error(err);
+			alert('Failed to delete module.');
+		}
+	}
+
 	if (loading) {
 		return (
 			<SiteLayout>
@@ -226,18 +281,57 @@ export function CourseDetail() {
 				<section className="learning-redesign__layout">
 					<aside className="learning-redesign__sidebar">
 						<Card className="studio-block">
-							<CardEyebrow>Curriculum</CardEyebrow>
+							<div className="studio-section__head" style={{ marginBottom: '12px' }}>
+								<CardEyebrow>Curriculum</CardEyebrow>
+								{isManager && (
+									<Button variant="ghost" type="button" onClick={() => {
+										setIsAddingModule(!isAddingModule);
+										setEditingModuleId(null);
+										setModuleForm({ title: '', content: '', videoUrl: '', order: (course.modules?.length ?? 0) + 1, file: null });
+									}}>
+										{isAddingModule && !editingModuleId ? 'Cancel' : '+ Add Lesson'}
+									</Button>
+								)}
+							</div>
+
+							{(isAddingModule || editingModuleId) && (
+								<form onSubmit={handleSaveModule} style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px', padding: '12px', background: 'var(--surface-muted)', borderRadius: 'var(--radius-md)' }}>
+									<input type="text" required placeholder="Lesson Title" value={moduleForm.title} onChange={e => setModuleForm(f => ({ ...f, title: e.target.value }))} style={{ padding: '8px', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)' }} />
+									<input type="url" placeholder="Or Paste Video URL (Youtube etc)" value={moduleForm.videoUrl} onChange={e => setModuleForm(f => ({ ...f, videoUrl: e.target.value }))} style={{ padding: '8px', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)' }} />
+									<label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Upload File (Video or PDF. Overrides URL)</label>
+									<input type="file" accept="video/*,application/pdf" onChange={e => setModuleForm(f => ({ ...f, file: e.target.files?.[0] || null }))} style={{ padding: '8px', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)' }} />
+									<textarea placeholder="Lesson Content (optional)" value={moduleForm.content} onChange={e => setModuleForm(f => ({ ...f, content: e.target.value }))} style={{ padding: '8px', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)' }} />
+									<input type="number" required placeholder="Order (e.g. 1)" value={moduleForm.order} onChange={e => setModuleForm(f => ({ ...f, order: Number(e.target.value) }))} style={{ padding: '8px', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)' }} />
+									<div style={{ display: 'flex', gap: '8px' }}>
+										<Button variant="primary" type="submit" disabled={savingModule}>{savingModule ? 'Saving...' : 'Save Lesson'}</Button>
+										{editingModuleId && <Button variant="ghost" type="button" onClick={() => setEditingModuleId(null)}>Cancel</Button>}
+									</div>
+								</form>
+							)}
+
 							<div className="studio-module-list">
 								{(course.modules ?? []).map((module) => (
-									<button
-										key={module.id}
-										type="button"
-										className={`studio-module-item ${activeModuleId === module.id ? 'is-active' : ''}`.trim()}
-										onClick={() => setActiveModuleId(module.id)}
-									>
-										<span>Module {module.order}</span>
-										<strong>{module.title}</strong>
-									</button>
+									<div key={module.id} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+										<button
+											type="button"
+											style={{ flex: 1, textAlign: 'left' }}
+											className={`studio-module-item ${activeModuleId === module.id ? 'is-active' : ''}`.trim()}
+											onClick={() => setActiveModuleId(module.id)}
+										>
+											<span>Module {module.order}</span>
+											<strong>{module.title}</strong>
+										</button>
+										{isManager && (
+											<div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+												<button type="button" onClick={() => {
+													setEditingModuleId(module.id);
+													setIsAddingModule(false);
+													setModuleForm({ title: module.title, content: module.content || '', videoUrl: module.videoUrl || '', order: module.order, file: null });
+												}}>✏️</button>
+												<button type="button" onClick={() => handleDeleteModule(module.id)}>🗑️</button>
+											</div>
+										)}
+									</div>
 								))}
 							</div>
 						</Card>
@@ -255,64 +349,78 @@ export function CourseDetail() {
 							<CardEyebrow>Lesson stage</CardEyebrow>
 							<div className="studio-video-frame">
 								{activeModule?.videoUrl ? (
-									<iframe
-										title={activeModule.title}
-										src={activeModule.videoUrl}
-										allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-										allowFullScreen
-									/>
+									activeModule.videoUrl.endsWith('.pdf') ? (
+										<iframe
+											title={activeModule.title}
+											src={activeModule.videoUrl}
+											width="100%"
+											height="500px"
+										/>
+									) : (
+										<iframe
+											title={activeModule.title}
+											src={activeModule.videoUrl}
+											allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+											allowFullScreen
+										/>
+									)
 								) : (
 									<div className="studio-video-fallback">
 										<strong>{activeModule?.title ?? 'No module selected'}</strong>
-										<p>Video content is not available for this module yet.</p>
+										<p>Video/Document content is not available for this module yet.</p>
+										{activeModule?.content && <p style={{ marginTop: '16px', color: 'var(--text)' }}>{activeModule.content}</p>}
 									</div>
 								)}
 							</div>
-							<div className="studio-action-row">
-								<Button variant="secondary" type="button" onClick={handleEnroll}>
-									{currentEnrollment ? 'Already enrolled' : 'Enroll in course'}
-								</Button>
-								<Button
-									type="button"
-									variant="primary"
-									disabled={!currentEnrollment || savingProgress}
-									onClick={() => handleSaveProgress(false)}
-								>
-									Save progress
-								</Button>
-								<Button
-									type="button"
-									variant="ghost"
-									disabled={!currentEnrollment || savingProgress}
-									onClick={() => handleSaveProgress(true)}
-								>
-									Mark complete
-								</Button>
-							</div>
-							<div className="studio-progress-stack">
-								<CardMeta>
-									{currentEnrollment
-										? `Enrollment status: ${currentEnrollment.status.toLowerCase()} · ${currentEnrollment.progress}% complete`
-										: 'Enroll to start tracking your progress and unlock a certificate.'}
-								</CardMeta>
-								<ProgressBar value={currentEnrollment?.progress ?? 0} label="Course completion" />
-								<input
-									type="range"
-									min={0}
-									max={100}
-									step={10}
-									value={progressValue}
-									disabled={!currentEnrollment}
-									onChange={(event) => setProgressValue(Number(event.target.value))}
-								/>
-								{trackingMessage ? <p className="muted">{trackingMessage}</p> : null}
-								{currentCertificate ? (
-									<div className="studio-action-row">
-										<CardMeta>Certificate issued {new Date(currentCertificate.issuedAt).toLocaleDateString()}</CardMeta>
-										<Button href={currentCertificate.verifyUrl} variant="ghost">Verify</Button>
+							{!isManager && (
+								<>
+									<div className="studio-action-row mt-md">
+										<Button variant="secondary" type="button" onClick={handleEnroll}>
+											{currentEnrollment ? 'Already enrolled' : 'Enroll in course'}
+										</Button>
+										<Button
+											type="button"
+											variant="primary"
+											disabled={!currentEnrollment || savingProgress}
+											onClick={() => handleSaveProgress(false)}
+										>
+											Save progress
+										</Button>
+										<Button
+											type="button"
+											variant="ghost"
+											disabled={!currentEnrollment || savingProgress}
+											onClick={() => handleSaveProgress(true)}
+										>
+											Mark complete
+										</Button>
 									</div>
-								) : null}
-							</div>
+									<div className="studio-progress-stack">
+										<CardMeta>
+											{currentEnrollment
+												? `Enrollment status: ${currentEnrollment.status.toLowerCase()} · ${currentEnrollment.progress}% complete`
+												: 'Enroll to start tracking your progress and unlock a certificate.'}
+										</CardMeta>
+										<ProgressBar value={currentEnrollment?.progress ?? 0} label="Course completion" />
+										<input
+											type="range"
+											min={0}
+											max={100}
+											step={10}
+											value={progressValue}
+											disabled={!currentEnrollment}
+											onChange={(event) => setProgressValue(Number(event.target.value))}
+										/>
+										{trackingMessage ? <p className="muted">{trackingMessage}</p> : null}
+										{currentCertificate ? (
+											<div className="studio-action-row">
+												<CardMeta>Certificate issued {new Date(currentCertificate.issuedAt).toLocaleDateString()}</CardMeta>
+												<Button href={currentCertificate.verifyUrl} variant="ghost">Verify</Button>
+											</div>
+										) : null}
+									</div>
+								</>
+							)}
 						</Card>
 
 						<Card className="studio-block">

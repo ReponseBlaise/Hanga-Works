@@ -1,5 +1,6 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import * as bcrypt from 'bcryptjs';
 import { CreateMentorDto } from './dto/create-mentor.dto';
 import { BookSessionDto } from './dto/book-session.dto';
 
@@ -16,6 +17,45 @@ export class MentorshipService {
         ...dto,
       },
     });
+  }
+
+  async createInstitutionMentor(institutionUserId: string, data: { name: string, email: string, expertise: string, hourlyRate?: number }) {
+    const institutionUser = await this.prisma.user.findUnique({
+      where: { id: institutionUserId },
+      select: { organizationId: true, role: true }
+    });
+
+    if (institutionUser?.role !== 'INSTITUTION' && institutionUser?.role !== 'ADMIN') {
+      throw new ForbiddenException('Only institutions or admins can create mentors');
+    }
+
+    const orgId = institutionUser.organizationId;
+    
+    const existing = await this.prisma.user.findUnique({ where: { email: data.email } });
+    if (existing) throw new ConflictException('Email already in use');
+
+    const passwordHash = await bcrypt.hash('Mentor@123!', 10);
+
+    const user = await this.prisma.user.create({
+      data: {
+        name: data.name,
+        email: data.email,
+        passwordHash,
+        role: 'MENTOR',
+        organizationId: orgId,
+        mentorProfile: {
+          create: {
+            expertise: data.expertise,
+            hourlyRate: data.hourlyRate || 0,
+          }
+        }
+      },
+      include: { mentorProfile: true }
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (user as any).passwordHash;
+    return user;
   }
 
   async findAllMentors() {
@@ -47,5 +87,23 @@ export class MentorshipService {
         mentor: { include: { user: true } },
       },
     });
+  }
+
+  async getMySessions(userId: string, role: string) {
+    if (role === 'MENTOR') {
+      const mentor = await this.prisma.mentorProfile.findUnique({ where: { userId } });
+      if (!mentor) return [];
+      return this.prisma.mentorSession.findMany({
+        where: { mentorId: mentor.id },
+        include: { mentee: { select: { id: true, name: true, email: true, avatarUrl: true } } },
+        orderBy: { scheduledAt: 'asc' }
+      });
+    } else {
+      return this.prisma.mentorSession.findMany({
+        where: { menteeId: userId },
+        include: { mentor: { include: { user: { select: { id: true, name: true, avatarUrl: true } } } } },
+        orderBy: { scheduledAt: 'asc' }
+      });
+    }
   }
 }

@@ -104,6 +104,37 @@ export class CertificationsService {
     });
   }
 
+  // GET /certificates/manage — institution's issued certificates
+  async getManageableCertificates(userId: string, role: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { organizationId: true }
+    });
+
+    if (role === Role.ADMIN) {
+      return this.prisma.certification.findMany({
+        include: {
+          user: { select: { name: true, email: true } },
+          course: { select: { title: true } },
+          issuer: { select: { name: true } }
+        },
+        orderBy: { issuedAt: 'desc' }
+      });
+    }
+
+    if (!user?.organizationId) return [];
+
+    return this.prisma.certification.findMany({
+      where: { issuerId: user.organizationId },
+      include: {
+        user: { select: { name: true, email: true } },
+        course: { select: { title: true } },
+        issuer: { select: { name: true } }
+      },
+      orderBy: { issuedAt: 'desc' },
+    });
+  }
+
   // POST /certificates/validate — employer only
   async validate(token: string, userId: string, userRole: string) {
     if (userRole !== Role.EMPLOYER && userRole !== Role.ADMIN) {

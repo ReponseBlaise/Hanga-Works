@@ -102,4 +102,14 @@ export async function resetPassword(payload: { token: string; password: string }
 	return res.data?.data ?? res.data;
 }
 
-export default { register, login, profile, updateProfile, logout, refresh };
+export async function verifyEmail(token: string) {
+	const res = await api.get(`/auth/verify-email?token=${token}`);
+	return res.data?.data ?? res.data;
+}
+
+export async function resendVerification() {
+	const res = await api.post('/auth/resend-verification');
+	return res.data?.data ?? res.data;
+}
+
+export default { register, login, profile, updateProfile, logout, refresh, verifyEmail, resendVerification };

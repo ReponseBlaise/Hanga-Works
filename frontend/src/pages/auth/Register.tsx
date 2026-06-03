@@ -41,11 +41,11 @@ export default function Register() {
           signIn('user' in user ? user.user : user);
           const userRole = ('user' in user ? user.user : user)?.role?.toUpperCase?.() ?? '';
           if (userRole === 'MENTOR') {
-            navigate('/mentors');
+            navigate('/mentors/dashboard');
             return;
           }
           if (userRole === 'INSTITUTION') {
-            navigate('/courses');
+            navigate('/institution/dashboard');
             return;
           }
           if (userRole === 'EMPLOYER') {

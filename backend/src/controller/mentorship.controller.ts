@@ -20,6 +20,15 @@ export class MentorshipController {
     return this.mentorshipService.createProfile(req.user.userId, createMentorDto);
   }
 
+  @Roles('INSTITUTION', 'ADMIN')
+  @Post('create')
+  async createInstitutionMentor(
+    @Request() req: { user: { userId: string } },
+    @Body() data: { name: string, email: string, expertise: string, hourlyRate?: number },
+  ) {
+    return this.mentorshipService.createInstitutionMentor(req.user.userId, data);
+  }
+
   @Get('mentors')
   async getMentors() {
     return this.mentorshipService.findAllMentors();
@@ -31,5 +40,10 @@ export class MentorshipController {
     @Body() bookSessionDto: BookSessionDto,
   ) {
     return this.mentorshipService.bookSession(req.user.userId, bookSessionDto);
+  }
+
+  @Get('sessions')
+  async getSessions(@Request() req: { user: { userId: string, role: string } }) {
+    return this.mentorshipService.getMySessions(req.user.userId, req.user.role);
   }
 }
