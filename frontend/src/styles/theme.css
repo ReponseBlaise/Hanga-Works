@@ -580,6 +580,30 @@ input, textarea, select { color: var(--text); }
 .studio-course-stage__video,
 .studio-job-detail__main { display: grid; gap: 14px; }
 
+.studio-mobile-filters { width: 100%; }
+.studio-mobile-filters__summary { display: none; }
+@media (max-width: 1024px) {
+  .studio-mobile-filters__summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    background: var(--surface-muted);
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    margin-bottom: 16px;
+    font-weight: 600;
+    color: var(--text);
+    list-style: none;
+  }
+  .studio-mobile-filters__summary::-webkit-details-marker { display: none; }
+}
+@media (min-width: 1025px) {
+  .studio-mobile-filters:not([open]) > .studio-mobile-filters__content { display: grid !important; }
+}
+.studio-mobile-filters__content { display: grid; gap: 14px; }
+
 .studio-catalog__toolbar { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
 .studio-toggle-group { display: inline-flex; gap: 8px; border: 1px solid var(--border); border-radius: 999px; padding: 4px; background: var(--surface-muted); }
 .studio-toggle {

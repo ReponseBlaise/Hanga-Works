@@ -57,6 +57,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   useEffect(() => {
+    const handleUnauthorized = () => {
+      setAuthToken(null);
+      window.localStorage.removeItem(AUTH_TOKEN_KEY);
+      setUser(null);
+    };
+
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
+  }, []);
+
+  useEffect(() => {
     if (!user) {
       return;
     }

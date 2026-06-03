@@ -78,7 +78,7 @@ export default function App() {
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/jobs" element={<JobList />} />
           <Route path="/jobs/:id" element={<JobDetail />} />
-          <Route path="/jobs/:id/apply" element={<JobApply />} />
+          <Route path="/jobs/:id/apply" element={<ProtectedRoute><JobApply /></ProtectedRoute>} />
           <Route path="/applications" element={<ProtectedRoute><MyApplications /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/profile/:username" element={<Profile />} />
@@ -86,7 +86,7 @@ export default function App() {
           <Route path="/certifications/verify/:token" element={<CertificationVerify />} />
           <Route path="/mentors" element={<MentorList />} />
           <Route path="/mentors/:id" element={<MentorProfile />} />
-          <Route path="/mentors/:id/book" element={<MentorBooking />} />
+          <Route path="/mentors/:id/book" element={<ProtectedRoute><MentorBooking /></ProtectedRoute>} />
           
           {/* New specialized dashboards */}
           <Route path="/mentors/dashboard" element={<MentorRoute><MentorDashboard /></MentorRoute>} />

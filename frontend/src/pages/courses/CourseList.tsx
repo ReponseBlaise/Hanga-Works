@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BsFillGrid3X3GapFill, BsListUl } from 'react-icons/bs';
-import { MdSchool, MdGroups, MdCheckCircle, MdMenuBook } from 'react-icons/md';
+import { MdSchool, MdGroups, MdCheckCircle, MdMenuBook, MdFilterList } from 'react-icons/md';
 import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
@@ -126,41 +126,48 @@ export function CourseList() {
 
 				<section className="studio-catalog__layout">
 					<aside className="studio-catalog__filters">
-						<Card className="studio-block">
-							<CardEyebrow>Search and filter</CardEyebrow>
-							<div className="form-stack">
-								<label>
-									Keyword
-									<input
-										type="search"
-										placeholder="Title, institution, skill"
-										value={search}
-										onChange={(event) => setSearch(event.target.value)}
-									/>
-								</label>
-								<label>
-									Publication status
-									<select value={publishFilter} onChange={(event) => setPublishFilter(event.target.value as typeof publishFilter)}>
-										<option value="ALL">All</option>
-										<option value="PUBLISHED">Published</option>
-										<option value="DRAFT">Draft</option>
-									</select>
-								</label>
-							</div>
-							<div className="studio-action-row">
-								<Button type="button" variant="ghost" onClick={() => setSearch('')}>Clear search</Button>
-								<Button to="/jobs" variant="secondary">View jobs</Button>
-							</div>
-						</Card>
+						<details className="studio-mobile-filters">
+							<summary className="studio-mobile-filters__summary">
+								<span className="ui-icon" aria-hidden="true"><MdFilterList /></span> Filters & Search
+							</summary>
+							<div className="studio-mobile-filters__content">
+								<Card className="studio-block">
+									<CardEyebrow>Search and filter</CardEyebrow>
+									<div className="form-stack">
+										<label>
+											Keyword
+											<input
+												type="search"
+												placeholder="Title, institution, skill"
+												value={search}
+												onChange={(event) => setSearch(event.target.value)}
+											/>
+										</label>
+										<label>
+											Publication status
+											<select value={publishFilter} onChange={(event) => setPublishFilter(event.target.value as typeof publishFilter)}>
+												<option value="ALL">All</option>
+												<option value="PUBLISHED">Published</option>
+												<option value="DRAFT">Draft</option>
+											</select>
+										</label>
+									</div>
+									<div className="studio-action-row">
+										<Button type="button" variant="ghost" onClick={() => setSearch('')}>Clear search</Button>
+										<Button to="/jobs" variant="secondary">View jobs</Button>
+									</div>
+								</Card>
 
-						<Card className="studio-block">
-							<CardEyebrow>Skill heatmap</CardEyebrow>
-							<div className="studio-chip-row">
-								{topSkills.map((item) => (
-									<span key={item.name} className="dashboard-chip">{item.name} · {item.count}</span>
-								))}
+								<Card className="studio-block">
+									<CardEyebrow>Skill heatmap</CardEyebrow>
+									<div className="studio-chip-row">
+										{topSkills.map((item) => (
+											<span key={item.name} className="dashboard-chip">{item.name} · {item.count}</span>
+										))}
+									</div>
+								</Card>
 							</div>
-						</Card>
+						</details>
 					</aside>
 
 					<main className="studio-catalog__results">
