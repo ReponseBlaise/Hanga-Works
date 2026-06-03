@@ -363,6 +363,7 @@ export default function Profile() {
               </Card>
             </section>
           </>
+        )}
           </div>
         </section>
       </section>
