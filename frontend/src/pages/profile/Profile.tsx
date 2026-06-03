@@ -68,7 +68,7 @@ export default function Profile() {
             remoteProfile.skills.map((skill, index) => ({
               id: skill.id ?? `skill-${index}`,
               name: skill.skill.name,
-              proficiency: (skill.level as Proficiency) ?? 'BEGINNER',
+              proficiency: (skill.level === 'EXPERT' ? 'ADVANCED' : skill.level as Proficiency) ?? 'BEGINNER',
             })),
           );
         }
@@ -130,12 +130,13 @@ export default function Profile() {
         finalAvatarUrl = uploadRes.publicUrl;
       }
 
+      const toApiLevel = (p: string) => (p === 'ADVANCED' ? 'EXPERT' : p);
       const updated = await updateProfile({
         name,
         bio,
         avatarUrl: finalAvatarUrl || undefined,
         location,
-        skills: skills.map((skill) => ({ skillName: skill.name, level: skill.proficiency })),
+        skills: skills.map((skill) => ({ skillName: skill.name, level: toApiLevel(skill.proficiency) })),
       });
 
       signIn({ ...(authUser ?? {}), ...updated });
