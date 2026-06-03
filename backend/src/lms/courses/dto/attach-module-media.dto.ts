@@ -1,4 +1,4 @@
-import { IsIn, IsNotEmpty, IsOptional, IsString, IsUrl } from 'class-validator';
+import { IsIn, IsOptional, IsString, IsUrl } from 'class-validator';
 
 export class AttachModuleMediaDto {
   @IsIn(['video', 'notes', 'document'])

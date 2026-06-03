@@ -64,17 +64,17 @@ async function main() {
 
   // ── Institutions ──────────────────────────────────────────────────────────
   const [alx, kit] = await Promise.all([
-    prisma.organization.create({ data: { name: 'ALX Rwanda',                   type: OrgType.INSTITUTION, website: 'https://alxafrica.com' } }),
-    prisma.organization.create({ data: { name: 'Kigali Institute of Technology', type: OrgType.INSTITUTION, website: 'https://kit.rw'       } }),
+    prisma.organization.create({ data: { name: 'ALX Rwanda',                   type: OrgType.INSTITUTION, website: 'https://alxafrica.com', trainingCertificate: 'https://res.cloudinary.com/demo/image/upload/sample.jpg' } }),
+    prisma.organization.create({ data: { name: 'Kigali Institute of Technology', type: OrgType.INSTITUTION, website: 'https://kit.rw',       trainingCertificate: 'https://res.cloudinary.com/demo/image/upload/sample.jpg' } }),
   ]);
 
   // ── Employer organisations (5) ────────────────────────────────────────────
   const employerOrgs = await Promise.all([
-    prisma.organization.create({ data: { name: 'Andela Rwanda',  type: OrgType.EMPLOYER, website: 'https://andela.com'  } }),
-    prisma.organization.create({ data: { name: 'MTN Rwanda',     type: OrgType.EMPLOYER, website: 'https://mtn.rw'      } }),
-    prisma.organization.create({ data: { name: 'Bank of Kigali', type: OrgType.EMPLOYER, website: 'https://bk.rw'       } }),
-    prisma.organization.create({ data: { name: 'Irembo Ltd',     type: OrgType.EMPLOYER, website: 'https://irembo.com'  } }),
-    prisma.organization.create({ data: { name: 'RwandAir',       type: OrgType.EMPLOYER, website: 'https://rwandair.com'} }),
+    prisma.organization.create({ data: { name: 'Andela Rwanda',  type: OrgType.EMPLOYER, website: 'https://andela.com',   companyCertificate: 'https://res.cloudinary.com/demo/image/upload/sample.jpg' } }),
+    prisma.organization.create({ data: { name: 'MTN Rwanda',     type: OrgType.EMPLOYER, website: 'https://mtn.rw',       companyCertificate: 'https://res.cloudinary.com/demo/image/upload/sample.jpg' } }),
+    prisma.organization.create({ data: { name: 'Bank of Kigali', type: OrgType.EMPLOYER, website: 'https://bk.rw',        companyCertificate: 'https://res.cloudinary.com/demo/image/upload/sample.jpg' } }),
+    prisma.organization.create({ data: { name: 'Irembo Ltd',     type: OrgType.EMPLOYER, website: 'https://irembo.com',   companyCertificate: 'https://res.cloudinary.com/demo/image/upload/sample.jpg' } }),
+    prisma.organization.create({ data: { name: 'RwandAir',       type: OrgType.EMPLOYER, website: 'https://rwandair.com', companyCertificate: 'https://res.cloudinary.com/demo/image/upload/sample.jpg' } }),
   ]);
 
   // ── 20 Learner users ──────────────────────────────────────────────────────

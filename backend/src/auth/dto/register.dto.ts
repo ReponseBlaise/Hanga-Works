@@ -26,4 +26,8 @@ export class RegisterDto {
   @IsOptional()
   @IsEnum(Role)
   role?: Role;
+
+  @ApiProperty({ type: 'string', format: 'binary', required: false, description: 'Certificate file for Employer/Institution' })
+  @IsOptional()
+  certificate?: unknown;
 }

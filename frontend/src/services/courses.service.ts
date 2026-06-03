@@ -110,7 +110,7 @@ export async function deleteCourseModule(courseId: string, moduleId: string) {
 	return data;
 }
 
-export async function uploadModuleMedia(file: File, purpose: 'course-video' | 'course-document', courseId?: string, moduleId?: string): Promise<{ publicUrl: string; provider: string; format: string; resourceType: string }> {
+export async function uploadModuleMedia(file: File, purpose: 'course-video' | 'course-document' | 'course-thumbnail', courseId?: string, moduleId?: string): Promise<{ publicUrl: string; provider: string; format: string; resourceType: string }> {
 	const formData = new FormData();
 	formData.append('file', file);
 	formData.append('purpose', purpose);
