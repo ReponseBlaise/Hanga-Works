@@ -10,6 +10,24 @@ import { getCourseById, getMyProgress, enrollInCourse, updateLessonProgress, cre
 import { getMyCertificates, type LearnerCertificate } from '../../services/certificates.service';
 import { getJobs, type JobSummary } from '../../services/jobs.service';
 
+function getEmbedUrl(url: string) {
+	if (!url) return url;
+	try {
+		const parsed = new URL(url);
+		if (parsed.hostname.includes('youtube.com')) {
+			const videoId = parsed.searchParams.get('v');
+			if (videoId) return `https://www.youtube.com/embed/${videoId}`;
+		}
+		if (parsed.hostname.includes('youtu.be')) {
+			const videoId = parsed.pathname.slice(1);
+			if (videoId) return `https://www.youtube.com/embed/${videoId}`;
+		}
+	} catch (e) {
+		// Ignore invalid URLs
+	}
+	return url;
+}
+
 export function CourseDetail() {
 	const { id } = useParams<{ id: string }>();
 	const navigate = useNavigate();
@@ -25,7 +43,7 @@ export function CourseDetail() {
 	const [activeModuleId, setActiveModuleId] = useState('');
 	const [relatedJobs, setRelatedJobs] = useState<JobSummary[]>([]);
 	const { user } = useAuth();
-	const isManager = user?.role === 'INSTITUTION' || user?.role === 'ADMIN';
+	const isManager = user?.role === 'INSTITUTION' || user?.role === 'ADMIN' || user?.role === 'MENTOR';
 	const [isAddingModule, setIsAddingModule] = useState(false);
 	const [editingModuleId, setEditingModuleId] = useState<string | null>(null);
 	const [moduleForm, setModuleForm] = useState<{ title: string; content: string; videoUrl: string; order: number; file: File | null }>({ title: '', content: '', videoUrl: '', order: 1, file: null });
@@ -359,7 +377,7 @@ export function CourseDetail() {
 									) : (
 										<iframe
 											title={activeModule.title}
-											src={activeModule.videoUrl}
+											src={getEmbedUrl(activeModule.videoUrl)}
 											allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
 											allowFullScreen
 										/>

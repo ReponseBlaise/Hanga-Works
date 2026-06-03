@@ -30,6 +30,8 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Role } from '@prisma/client';
 
+import { ApiConsumes } from '@nestjs/swagger';
+
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -38,6 +40,7 @@ export class AuthController {
   ) {}
 
   @Post('register')
+  @ApiConsumes('multipart/form-data')
   @UseInterceptors(FileInterceptor('certificate'))
   async register(
     @Body() registerDto: RegisterDto,

@@ -11,6 +11,7 @@ export default function Register() {
     phone: '',
     password: '',
     role: '' as '' | PublicRegisterRole,
+    certificate: null as File | null,
   });
   const navigate = useNavigate();
   const { signIn } = useAuth();
@@ -35,6 +36,7 @@ export default function Register() {
         phone: form.phone,
         password: form.password,
         role: form.role || undefined,
+        certificate: form.certificate || undefined,
       })
       .then((user) => {
         if (user) {
@@ -146,6 +148,20 @@ export default function Register() {
             </span>
           ) : null}
         </Field>
+
+        {(form.role === 'EMPLOYER' || form.role === 'INSTITUTION') && (
+          <Field label="Upload Company/Institution Certificate *">
+            <input
+              type="file"
+              accept=".pdf,.png,.jpg,.jpeg"
+              required
+              onChange={(e) => setForm({ ...form, certificate: e.target.files?.[0] || null })}
+              style={inputStyle}
+              onFocus={focus}
+              onBlur={blur}
+            />
+          </Field>
+        )}
 
         <Field label="Password *">
           <input

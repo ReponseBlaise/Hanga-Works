@@ -30,9 +30,22 @@ export async function register(payload: {
 	phone?: string;
 	password: string;
 	role?: 'LEARNER' | 'EMPLOYER' | 'INSTITUTION' | 'MENTOR';
+	certificate?: File;
 }) {
 	// Create the account
-	await api.post('/auth/register', payload);
+	const formData = new FormData();
+	formData.append('name', payload.name);
+	formData.append('email', payload.email);
+	if (payload.phone) formData.append('phone', payload.phone);
+	formData.append('password', payload.password);
+	if (payload.role) formData.append('role', payload.role);
+	if (payload.certificate) formData.append('certificate', payload.certificate);
+
+	await api.post('/auth/register', formData, {
+		headers: {
+			'Content-Type': 'multipart/form-data',
+		},
+	});
 	// Immediately log in to get the token
 	return await login({ email: payload.email, password: payload.password });
 }

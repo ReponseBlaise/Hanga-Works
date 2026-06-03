@@ -31,9 +31,9 @@ export class MediaUploadService {
     }
 
     const role = user.role as Role;
-    if (role !== Role.ADMIN && role !== Role.INSTITUTION) {
+    if (role !== Role.ADMIN && role !== Role.INSTITUTION && role !== Role.MENTOR) {
       throw new BadRequestException(
-        'Only admins and institutions can upload course media',
+        'Only admins, institutions, and mentors can upload course media',
       );
     }
   }

@@ -48,10 +48,7 @@ export class CloudinaryService {
       case 'avatar':
         return `${base}/avatars/${userId}`;
       case 'course-thumbnail':
-        if (!courseId) {
-          throw new BadRequestException('courseId is required for course-thumbnail uploads');
-        }
-        return `${base}/courses/${courseId}/thumbnails`;
+        return `${base}/courses/${courseId || 'drafts'}/thumbnails`;
       case 'course-video':
         if (!courseId || !moduleId) {
           throw new BadRequestException(

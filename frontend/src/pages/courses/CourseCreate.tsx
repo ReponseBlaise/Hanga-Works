@@ -5,7 +5,7 @@ import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
 import { useAuth } from '../../context/AuthContext';
-import { createCourse } from '../../services/courses.service';
+import { createCourse, uploadModuleMedia } from '../../services/courses.service';
 
 type CourseFormState = {
 	title: string;
@@ -28,7 +28,7 @@ export default function CourseCreate() {
 	const navigate = useNavigate();
 	const { user } = useAuth();
 	const role = (user?.role ?? '').toUpperCase();
-	const canCreate = role === 'ADMIN' || role === 'INSTITUTION';
+	const canCreate = role === 'ADMIN' || role === 'INSTITUTION' || role === 'MENTOR';
 	const [form, setForm] = useState<CourseFormState>({
 		title: '',
 		slug: '',
@@ -39,6 +39,7 @@ export default function CourseCreate() {
 	});
 	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState('');
+	const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
 
 	if (!canCreate) {
 		return <Navigate to="/courses" replace />;
@@ -50,11 +51,19 @@ export default function CourseCreate() {
 		setError('');
 
 		try {
+			let uploadedUrl = form.thumbnailUrl.trim();
+			if (thumbnailFile) {
+				const uploadRes = await uploadModuleMedia(thumbnailFile, 'course-thumbnail');
+				if (uploadRes?.publicUrl) {
+					uploadedUrl = uploadRes.publicUrl;
+				}
+			}
+
 			const course = await createCourse({
 				title: form.title.trim(),
 				slug: form.slug.trim() || slugify(form.title),
 				description: form.description.trim(),
-				thumbnailUrl: form.thumbnailUrl.trim() || undefined,
+				thumbnailUrl: uploadedUrl || undefined,
 				institutionId: form.institutionId.trim() || undefined,
 				published: form.published,
 			});
@@ -122,12 +131,14 @@ export default function CourseCreate() {
 								/>
 							</label>
 							<label>
-								Thumbnail URL
+								Course Avatar (Thumbnail)
 								<input
-									type="url"
-									value={form.thumbnailUrl}
-									onChange={(event) => setForm((previous) => ({ ...previous, thumbnailUrl: event.target.value }))}
-									placeholder="https://example.com/course-cover.jpg"
+									type="file"
+									accept=".jpg,.jpeg,.png,.webp"
+									onChange={(event) => {
+										const file = event.target.files?.[0];
+										if (file) setThumbnailFile(file);
+									}}
 								/>
 							</label>
 							<label>

@@ -58,8 +58,8 @@ export class AuthService {
           organizationId 
         },
       });
-    } catch (error: any) {
-      if (error.code === 'P2002') {
+    } catch (error) {
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
         throw new ConflictException('Email or phone number already in use');
       }
       throw error;
