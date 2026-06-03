@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BsFillGrid3X3GapFill, BsListUl } from 'react-icons/bs';
-import { MdWork, MdLocationOn, MdAttachMoney } from 'react-icons/md';
+import { MdWork, MdLocationOn, MdAttachMoney, MdFilterList } from 'react-icons/md';
 import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
@@ -175,9 +175,14 @@ export default function JobList() {
 
           <section className="joblist-redesign__layout">
             <aside className="studio-jobs__filters">
-            <Card className="studio-block">
-              <CardEyebrow>Search filters</CardEyebrow>
-              <div className="form-stack">
+              <details className="studio-mobile-filters">
+                <summary className="studio-mobile-filters__summary">
+                  <span className="ui-icon" aria-hidden="true"><MdFilterList /></span> Filters & Search
+                </summary>
+                <div className="studio-mobile-filters__content">
+                  <Card className="studio-block">
+                    <CardEyebrow>Search filters</CardEyebrow>
+                    <div className="form-stack">
                 <label>
                   Search
                   <input
@@ -253,6 +258,8 @@ export default function JobList() {
                 <Button to="/applications" variant="secondary">My applications</Button>
               </div>
             </Card>
+                </div>
+              </details>
             </aside>
 
             <main className="studio-jobs__results">
