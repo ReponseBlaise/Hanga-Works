@@ -20,7 +20,7 @@ export function CourseList() {
 	useEffect(() => {
 		let active = true;
 		const fetcher = (user?.role === 'INSTITUTION') ? getManageableCourses : getCourses;
-		
+
 		fetcher()
 			.then((items) => {
 				if (active) setCourses(items ?? []);
@@ -36,15 +36,10 @@ export function CourseList() {
 		return () => {
 			active = false;
 		};
-	}, [isAuthenticated, enrolledCourseIds.size]);
+	}, [isAuthenticated, user?.role, enrolledCourseIds.size]);
 
 	useEffect(() => {
-		if (!isAuthenticated) {
-			setTimeout(() => {
-				setEnrolledCourseIds(new Set());
-			}, 0);
-			return;
-		}
+		if (!isAuthenticated) return;
 
 		let active = true;
 		getMyProgress()
@@ -61,6 +56,9 @@ export function CourseList() {
 			active = false;
 		};
 	}, [isAuthenticated]);
+
+	// Clear enrolled IDs when unauthenticated — derived, not from effect
+	const visibleEnrolledIds = useMemo(() => isAuthenticated ? enrolledCourseIds : new Set<string>(), [isAuthenticated, enrolledCourseIds]);
 
 	const filteredCourses = useMemo(() => {
 		const query = search.trim().toLowerCase();
@@ -96,8 +94,8 @@ export function CourseList() {
 	}, [courses]);
 
 	const enrolledCount = useMemo(
-		() => courses.filter((course) => enrolledCourseIds.has(course.id)).length,
-		[courses, enrolledCourseIds],
+		() => courses.filter((course) => visibleEnrolledIds.has(course.id)).length,
+		[courses, visibleEnrolledIds],
 	);
 
 	return (
@@ -127,41 +125,41 @@ export function CourseList() {
 
 				<section className="studio-catalog__layout">
 					<aside className="studio-catalog__filters">
-							<Card className="studio-block">
-								<CardEyebrow>Search and filter</CardEyebrow>
-								<div className="form-stack">
-									<label>
-										Keyword
-										<input
-											type="search"
-											placeholder="Title, institution, skill"
-											value={search}
-											onChange={(event) => setSearch(event.target.value)}
-										/>
-									</label>
-									<label>
-										Publication status
-										<select value={publishFilter} onChange={(event) => setPublishFilter(event.target.value as typeof publishFilter)}>
-											<option value="ALL">All</option>
-											<option value="PUBLISHED">Published</option>
-											<option value="DRAFT">Draft</option>
-										</select>
-									</label>
-								</div>
-								<div className="studio-action-row">
-									<Button type="button" variant="ghost" onClick={() => setSearch('')}>Clear search</Button>
-									<Button to="/jobs" variant="secondary">View jobs</Button>
-								</div>
-							</Card>
+						<Card className="studio-block">
+							<CardEyebrow>Search and filter</CardEyebrow>
+							<div className="form-stack">
+								<label>
+									Keyword
+									<input
+										type="search"
+										placeholder="Title, institution, skill"
+										value={search}
+										onChange={(event) => setSearch(event.target.value)}
+									/>
+								</label>
+								<label>
+									Publication status
+									<select value={publishFilter} onChange={(event) => setPublishFilter(event.target.value as typeof publishFilter)}>
+										<option value="ALL">All</option>
+										<option value="PUBLISHED">Published</option>
+										<option value="DRAFT">Draft</option>
+									</select>
+								</label>
+							</div>
+							<div className="studio-action-row">
+								<Button type="button" variant="ghost" onClick={() => setSearch('')}>Clear search</Button>
+								<Button to="/jobs" variant="secondary">View jobs</Button>
+							</div>
+						</Card>
 
-							<Card className="studio-block">
-								<CardEyebrow>Skill heatmap</CardEyebrow>
-								<div className="studio-chip-row">
-									{topSkills.map((item) => (
-										<span key={item.name} className="dashboard-chip">{item.name} · {item.count}</span>
-									))}
-								</div>
-							</Card>
+						<Card className="studio-block">
+							<CardEyebrow>Skill heatmap</CardEyebrow>
+							<div className="studio-chip-row">
+								{topSkills.map((item) => (
+									<span key={item.name} className="dashboard-chip">{item.name} · {item.count}</span>
+								))}
+							</div>
+						</Card>
 					</aside>
 
 					<main className="studio-catalog__results">
@@ -199,7 +197,7 @@ export function CourseList() {
 
 						<div className={viewMode === 'grid' ? 'studio-catalog-grid' : 'studio-catalog-list'}>
 							{filteredCourses.map((course) => {
-								const isEnrolled = enrolledCourseIds.has(course.id);
+								const isEnrolled = visibleEnrolledIds.has(course.id);
 								return (
 									<Card key={course.id} className="studio-catalog-card">
 										<div className="studio-catalog-card__head">

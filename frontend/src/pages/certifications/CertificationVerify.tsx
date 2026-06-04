@@ -7,25 +7,13 @@ import { Button } from '../../components/ui/Button';
 export default function CertificationVerify() {
   const { token } = useParams();
   const [cert, setCert] = useState<LearnerCertificate | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(!!token);
+  const [error, setError] = useState<string | null>(token ? null : 'No verification token provided.');
 
   useEffect(() => {
-    let active = true;
-    if (!token) {
-      if (error !== 'No verification token provided.') {
-        setTimeout(() => {
-          if (active) setError('No verification token provided.');
-        }, 0);
-      }
-      if (loading) {
-        setTimeout(() => {
-          if (active) setLoading(false);
-        }, 0);
-      }
-      return;
-    }
+    if (!token) return;
 
+    let active = true;
     verifyCertificate(token)
       .then((data) => {
         if (!active) return;

@@ -8,7 +8,6 @@ import { getAdminUserDetail, updateAdminUserStatus } from '../../services/admin.
 export default function AdminUserDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
@@ -132,7 +131,6 @@ export default function AdminUserDetailPage() {
                         <strong>Website:</strong> <a href={org.website} target="_blank" rel="noopener noreferrer">{org.website}</a>
                       </div>
                     )}
-                    
                     {org.companyCertificate && (
                       <div style={{ marginTop: '12px' }}>
                         <strong>Company Certificate:</strong><br />
@@ -141,7 +139,6 @@ export default function AdminUserDetailPage() {
                         </a>
                       </div>
                     )}
-
                     {org.trainingCertificate && (
                       <div style={{ marginTop: '12px' }}>
                         <strong>Training Certificate:</strong><br />
@@ -158,21 +155,11 @@ export default function AdminUserDetailPage() {
                 <Card className="studio-block" style={{ border: '2px solid var(--primary)' }}>
                   <CardTitle>Moderation Decision</CardTitle>
                   <CardMeta>Approving this account will grant them full access to post {user.role === 'EMPLOYER' ? 'jobs' : 'courses'} on Hanga Works.</CardMeta>
-                  
                   <div className="studio-action-row mt-md" style={{ gap: '16px' }}>
-                    <Button 
-                      variant="primary" 
-                      onClick={() => handleUpdateStatus('ACTIVE')}
-                      disabled={processing}
-                    >
+                    <Button variant="primary" onClick={() => handleUpdateStatus('ACTIVE')} disabled={processing}>
                       {processing ? 'Processing...' : 'Approve Account'}
                     </Button>
-                    <Button 
-                      variant="secondary" 
-                      onClick={() => handleUpdateStatus('REJECTED')}
-                      disabled={processing}
-                      style={{ color: 'red', borderColor: 'red' }}
-                    >
+                    <Button variant="secondary" onClick={() => handleUpdateStatus('REJECTED')} disabled={processing} style={{ color: 'red', borderColor: 'red' }}>
                       Reject Account
                     </Button>
                   </div>
