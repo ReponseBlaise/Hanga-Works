@@ -61,7 +61,7 @@ export default function JobDetail() {
 			.slice(0, 2)
 			.map((part) => part[0]?.toUpperCase())
 			.join('');
-	}, [job?.employer?.name]);
+	}, [job]);
 
 	return (
 		<SiteLayout>
