@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { SiteLayout } from '../../components/layout/SiteLayout';
-import { Card, CardMeta, CardTitle, CardEyebrow } from '../../components/ui/Card';
+import { Card, CardMeta } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import {
   getAdminUsers, updateAdminUserStatus,
@@ -18,7 +18,7 @@ export default function AdminModerationPage() {
 
   useEffect(() => {
     let active = true;
-    setLoading(true);
+    if (!loading) setLoading(true);
 
     const fetchData = async () => {
       try {
@@ -42,7 +42,7 @@ export default function AdminModerationPage() {
     fetchData();
 
     return () => { active = false; };
-  }, [activeTab]);
+  }, [activeTab, courses.length, jobs.length, users.length]);
 
   const handleToggleUser = async (id: string, currentStatus: string) => {
     const nextStatus = currentStatus === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';

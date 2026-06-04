@@ -37,7 +37,7 @@ export default function EmployerDashboard() {
   const ownJobs = useMemo(() => {
     if (!user?.organizationId) return jobs;
     return jobs.filter((job) => job.employer.id === user.organizationId);
-  }, [jobs, user?.organizationId]);
+  }, [jobs, user]);
 
   const pipeline = useMemo(
     () => [

@@ -46,8 +46,8 @@ export default function Profile() {
 
   useEffect(() => {
     if (!isAuthenticated && !isPublicView) {
-      setLoadingProfile(false);
-      setLoadingCertificates(false);
+      if (loadingProfile) setLoadingProfile(false);
+      if (loadingCertificates) setLoadingCertificates(false);
       return;
     }
 
@@ -100,7 +100,7 @@ export default function Profile() {
     return () => {
       active = false;
     };
-  }, [isAuthenticated, isPublicView]);
+  }, [isAuthenticated, isPublicView, params.id]);
 
   const userName = params.username ?? authUser?.username ?? authUser?.name ?? 'learner';
   const publicProfileLink = useMemo(() => `/profile/${userName.toLowerCase().replace(/\s+/g, '-')}`, [userName]);
