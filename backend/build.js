@@ -3,6 +3,8 @@ const { spawnSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
+const isCI = process.env.CI === 'true';
+
 function run(cmd, args, { failOk = false } = {}) {
   console.log(`> ${cmd} ${args.join(' ')}`);
   const res = spawnSync(cmd, args, { stdio: 'inherit', shell: true });
@@ -10,25 +12,27 @@ function run(cmd, args, { failOk = false } = {}) {
   return res.status;
 }
 
-run('npm', ['install', '--save-exact', 'prisma@5.22.0', '@prisma/client@5.22.0']);
 run('npx', ['prisma', 'generate']);
 
-// Resolve P3005: baseline all existing migration files so Prisma doesn't
-// try to apply them against a database that already has the schema.
-const migrationsDir = path.join(__dirname, 'prisma', 'migrations');
-if (fs.existsSync(migrationsDir)) {
-  const migrations = fs
-    .readdirSync(migrationsDir)
-    .filter((d) => fs.statSync(path.join(migrationsDir, d)).isDirectory());
+if (!isCI) {
+  // Resolve P3005: baseline all existing migration files so Prisma doesn't
+  // try to apply them against a database that already has the schema.
+  const migrationsDir = path.join(__dirname, 'prisma', 'migrations');
+  if (fs.existsSync(migrationsDir)) {
+    const migrations = fs
+      .readdirSync(migrationsDir)
+      .filter((d) => fs.statSync(path.join(migrationsDir, d)).isDirectory());
 
-  for (const migration of migrations) {
-    run(
-      'npx',
-      ['prisma', 'migrate', 'resolve', '--applied', migration],
-      { failOk: true }, // already-applied entries are a no-op / non-fatal
-    );
+    for (const migration of migrations) {
+      run(
+        'npx',
+        ['prisma', 'migrate', 'resolve', '--applied', migration],
+        { failOk: true },
+      );
+    }
   }
+
+  run('npx', ['prisma', 'migrate', 'deploy']);
 }
 
-run('npx', ['prisma', 'migrate', 'deploy']);
 run('npx', ['tsc', '-p', '.']);
