@@ -34,9 +34,9 @@ model User {
   mentorSessions     MentorSession[]
   notifications      Notification[]
   refreshTokens      RefreshToken[]
+  testAttempts       TestAttempt[]
   organization       Organization?   @relation(fields: [organizationId], references: [id])
   skills             UserSkill[]
-  testAttempts       TestAttempt[]
 
   @@index([email])
   @@index([role])
@@ -104,8 +104,8 @@ model Course {
   institution    Organization?   @relation(fields: [institutionId], references: [id])
   modules        CourseModule[]
   skills         CourseSkill[]
-  enrollments    Enrollment[]
   test           CourseTest?
+  enrollments    Enrollment[]
 
   @@index([published])
 }
@@ -260,8 +260,8 @@ model CourseTest {
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   course       Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  questions    TestQuestion[]
   attempts     TestAttempt[]
+  questions    TestQuestion[]
 }
 
 model TestQuestion {
