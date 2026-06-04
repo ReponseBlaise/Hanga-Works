@@ -54,14 +54,8 @@ export default function JobList() {
 
   useEffect(() => {
     let active = true;
-    if (!loading) {
-      setTimeout(() => {
-        if (active) setLoading(true);
-      }, 0);
-    }
-    setTimeout(() => {
-      if (active) setError(null);
-    }, 0);
+    setLoading(true);
+    setError(null);
 
     getJobs({
       search: filters.search,
@@ -91,7 +85,7 @@ export default function JobList() {
     return () => {
       active = false;
     };
-  }, [filters.search, filters.location, filters.jobType, filters.remoteOnly, filters.salaryMin, filters.salaryMax, page, perPage, error, loading]);
+  }, [filters.search, filters.location, filters.jobType, filters.remoteOnly, filters.salaryMin, filters.salaryMax, page, perPage]);
   
 
   const filteredJobs = useMemo(() => {
