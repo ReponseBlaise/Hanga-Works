@@ -5,12 +5,11 @@ import { verifyEmail, resendVerification } from '../../services/auth.service';
 export default function VerifyEmail() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
-  const [status, setStatus] = useState<'idle' | 'verifying' | 'success' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'verifying' | 'success' | 'error'>(token ? 'verifying' : 'idle');
   const [resendStatus, setResendStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
 
   useEffect(() => {
     if (token) {
-      setStatus('verifying');
       verifyEmail(token)
         .then(() => setStatus('success'))
         .catch(() => setStatus('error'));

@@ -15,8 +15,10 @@ export default function Navbar() {
 	const visibleUnread = (notificationItems ?? []).filter((it) => it.source !== 'System' && !it.read).length;
 
 	useEffect(() => {
-		setMenuOpen(false);
-	}, [location.pathname]);
+		if (menuOpen) {
+			setMenuOpen(false);
+		}
+	}, [location.pathname, menuOpen]);
 
 	const userRole = (user?.role ?? 'LEARNER').toUpperCase();
 

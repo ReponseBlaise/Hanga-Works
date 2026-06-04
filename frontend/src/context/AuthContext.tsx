@@ -1,25 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { AUTH_TOKEN_KEY, setAuthToken } from '../services/api';
 import authService from '../services/auth.service';
-
-export type AuthUser = {
-  id?: string;
-  name: string;
-  email: string;
-  username?: string;
-  role?: string;
-  organizationId?: string | null;
-  avatarUrl?: string | null;
-  bio?: string | null;
-  location?: string | null;
-};
-
-type AuthContextValue = {
-  user: AuthUser | null;
-  isAuthenticated: boolean;
-  signIn: (user: AuthUser) => void;
-  signOut: () => void;
-};
+import type { AuthUser, AuthContextValue } from '../types/auth.types';
 
 const AUTH_STORAGE_KEY = 'sewi-platform-auth-user';
 

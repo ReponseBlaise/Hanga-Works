@@ -60,7 +60,7 @@ export default function Applicants() {
 
   useEffect(() => {
     if (!selectedJobId) {
-      setCandidates([]);
+      if (candidates.length > 0) setCandidates([]);
       return;
     }
 

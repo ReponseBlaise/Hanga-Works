@@ -1,28 +1,10 @@
 import api, { AUTH_TOKEN_KEY, setAuthToken } from './api';
-
-export type AuthUser = {
-	id?: string;
-	name: string;
-	email: string;
-	username?: string;
-	role?: string;
-	organizationId?: string | null;
-	bio?: string | null;
-	location?: string | null;
-	avatarUrl?: string | null;
-	skills?: Array<{
-		id: string;
-		skill: { id: string; name: string };
-		level?: string;
-	}>;
-};
+import type { AuthUser } from '../types/auth.types';
 
 type AuthResponse = {
 	access_token: string;
 	user: AuthUser;
 };
-
-type RegisterResponse = AuthUser | AuthResponse;
 
 export async function register(payload: {
 	name: string;

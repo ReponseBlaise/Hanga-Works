@@ -18,7 +18,7 @@ export default function AdminPanelPage() {
 
   useEffect(() => {
     let active = true;
-    setLoading(true);
+    if (!loading) setLoading(true);
 
     Promise.all([
       api.get('/users').catch(() => ({ data: { data: [] } })),

@@ -45,8 +45,8 @@ export default function Intelligence() {
 
   useEffect(() => {
     if (!selectedJobId) {
-      setGapAnalysis(null);
-      setLoadingAnalysis(false);
+      if (gapAnalysis !== null) setGapAnalysis(null);
+      if (loadingAnalysis) setLoadingAnalysis(false);
       return;
     }
 

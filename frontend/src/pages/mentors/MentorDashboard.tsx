@@ -92,11 +92,11 @@ export default function MentorDashboard() {
             <div className="dashboard-redesign__headline-stats">
               <div>
                 <span>Total Sessions</span>
-                <strong>{loading ? '...' : sessions.length}</strong>
+                <strong style={{ color: 'var(--text)' }}>{loading ? '...' : sessions.length}</strong>
               </div>
               <div>
                 <span>Upcoming</span>
-                <strong>{loading ? '...' : upcomingSessions.length}</strong>
+                <strong style={{ color: 'var(--text)' }}>{loading ? '...' : upcomingSessions.length}</strong>
               </div>
             </div>
           </section>
@@ -139,54 +139,17 @@ export default function MentorDashboard() {
                     <h2>Setup your Mentorship Profile</h2>
                   </div>
                 </div>
-                <form onSubmit={handleProfileSave} style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '15px' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                    <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Expertise</label>
-                    <input 
-                      type="text" 
-                      placeholder="e.g. Frontend, System Design, Career Advice" 
-                      required
-                      value={form.expertise}
-                      onChange={e => setForm({...form, expertise: e.target.value})}
-                      style={{ padding: '10px', borderRadius: '6px', border: '1px solid var(--border)' }}
-                    />
+                <form onSubmit={handleProfileSave} className="form-stack">
+                  <label>Expertise<input type="text" placeholder="e.g. Frontend, System Design, Career Advice" required value={form.expertise} onChange={e => setForm({...form, expertise: e.target.value})} /></label>
+                  <label>Bio<textarea placeholder="Tell learners about your experience..." rows={3} value={form.bio} onChange={e => setForm({...form, bio: e.target.value})} /></label>
+                  <div className="profile-form-grid">
+                    <label>Hourly Rate (RWF)<input type="number" min="0" value={form.hourlyRate} onChange={e => setForm({...form, hourlyRate: Number(e.target.value)})} /></label>
+                    <label>Availability<input type="text" placeholder="e.g. Weekends, Evenings" value={form.availability} onChange={e => setForm({...form, availability: e.target.value})} /></label>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                    <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Bio</label>
-                    <textarea 
-                      placeholder="Tell learners about your experience..." 
-                      rows={3}
-                      value={form.bio}
-                      onChange={e => setForm({...form, bio: e.target.value})}
-                      style={{ padding: '10px', borderRadius: '6px', border: '1px solid var(--border)' }}
-                    />
+                  <div className="studio-action-row">
+                    <Button type="submit" variant="primary" disabled={saving}>{saving ? 'Saving...' : 'Update Mentor Profile'}</Button>
+                    {saved && <span style={{ color: 'var(--accent)' }}>Profile updated!</span>}
                   </div>
-                  <div style={{ display: 'flex', gap: '15px' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', flex: 1 }}>
-                      <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Hourly Rate (RWF)</label>
-                      <input 
-                        type="number" 
-                        min="0"
-                        value={form.hourlyRate}
-                        onChange={e => setForm({...form, hourlyRate: Number(e.target.value)})}
-                        style={{ padding: '10px', borderRadius: '6px', border: '1px solid var(--border)' }}
-                      />
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', flex: 1 }}>
-                      <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Availability</label>
-                      <input 
-                        type="text" 
-                        placeholder="e.g. Weekends, Evenings" 
-                        value={form.availability}
-                        onChange={e => setForm({...form, availability: e.target.value})}
-                        style={{ padding: '10px', borderRadius: '6px', border: '1px solid var(--border)' }}
-                      />
-                    </div>
-                  </div>
-                  <Button type="submit" variant="primary" style={{ alignSelf: 'flex-start' }} disabled={saving}>
-                    {saving ? 'Saving...' : 'Update Mentor Profile'}
-                  </Button>
-                  {saved && <span style={{ color: 'var(--success)', fontSize: '0.9rem' }}>Profile updated successfully!</span>}
                 </form>
               </Card>
             </main>

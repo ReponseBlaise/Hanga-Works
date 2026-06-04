@@ -5,7 +5,6 @@ import { Button } from '../../components/ui/Button';
 import { resetPassword } from '../../services/auth.service';
 
 export default function ResetPassword() {
-	const navigate = useNavigate();
 	const { token: routeToken = '' } = useParams<{ token?: string }>();
 	const [searchParams] = useSearchParams();
 	const [token, setToken] = useState(routeToken || searchParams.get('token') || '');
@@ -15,8 +14,11 @@ export default function ResetPassword() {
 	const [message, setMessage] = useState('');
 
 	useEffect(() => {
-		setToken(routeToken || searchParams.get('token') || '');
-	}, [routeToken, searchParams]);
+		const targetToken = routeToken || searchParams.get('token') || '';
+		if (token !== targetToken) {
+			setToken(targetToken);
+		}
+	}, [routeToken, searchParams, token]);
 
 	async function handleSubmit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();

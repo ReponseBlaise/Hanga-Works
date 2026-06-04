@@ -53,20 +53,23 @@ export default function CourseCreate() {
 		try {
 			let uploadedUrl = form.thumbnailUrl.trim();
 			if (thumbnailFile) {
-				const uploadRes = await uploadModuleMedia(thumbnailFile, 'course-thumbnail');
-				if (uploadRes?.publicUrl) {
-					uploadedUrl = uploadRes.publicUrl;
+				try {
+					const uploadRes = await uploadModuleMedia(thumbnailFile, 'course-thumbnail');
+					if (uploadRes?.publicUrl) uploadedUrl = uploadRes.publicUrl;
+				} catch (uploadError) {
+					console.warn('Thumbnail upload failed, proceeding without it', uploadError);
 				}
 			}
 
-			const course = await createCourse({
+			const payload: Parameters<typeof createCourse>[0] = {
 				title: form.title.trim(),
 				slug: form.slug.trim() || slugify(form.title),
 				description: form.description.trim(),
-				thumbnailUrl: uploadedUrl || undefined,
-				institutionId: form.institutionId.trim() || undefined,
 				published: form.published,
-			});
+			};
+			if (uploadedUrl) payload.thumbnailUrl = uploadedUrl;
+			if (form.institutionId.trim()) payload.institutionId = form.institutionId.trim();
+			const course = await createCourse(payload);
 			navigate(`/courses/${course.id}`);
 		} catch (creationError) {
 			console.error('Failed to create course', creationError);
