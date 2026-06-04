@@ -15,11 +15,8 @@ export default function Navbar() {
 	const visibleUnread = (notificationItems ?? []).filter((it) => it.source !== 'System' && !it.read).length;
 
 	useEffect(() => {
-		if (menuOpen) {
-			const timer = setTimeout(() => setMenuOpen(false), 0);
-			return () => clearTimeout(timer);
-		}
-	}, [location.pathname, menuOpen]);
+		setMenuOpen(false);
+	}, [location.pathname]);
 
 	const userRole = (user?.role ?? 'LEARNER').toUpperCase();
 
