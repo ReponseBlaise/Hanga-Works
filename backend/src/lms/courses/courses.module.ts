@@ -6,6 +6,8 @@ import { CoursesService } from './courses.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RedisService } from '../../redis/redis.service';
 import { JwtStrategy } from '../../auth/strategies/jwt.strategy';
+import { CertificationsModule } from '../../certifications/certifications.module';
+import { NotificationsModule } from '../../notifications/notifications.module';
 
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import { JwtStrategy } from '../../auth/strategies/jwt.strategy';
       secret: process.env.JWT_SECRET ?? 'changeme',
       signOptions: { expiresIn: '1d' },
     }),
+    CertificationsModule,
+    NotificationsModule,
   ],
   controllers: [CoursesController],
   providers: [CoursesService, PrismaService, RedisService, JwtStrategy],
