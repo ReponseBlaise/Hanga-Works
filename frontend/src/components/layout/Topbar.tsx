@@ -38,9 +38,7 @@ export default function Navbar() {
 		}
 		if (userRole === 'ADMIN') {
 			return [
-				{ label: 'Admin Home', href: '/admin' },
-				{ label: 'Exports', href: '/admin/export' },
-				{ label: 'Moderation', href: '/admin/moderation' },
+				{ label: 'Dashboard', href: '/admin' },
 			];
 		}
 		if (userRole === 'INSTITUTION') {

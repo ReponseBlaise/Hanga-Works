@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { SiteLayout } from '../../components/layout/SiteLayout';
+import { AdminSidebar } from '../../components/layout/AdminSidebar';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
 import { useAuth } from '../../hooks/useAuth';
@@ -26,6 +27,7 @@ export default function Profile() {
     params.id !== authUser?.id;
 
   const role = (authUser?.role ?? 'LEARNER').toUpperCase();
+  const isAdmin = role === 'ADMIN';
   const isLearner = role === 'LEARNER';
   const isEmployer = role === 'EMPLOYER';
   const isMentor = role === 'MENTOR';
@@ -190,9 +192,8 @@ export default function Profile() {
     ? ['Identity', 'Organisation', 'Programmes']
     : ['Identity', 'Skills', 'Interests'];
 
-  return (
-    <SiteLayout>
-      <section className={`studio-profile studio-profile--${role.toLowerCase()}`}>
+  const profileContent = (
+    <section className={`studio-profile studio-profile--${role.toLowerCase()}`}>
         <header className="studio-profile__hero">
           <div>
             <p className="eyebrow">{roleLabel}</p>
@@ -408,6 +409,18 @@ export default function Profile() {
           </div>
         </section>
       </section>
+  );
+
+  return (
+    <SiteLayout>
+      {isAdmin ? (
+        <div className="app-shell-layout">
+          <AdminSidebar />
+          <div className="studio-dashboard dashboard-redesign">{profileContent}</div>
+        </div>
+      ) : (
+        profileContent
+      )}
     </SiteLayout>
   );
 }

@@ -28,14 +28,14 @@ function readStoredUser(): AuthUser | null {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(() => readStoredUser());
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     if (user) {
       window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
-      return;
+    } else {
+      window.localStorage.removeItem(AUTH_STORAGE_KEY);
     }
-
-    window.localStorage.removeItem(AUTH_STORAGE_KEY);
   }, [user]);
 
   useEffect(() => {
@@ -49,33 +49,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
   }, []);
 
+  // Always validate session on startup
   useEffect(() => {
-    if (!user) {
-      return;
-    }
-
-    const storedToken = window.localStorage.getItem(AUTH_TOKEN_KEY);
-
-    if (storedToken) {
+    if (!readStoredUser()) {
+      setIsReady(true);
       return;
     }
 
     void authService.refresh().then((data) => {
       if (!data?.access_token) {
         setAuthToken(null);
+        window.localStorage.removeItem(AUTH_TOKEN_KEY);
         setUser(null);
-        return;
-      }
-
-      if (data.user) {
+      } else if (data.user) {
         setUser(data.user);
       }
-    });
-  }, [user]);
+    }).finally(() => setIsReady(true));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const value: AuthContextValue = {
     user,
     isAuthenticated: user !== null,
+    isReady,
     signIn: (nextUser) => {
       setUser(nextUser);
     },
