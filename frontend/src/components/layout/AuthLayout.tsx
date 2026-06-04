@@ -4,10 +4,14 @@ import Footer from './Footer';
 
 export default function AuthLayout() {
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
+    <div className="auth-page">
       <Navbar />
-      <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 16px' }}>
-        <Outlet />
+      <main className="auth-page__main">
+        <div className="auth-studio-shell auth-studio-shell--centered">
+          <section className="auth-studio-content auth-studio-content--centered">
+            <Outlet />
+          </section>
+        </div>
       </main>
       <Footer />
     </div>

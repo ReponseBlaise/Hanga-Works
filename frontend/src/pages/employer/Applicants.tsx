@@ -1,29 +1,81 @@
-import React, { useMemo, useState } from 'react';
-import { Card, CardTitle, CardMeta } from '../../components/ui/Card';
+import { useEffect, useMemo, useState } from 'react';
+import { SiteLayout } from '../../components/layout/SiteLayout';
+import { Card, CardMeta, CardTitle } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { getEmployerJobs, getApplicantsForJob, updateApplicationStage, type EmployerApplicant } from '../../services/employer.service';
 
 type Candidate = {
   id: string;
   name: string;
   email: string;
-  stage: 'Applied' | 'Reviewing' | 'Shortlisted' | 'Hired';
+  stage: 'APPLIED' | 'REVIEWING' | 'SHORTLISTED' | 'HIRED' | 'REJECTED';
   summary?: string;
+  jobTitle?: string;
 };
 
-const pipelineStages: Candidate['stage'][] = ['Applied', 'Reviewing', 'Shortlisted', 'Hired'];
+const pipelineStages: Candidate['stage'][] = ['APPLIED', 'REVIEWING', 'SHORTLISTED', 'HIRED', 'REJECTED'];
 
-const initialCandidates: Candidate[] = [
-  { id: 'c1', name: 'Ada Lovelace', email: 'ada@example.com', stage: 'Applied', summary: 'Experienced developer and mathematician.' },
-  { id: 'c2', name: 'Alan Turing', email: 'alan@example.com', stage: 'Reviewing', summary: 'Strong systems thinker.' },
-  { id: 'c3', name: 'Grace Hopper', email: 'grace@example.com', stage: 'Shortlisted', summary: 'Compiler expert.' },
-];
+const stageLabels: Record<Candidate['stage'], string> = {
+  APPLIED: 'Applied',
+  REVIEWING: 'Reviewing',
+  SHORTLISTED: 'Shortlisted',
+  HIRED: 'Hired',
+  REJECTED: 'Rejected',
+};
 
 export default function Applicants() {
-  const [candidates, setCandidates] = useState<Candidate[]>(initialCandidates);
+  const { user } = useAuth();
+  const [jobs, setJobs] = useState<Array<{ id: string; title: string; employer: { id: string } }>>([]);
+  const [selectedJobId, setSelectedJobId] = useState('');
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [active, setActive] = useState<Candidate | null>(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [ratings, setRatings] = useState<Record<string, number>>({});
+  const [comments, setComments] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    let activeFetch = true;
+
+    getEmployerJobs()
+      .then((allJobs) => {
+        if (!activeFetch) return;
+        const ownJobs = user?.organizationId
+          ? allJobs.filter((job) => job.employer.id === user.organizationId)
+          : allJobs;
+        setJobs(ownJobs);
+        setSelectedJobId((current) => current || ownJobs[0]?.id || '');
+      })
+      .catch((error) => {
+        console.error('Failed to load jobs', error);
+      });
+
+    return () => {
+      activeFetch = false;
+    };
+  }, [user?.organizationId]);
+
+  useEffect(() => {
+    if (!selectedJobId) {
+      if (candidates.length > 0) setCandidates([]);
+      return;
+    }
+
+    setLoading(true);
+    getApplicantsForJob(selectedJobId)
+      .then((applications) => {
+        const mapped = applications.map(mapApplicantToCandidate);
+        setCandidates(mapped);
+      })
+      .catch((error) => {
+        console.error('Failed to load applicants', error);
+        setCandidates([]);
+      })
+      .finally(() => setLoading(false));
+  }, [selectedJobId]);
 
   const grouped = useMemo(() => {
     const map: Record<string, Candidate[]> = {};
@@ -33,61 +85,148 @@ export default function Applicants() {
   }, [candidates]);
 
   function moveCandidate(id: string, to: Candidate['stage']) {
-    setCandidates((prev) => prev.map((c) => (c.id === id ? { ...c, stage: to } : c)));
+    updateApplicationStage(id, to)
+      .then((updated) => {
+        setCandidates((prev) => prev.map((c) => (c.id === id ? mapApplicantToCandidate(updated) : c)));
+      })
+      .catch((error) => {
+        console.error('Failed to update application stage', error);
+      });
   }
 
   return (
-    <section>
-      <header className="page-header">
-        <h2>Applicants</h2>
-        <div>
-          <Button to="/employer/post-job">Post Job</Button>
-          <Button variant="secondary" onClick={() => navigate('/employer')}>Overview</Button>
-        </div>
-      </header>
-
-      <div className="kanban">
-        {pipelineStages.map((stage) => (
-          <div className="kanban-column" key={stage}>
-            <h3 className="kanban-title">{stage}</h3>
-            <div className="kanban-list">
-              {grouped[stage].map((c) => (
-                <article key={c.id} className="kanban-card" onClick={() => setActive(c)}>
-                  <Card>
-                    <CardTitle>{c.name}</CardTitle>
-                    <CardMeta>{c.email}</CardMeta>
-                  </Card>
-                </article>
-              ))}
-            </div>
-            <div className="kanban-actions">
-              {stage !== 'Hired' && (
-                <Button variant="ghost" onClick={() => {
-                  const nextIndex = pipelineStages.indexOf(stage) + 1;
-                  const next = pipelineStages[nextIndex];
-                  grouped[stage].forEach((c) => moveCandidate(c.id, next));
-                }}>Move all →</Button>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <Modal open={!!active} onClose={() => setActive(null)} title={active?.name} variant="drawer" actions={
-        <div style={{ display: 'flex', gap: 8 }}>
-          {active && active.stage !== 'Hired' && (
-            <Button onClick={() => moveCandidate(active.id, pipelineStages[pipelineStages.indexOf(active.stage) + 1])}>Move to next</Button>
-          )}
-          <Button variant="secondary" onClick={() => setActive(null)}>Close</Button>
-        </div>
-      }>
-        {active ? (
+    <SiteLayout>
+      <section className="studio-applicants studio-applicants--employer employer-page">
+        <header className="studio-applicants__head employer-page__head">
           <div>
-            <p><strong>Email:</strong> {active.email}</p>
-            <p>{active.summary}</p>
+            <p className="eyebrow">Applicant review</p>
+            <h1 className="display">Review candidates by stage</h1>
+            <p className="lead">Choose a job posting, then move applicants through Applied, Reviewing, Shortlisted, Hired, or Rejected.</p>
           </div>
-        ) : null}
-      </Modal>
-    </section>
+          <div className="studio-action-row">
+            <Button to="/employer/post-job" variant="primary">Post job</Button>
+            <Button variant="secondary" onClick={() => navigate('/employer')}>Back to dashboard</Button>
+          </div>
+        </header>
+
+        <Card className="studio-block employer-form-card">
+          <label className="employer-form__label">
+            <span className="employer-form__label-row">Job posting</span>
+            <select
+              className="employer-form__select"
+              value={selectedJobId}
+              onChange={(e) => setSelectedJobId(e.target.value)}
+            >
+              {jobs.length === 0 ? <option value="">No jobs available</option> : jobs.map((job) => <option key={job.id} value={job.id}>{job.title}</option>)}
+            </select>
+          </label>
+        </Card>
+
+        {loading ? <p>Loading applicants...</p> : null}
+
+        <div className="studio-applicants__kanban">
+          {pipelineStages.map((stage) => (
+            <Card className="studio-block" key={stage}>
+              <h3 className="kanban-title">{stageLabels[stage]}</h3>
+              <div className="kanban-list">
+                {grouped[stage].length === 0 ? <CardMeta>No applicants in this stage.</CardMeta> : null}
+                {grouped[stage].map((candidate) => (
+                  <button key={candidate.id} type="button" className="studio-candidate-card" onClick={() => setActive(candidate)}>
+                    <strong>{candidate.name}</strong>
+                    <span>{candidate.email}</span>
+                    {candidate.jobTitle ? <span>{candidate.jobTitle}</span> : null}
+                  </button>
+                ))}
+              </div>
+              {stage !== 'HIRED' && stage !== 'REJECTED' ? (
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    const nextIndex = pipelineStages.indexOf(stage) + 1;
+                    const next = pipelineStages[nextIndex];
+                    grouped[stage].forEach((candidate) => moveCandidate(candidate.id, next));
+                  }}
+                >
+                  Move all to next stage
+                </Button>
+              ) : null}
+            </Card>
+          ))}
+        </div>
+
+        <Modal
+          open={!!active}
+          onClose={() => setActive(null)}
+          title={active?.name}
+          variant="drawer"
+          actions={
+            <div className="studio-action-row">
+              {active && active.stage !== 'HIRED' && active.stage !== 'REJECTED' ? (
+                <Button onClick={() => moveCandidate(active.id, pipelineStages[pipelineStages.indexOf(active.stage) + 1])}>Move to next stage</Button>
+              ) : null}
+              <Button variant="secondary" onClick={() => setActive(null)}>Close</Button>
+            </div>
+          }
+        >
+          {active ? (
+            <div className="studio-applicant-review">
+              <Card className="studio-block">
+                <CardTitle>Applicant profile</CardTitle>
+                <p><strong>Email:</strong> {active.email}</p>
+                <p><strong>Current stage:</strong> {stageLabels[active.stage]}</p>
+                {active.jobTitle ? <p><strong>Job:</strong> {active.jobTitle}</p> : null}
+                <p>{active.summary}</p>
+              </Card>
+
+              <Card className="studio-block">
+                <CardTitle>Resume preview</CardTitle>
+                <div className="studio-resume-preview">
+                  <h4>{active.name}</h4>
+                  <p>{active.email}</p>
+                  <p>{active.summary}</p>
+                  <p>This placeholder panel is where uploaded resume content can be rendered.</p>
+                </div>
+              </Card>
+
+              <Card className="studio-block">
+                <CardTitle>Rating and comments</CardTitle>
+                <div className="form-stack">
+                  <label>
+                    Recruiter rating (1-5)
+                    <select
+                      value={ratings[active.id] ?? 3}
+                      onChange={(event) => setRatings((prev) => ({ ...prev, [active.id]: Number(event.target.value) }))}
+                    >
+                      {[1, 2, 3, 4, 5].map((value) => <option key={value} value={value}>{value}</option>)}
+                    </select>
+                  </label>
+                  <label>
+                    Internal comments
+                    <textarea
+                      rows={5}
+                      value={comments[active.id] ?? ''}
+                      onChange={(event) => setComments((prev) => ({ ...prev, [active.id]: event.target.value }))}
+                      placeholder="Capture interviewer notes, strengths, and risks"
+                    />
+                  </label>
+                </div>
+              </Card>
+            </div>
+          ) : null}
+        </Modal>
+      </section>
+    </SiteLayout>
   );
+}
+
+function mapApplicantToCandidate(application: EmployerApplicant): Candidate {
+  const jobTitle = application.job?.title ?? 'Job details unavailable';
+  return {
+    id: application.id,
+    name: application.user.name,
+    email: application.user.email,
+    stage: application.status,
+    summary: `Applied on ${new Date(application.appliedAt).toLocaleDateString()}`,
+    jobTitle,
+  };
 }

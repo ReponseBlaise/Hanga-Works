@@ -1,55 +1,73 @@
-import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { publicNavItems } from '../../constants/routes';
-
-export function Topbar({ userName, role, unreadCount, onMenuToggle }: { userName?: string; role?: string; unreadCount?: number; onMenuToggle?: () => void }) {
-	const initials = (userName ?? 'User')
-		.split(' ')
-		.filter(Boolean)
-		.slice(0, 2)
-		.map((part) => part[0]?.toUpperCase() ?? '')
-		.join('');
-
-	return (
-		<header className="topbar--dashboard">
-			<button
-				type="button"
-				className="topbar__menu"
-				onClick={onMenuToggle}
-				aria-label="Open navigation"
-			>
-				<span />
-				<span />
-				<span />
-			</button>
-
-			<div className="topbar__copy">
-				<p className="topbar__eyebrow">Dashboard overview</p>
-				<h1>Welcome back, {userName ?? 'Guest'}</h1>
-				<p>{role ?? 'Monitor your progress, applications, and learning in one place.'}</p>
-			</div>
-
-			<div className="topbar__actions">
-				<div className="topbar__badge" aria-label={`${unreadCount ?? 0} unread notifications`}>
-					<span className="topbar__badge-count">{unreadCount ?? 0}</span>
-					<span className="topbar__badge-label">Alerts</span>
-				</div>
-
-				<div className="topbar__user">
-					<div className="avatar avatar-md" aria-hidden="true">{initials || 'U'}</div>
-					<div>
-						<strong>{userName ?? 'User'}</strong>
-						<span>{role ?? 'Learner'}</span>
-					</div>
-				</div>
-			</div>
-		</header>
-	);
-}
+import { useAuth } from '../../context/AuthContext';
+import { NotificationBell } from '../shared/NotificationBell';
+import { useNotificationsFeed } from '../../services/notifications.service';
+import { Avatar } from '../shared/Avatar';
 
 export default function Navbar() {
 	const location = useLocation();
-	const [hovered, setHovered] = useState<string | null>(null);
+	const navigate = useNavigate();
+	const { user, isAuthenticated, signOut } = useAuth();
+	const [menuOpen, setMenuOpen] = useState(false);
+	const { items: notificationItems } = useNotificationsFeed(user?.id);
+	const visibleUnread = (notificationItems ?? []).filter((it) => it.source !== 'System' && !it.read).length;
+
+	useEffect(() => {
+		if (menuOpen) {
+			setMenuOpen(false);
+		}
+	}, [location.pathname, menuOpen]);
+
+	const userRole = (user?.role ?? 'LEARNER').toUpperCase();
+
+	const navLinks = useMemo(() => {
+		if (!isAuthenticated) {
+			return publicNavItems;
+		}
+
+		if (userRole === 'EMPLOYER') {
+			return [
+				{ label: 'Employer Home', href: '/employer' },
+				{ label: 'Post a Job', href: '/employer/post-job' },
+				{ label: 'Applicants', href: '/employer/applicants' },
+				{ label: 'Candidates', href: '/candidates' },
+			];
+		}
+		if (userRole === 'ADMIN') {
+			return [
+				{ label: 'Admin Home', href: '/admin' },
+				{ label: 'Exports', href: '/admin/export' },
+				{ label: 'Moderation', href: '/admin/moderation' },
+			];
+		}
+		if (userRole === 'INSTITUTION') {
+			return [
+				{ label: 'Dashboard', href: '/institution/dashboard' },
+				{ label: 'Our Courses', href: '/courses' },
+				{ label: 'Our Mentors', href: '/institution/mentors' },
+				{ label: 'Certifications', href: '/institution/certifications' },
+			];
+		}
+		if (userRole === 'MENTOR') {
+			return [
+				{ label: 'Home', href: '/' },
+				{ label: 'Mentors', href: '/mentors' },
+				{ label: 'Profile', href: '/profile' },
+				{ label: 'Courses', href: '/courses' },
+			];
+		}
+		return [
+			{ label: 'Home', href: '/' },
+			{ label: 'Dashboard', href: '/dashboard' },
+			{ label: 'Jobs', href: '/jobs' },
+			{ label: 'Mentors', href: '/mentors' },
+			{ label: 'Courses', href: '/courses' },
+			{ label: 'Certifications', href: '/certifications' },
+		];
+	}, [isAuthenticated, userRole]);
+	const visibleLinks = navLinks;
 
 	function isNavActive(href: string) {
 		if (href === '/') return location.pathname === '/';
@@ -63,37 +81,73 @@ export default function Navbar() {
 					<img src="/hanga-works-logo.svg" alt="Hanga Works" />
 				</Link>
 
-				<div className="public-navbar__links">
-					{publicNavItems.map((link) => {
-						const active = isNavActive(link.href);
-						return (
-							<Link
-								key={link.label}
-								to={link.href}
-								className={`public-navbar__link ${active ? 'is-active' : ''}`.trim()}
-								aria-current={active ? 'page' : undefined}
-								onMouseEnter={() => setHovered(link.label)}
-								onMouseLeave={() => setHovered(null)}
-								style={{
-									color: active || hovered === link.label ? 'var(--accent)' : 'var(--text-soft)',
-								}}
-							>
-								{link.label}
-							</Link>
-						);
-					})}
-				</div>
+				<button
+					type="button"
+					className="public-navbar__menu"
+					aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+					aria-expanded={menuOpen}
+					onClick={() => setMenuOpen((value) => !value)}
+				>
+					<svg width="20" height="14" viewBox="0 0 20 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+						<rect x="0" y="1" width="20" height="2" rx="1" fill="currentColor" />
+						<rect x="0" y="6" width="20" height="2" rx="1" fill="currentColor" />
+						<rect x="0" y="11" width="20" height="2" rx="1" fill="currentColor" />
+					</svg>
+				</button>
 
-				<div className="public-navbar__auth">
-					<Link to="/register" className="public-navbar__register">
-						Register
-					</Link>
-					<Link to="/login" className="public-navbar__signin">
-						Sign In
-					</Link>
-					<Link to="/dashboard" className="public-navbar__dashboard">
-						Dashboard
-					</Link>
+				<div className={`public-navbar__panel ${menuOpen ? 'is-open' : ''}`}>
+					<div className="public-navbar__links">
+						{visibleLinks.map((link) => {
+							const active = isNavActive(link.href);
+							return (
+								<Link
+									key={link.href}
+									to={link.href}
+									className={`public-navbar__link ${active ? 'is-active' : ''}`.trim()}
+									aria-current={active ? 'page' : undefined}
+									onClick={() => setMenuOpen(false)}
+								>
+									{link.label}
+								</Link>
+							);
+						})}
+					</div>
+
+						<div className="public-navbar__auth" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+							{isAuthenticated ? (
+								<>
+									<div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+										<NotificationBell
+											count={visibleUnread}
+											onClick={() => navigate('/notifications')}
+										/>
+									</div>
+									<Link to="/profile" className="public-navbar__avatar-link" onClick={() => setMenuOpen(false)}>
+										<Avatar name={user?.name ?? 'User'} imageUrl={user?.avatarUrl ?? undefined} size="sm" />
+									</Link>
+									<button
+										type="button"
+										className="public-navbar__signin"
+										onClick={() => {
+											setMenuOpen(false);
+											signOut();
+											navigate('/login', { replace: true });
+										}}
+									>
+										Sign Out
+									</button>
+								</>
+							) : (
+								<>
+									<Link to="/register" className="public-navbar__register" onClick={() => setMenuOpen(false)}>
+										Sign Up
+									</Link>
+									<Link to="/login" className="public-navbar__signin" onClick={() => setMenuOpen(false)}>
+										Sign In
+									</Link>
+								</>
+							)}
+						</div>
 				</div>
 			</div>
 		</nav>

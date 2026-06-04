@@ -1,193 +1,406 @@
-import { Link } from 'react-router-dom';
-import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, Navigate } from 'react-router-dom';
+import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
 import { ProgressBar } from '../../components/shared/ProgressBar';
-import { courses } from '../../data/courses';
+import { useAuth } from '../../context/AuthContext';
+import { getApplications, getJobs, type JobSummary } from '../../services/jobs.service';
+import { getMyProgress, type CourseEnrollment } from '../../services/courses.service';
+import { getMyCertificates, type LearnerCertificate } from '../../services/certificates.service';
+import { getProfileSetupStatus, type ProfileSetupStatus } from '../../services/users.service';
+import type { JobApplication } from '../../types/job.types';
 
-const progressCards = [
-	{ title: 'Profile completion', value: 82, meta: '7 profile fields left to unlock premium matches.' },
-	{ title: 'Applications in review', value: 64, meta: 'Hiring teams opened 9 of your 14 applications.' },
-	{ title: 'Learning streak', value: 73, meta: 'You have completed 11 study sessions this month.' },
-];
+type DashboardTask = {
+  title: string;
+  detail: string;
+  meta: string;
+  href?: string;
+};
 
-const recommendedJobs = [
-	{
-		role: 'Frontend Developer',
-		company: 'Nexus Labs',
-		location: 'Remote',
-		salary: 'RWF 2.8M - 3.6M',
-		tags: ['React', 'TypeScript', 'Design systems'],
-		match: 96,
-	},
-	{
-		role: 'Product Operations Associate',
-		company: 'Kigali Growth Hub',
-		location: 'Hybrid',
-		salary: 'RWF 1.9M - 2.4M',
-		tags: ['Operations', 'Analytics', 'Planning'],
-		match: 89,
-	},
-	{
-		role: 'Learning Experience Designer',
-		company: 'SkillBridge Africa',
-		location: 'Kigali',
-		salary: 'RWF 2.3M - 2.9M',
-		tags: ['Curriculum', 'Content', 'UX'],
-		match: 84,
-	},
-];
-
-const recentCourses = courses
-	.filter((course) => course.enrolled && course.progress < 100)
-	.slice(0, 3)
-	.map((course) => ({
-		id: course.id,
-		title: course.title,
-		provider: course.provider,
-		progress: course.progress,
-		lesson: `Next lesson: ${course.modules.find((m) => !m.completed)?.title ?? 'course complete'}`,
-	}));
-
-function DashboardSectionTitle({
-	eyebrow,
-	title,
-	action,
-	actionHref = '#',
-}: {
-	eyebrow: string;
-	title: string;
-	action?: string;
-	actionHref?: string;
-}) {
-	return (
-		<div className="section-head">
-			<div>
-				<p className="section-head__eyebrow">{eyebrow}</p>
-				<h2>{title}</h2>
-			</div>
-			{action ? (
-				<Button to={actionHref} variant="ghost" className="section-head__action">
-					{action}
-				</Button>
-			) : null}
-		</div>
-	);
+function formatSalary(min?: number | null, max?: number | null) {
+  if (min == null && max == null) return 'Salary not listed';
+  if (min != null && max != null) return `RWF ${min.toLocaleString()} - ${max.toLocaleString()}`;
+  if (min != null) return `From RWF ${min.toLocaleString()}`;
+  return `Up to RWF ${max?.toLocaleString()}`;
 }
 
-function DashboardContent() {
-	return (
-		<div className="dashboard-grid" id="dashboard-home">
-			<section className="dashboard-hero card card--hero">
-				<div className="dashboard-hero__copy">
-					<CardEyebrow>Career momentum</CardEyebrow>
-					<CardTitle>Track progress, find matches, and keep learning in one place.</CardTitle>
-					<CardMeta>
-						Your dashboard is tuned for quick action: review the strongest job matches, pick up where you left off in courses, and keep your profile moving.
-					</CardMeta>
-				</div>
-
-				<div className="dashboard-hero__stats">
-					<div className="hero-stat" id="applications">
-						<span>Open applications</span>
-						<strong>14</strong>
-						<p>3 moved to interview stage this week.</p>
-					</div>
-					<div className="hero-stat" id="notifications">
-						<span>New alerts</span>
-						<strong>4</strong>
-						<p>Fresh messages from hiring managers and coaches.</p>
-					</div>
-				</div>
-			</section>
-
-			<section className="dashboard-section" id="progress-overview">
-				<DashboardSectionTitle eyebrow="Progress" title="Your current momentum" />
-				<div className="progress-grid">
-					{progressCards.map((card) => (
-						<Card key={card.title} className="progress-card">
-							<CardEyebrow>{card.title}</CardEyebrow>
-							<div className="progress-card__value">{card.value}%</div>
-							<ProgressBar value={card.value} />
-							<CardMeta>{card.meta}</CardMeta>
-						</Card>
-					))}
-				</div>
-			</section>
-
-			<section className="dashboard-section dashboard-section--wide" id="recommended-jobs">
-				<DashboardSectionTitle eyebrow="Jobs" title="Recommended jobs" action="View all jobs" actionHref="/jobs" />
-				<div className="job-grid">
-					{recommendedJobs.map((job) => (
-						<Card key={`${job.role}-${job.company}`} className="job-card">
-							<div className="job-card__top">
-								<div>
-									<CardEyebrow>{job.company}</CardEyebrow>
-									<CardTitle>{job.role}</CardTitle>
-								</div>
-								<div className="job-card__match">{job.match}% match</div>
-							</div>
-							<CardMeta>
-								{job.location} · {job.salary}
-							</CardMeta>
-							<div className="job-card__tags">
-								{job.tags.map((tag) => (
-									<span key={tag}>{tag}</span>
-								))}
-							</div>
-							<div className="job-card__actions">
-								<Button href="#" variant="secondary">Save</Button>
-								<Button href="#" variant="primary">Apply now</Button>
-							</div>
-						</Card>
-					))}
-				</div>
-			</section>
-
-			<section className="dashboard-section" id="recent-courses">
-				<DashboardSectionTitle eyebrow="Learning" title="Recent courses" action="Browse all courses" actionHref="/courses" />
-				<div className="course-stack">
-					{recentCourses.map((course) => (
-						<Card key={course.id} className="course-card">
-							<div className="course-card__top">
-								<div>
-									<CardEyebrow>{course.provider}</CardEyebrow>
-									<CardTitle>
-										<Link to={`/courses/${course.id}`}>{course.title}</Link>
-									</CardTitle>
-								</div>
-								<strong>{course.progress}%</strong>
-							</div>
-							<ProgressBar value={course.progress} />
-							<CardMeta>{course.lesson}</CardMeta>
-							<div className="course-card__actions">
-								<Button to={`/courses/${course.id}`} variant="ghost">Continue</Button>
-							</div>
-						</Card>
-					))}
-				</div>
-			</section>
-
-			<section className="dashboard-section dashboard-section--split" id="messages">
-				<Card className="info-card">
-					<CardEyebrow>Messages</CardEyebrow>
-					<CardTitle>Hiring manager follow-ups</CardTitle>
-					<CardMeta>2 interviews need a reply before Friday.</CardMeta>
-				</Card>
-				<Card className="info-card" id="settings">
-					<CardEyebrow>Settings</CardEyebrow>
-					<CardTitle>Notification preferences</CardTitle>
-					<CardMeta>Choose how often you want updates from jobs and courses.</CardMeta>
-				</Card>
-			</section>
-		</div>
-	);
+function formatLocation(location?: string | null) {
+  return location?.trim() ? location : 'Remote';
 }
 
 export function Dashboard() {
-	return (
-		<DashboardLayout>
-			<DashboardContent />
-		</DashboardLayout>
-	);
+  const { user, isAuthenticated } = useAuth();
+  const [jobs, setJobs] = useState<JobSummary[]>([]);
+  const [enrollments, setEnrollments] = useState<CourseEnrollment[]>([]);
+  const [applications, setApplications] = useState<JobApplication[]>([]);
+  const [certificates, setCertificates] = useState<LearnerCertificate[]>([]);
+  const [profileSetup, setProfileSetup] = useState<ProfileSetupStatus | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+
+    Promise.all([getJobs(), getMyProgress(), getApplications(), getMyCertificates(), getProfileSetupStatus()])
+      .then(([jobsResponse, progressItems, applicationItems, certificateItems, setupStatus]) => {
+        if (!active) return;
+        setJobs(jobsResponse?.jobs ?? []);
+        setEnrollments(progressItems ?? []);
+        setApplications(applicationItems ?? []);
+        setCertificates(certificateItems ?? []);
+        setProfileSetup(setupStatus ?? null);
+      })
+      .catch((error) => {
+        console.error('Failed to load dashboard data', error);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const roleLabel = user?.role ? user.role.charAt(0) + user.role.slice(1).toLowerCase() : 'Learner';
+
+  const recentCourses = useMemo(() => {
+    return enrollments.slice(0, 3).map((enrollment) => ({
+      id: enrollment.course.id,
+      title: enrollment.course.title,
+      provider: 'Hanga Works',
+      enrollments: 1,
+      modules: 0,
+    }));
+  }, [enrollments]);
+
+  const recommendedJobs = useMemo(() => {
+    return [...jobs]
+      .sort(
+        (left, right) =>
+          (right.matchScore ?? 0) - (left.matchScore ?? 0) ||
+          (right._count?.applications ?? 0) - (left._count?.applications ?? 0),
+      )
+      .slice(0, 3);
+  }, [jobs]);
+
+  const continueLearningCourse = recentCourses[0] ?? null;
+
+  const upcomingDeadlines = useMemo<DashboardTask[]>(() => {
+    const tasks: DashboardTask[] = [];
+
+    if (continueLearningCourse) {
+      tasks.push({
+        title: `Continue ${continueLearningCourse.title}`,
+        detail: `Keep up your learning momentum.`,
+        meta: 'Today',
+        href: `/courses/${continueLearningCourse.id}`,
+      });
+    }
+
+    if (applications[0]) {
+      tasks.push({
+        title: `Follow up on ${applications[0].job.title}`,
+        detail: `Applied to ${applications[0].job.employer.name} in ${formatLocation(applications[0].job.location)}.`,
+        meta: 'This week',
+        href: `/jobs/${applications[0].job.id}`,
+      });
+    }
+
+    if (profileSetup && !profileSetup.complete) {
+      tasks.push({
+        title: 'Complete your profile',
+        detail: `${profileSetup.completedSteps} of ${profileSetup.totalSteps} profile steps done — add missing details so employers see a full picture.`,
+        meta: `${profileSetup.percentComplete}%`,
+        href: '/profile',
+      });
+    } else {
+      tasks.push({
+        title: 'Refresh your public profile',
+        detail: 'Keep your summary, skills, and profile photo aligned with the roles you want.',
+        meta: 'Next step',
+        href: '/profile',
+      });
+    }
+
+    return tasks.slice(0, 3);
+  }, [applications, continueLearningCourse, profileSetup]);
+
+  const recentActivity = useMemo(() => {
+    const items = [
+      ...applications.slice(0, 4).map((application) => ({
+        id: application.id,
+        title: `Application ${application.status.toLowerCase()}`,
+        detail: `${application.job.title} · ${application.job.employer.name}`,
+        date: application.updatedAt,
+        href: '/applications',
+      })),
+      ...certificates.slice(0, 2).map((certificate) => ({
+        id: certificate.id,
+        title: 'Certificate issued',
+        detail: certificate.courseTitle,
+        date: certificate.issuedAt,
+        href: '/certifications',
+      })),
+    ];
+
+    return items.sort((left, right) => Date.parse(right.date) - Date.parse(left.date)).slice(0, 6);
+  }, [applications, certificates]);
+
+  const skillCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+
+    [...jobs.flatMap((job) => job.skills ?? [])].forEach((entry) => {
+      counts.set(entry.skill.name, (counts.get(entry.skill.name) ?? 0) + 1);
+    });
+
+    return Array.from(counts.entries())
+      .sort((left, right) => right[1] - left[1])
+      .slice(0, 5)
+      .map(([name, count]) => ({ name, count }));
+  }, [jobs]);
+
+  const progressValue = useMemo(() => {
+    const applicationScore = Math.min(40, applications.length * 8);
+    const certificateScore = Math.min(30, certificates.length * 15);
+    const learningScore = Math.min(30, enrollments.length * 6);
+    return applicationScore + certificateScore + learningScore;
+  }, [applications.length, certificates.length, enrollments.length]);
+
+  const progressCards = useMemo(
+    () => [
+      {
+        title: 'Profile completion',
+        value: profileSetup?.percentComplete ?? Math.min(100, progressValue),
+        meta: profileSetup
+          ? `${profileSetup.completedSteps} of ${profileSetup.totalSteps} steps from your account profile.`
+          : 'Based on applications, certificates, and learning activity.',
+      },
+      {
+        title: 'Applications in review',
+        value: applications.filter((item) => item.status === 'REVIEWING' || item.status === 'SHORTLISTED').length,
+        meta: 'Live pipeline statuses from the backend.',
+      },
+      {
+        title: 'Verified certificates',
+        value: certificates.length,
+        meta: 'Digital certificates available on your profile.',
+      },
+    ],
+    [applications, certificates.length, progressValue, profileSetup],
+  );
+
+  const applicationStages = useMemo(() => {
+    return ['APPLIED', 'REVIEWING', 'SHORTLISTED', 'HIRED', 'REJECTED'].map((stage) => ({
+      stage,
+      count: applications.filter((item) => item.status === stage).length,
+    }));
+  }, [applications]);
+
+  const learningMomentum = loading ? '...' : `${Math.min(100, progressValue)}%`;
+  const topSkills = skillCounts.slice(0, 4);
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  const role = user?.role?.toUpperCase();
+  if (role === 'INSTITUTION') return <Navigate to="/institution/dashboard" replace />;
+  if (role === 'EMPLOYER') return <Navigate to="/employer" replace />;
+  if (role === 'MENTOR') return <Navigate to="/mentors/dashboard" replace />;
+  if (role === 'ADMIN') return <Navigate to="/admin" replace />;
+
+  return (
+    <SiteLayout>
+      <div className="app-shell-layout">
+        <aside className="app-shell-sidebar">
+          <div className="app-shell-brand">
+            <strong>Hanga Works</strong>
+            <span>Main menu</span>
+          </div>
+          <nav className="app-shell-nav">
+            <Link to="/dashboard" className="app-shell-nav__item is-active">Dashboard</Link>
+            <Link to="/jobs" className="app-shell-nav__item">Job listings</Link>
+            <Link to="/applications" className="app-shell-nav__item">My applications</Link>
+            <Link to="/courses" className="app-shell-nav__item">Learning</Link>
+            <Link to="/profile" className="app-shell-nav__item">Edit profile</Link>
+            <Link to="/notifications" className="app-shell-nav__item">Messages</Link>
+            <Link to="/certifications" className="app-shell-nav__item">Certificates</Link>
+          </nav>
+        </aside>
+
+        <div className="studio-dashboard studio-dashboard--learner dashboard-redesign" id="dashboard-home">
+        <section className="dashboard-redesign__hero">
+          <div>
+            <p className="eyebrow">{roleLabel} dashboard</p>
+            <h1 className="display">Your learning and hiring command center</h1>
+            <p className="lead">
+              Keep the same workflow, now with clearer progress insights, action shortcuts, and a denser performance layout.
+            </p>
+            <div className="studio-action-row">
+              <Button to="/courses" variant="secondary">Continue learning</Button>
+              <Button to="/jobs" variant="primary" className="button--pill">Explore jobs</Button>
+              <Button to="/applications" variant="ghost">Track applications</Button>
+            </div>
+          </div>
+          <div className="dashboard-redesign__headline-stats">
+            <div>
+              <span>Learning momentum</span>
+              <strong style={{ color: 'var(--text)' }}>{learningMomentum}</strong>
+            </div>
+            <div>
+              <span>Open applications</span>
+              <strong style={{ color: 'var(--text)' }}>{loading ? '...' : applications.length}</strong>
+            </div>
+            <div>
+              <span>Courses active</span>
+              <strong style={{ color: 'var(--text)' }}>{loading ? '...' : enrollments.length}</strong>
+            </div>
+            <div>
+              <span>Certificates</span>
+              <strong style={{ color: 'var(--text)' }}>{loading ? '...' : certificates.length}</strong>
+            </div>
+          </div>
+        </section>
+
+        <section className="dashboard-redesign__quick-metrics">
+          {progressCards.map((metric) => (
+            <Card key={metric.title} className="dashboard-redesign__metric">
+              <CardEyebrow>{metric.title}</CardEyebrow>
+              <strong>{loading ? '...' : metric.value}</strong>
+              <ProgressBar value={Math.min(100, metric.value)} />
+              <CardMeta>{metric.meta}</CardMeta>
+            </Card>
+          ))}
+        </section>
+
+        <section className="dashboard-redesign__layout">
+          <main className="dashboard-main-column">
+            <Card className="studio-block">
+              <div className="studio-section__head">
+                <div>
+                  <p className="eyebrow">Recommended jobs</p>
+                  <h2>Matched from your profile and course signals</h2>
+                </div>
+                <Button to="/jobs" variant="secondary">Open marketplace</Button>
+              </div>
+              <div className="studio-job-grid">
+                {recommendedJobs.map((job) => (
+                  <Card key={job.id} className="studio-job-card">
+                    <div className="studio-job-card__head">
+                      <div>
+                        <CardEyebrow>{job.employer.name}</CardEyebrow>
+                        <CardTitle>{job.title}</CardTitle>
+                      </div>
+                      <span className="dashboard-chip">{job.matchScore ?? job._count?.applications ?? 0}% match</span>
+                    </div>
+                    <CardMeta>{formatLocation(job.location)} · {job.jobType.replace('_', ' ')}</CardMeta>
+                    <CardMeta>{formatSalary(job.salaryMin, job.salaryMax)}</CardMeta>
+                    <div className="studio-chip-row">
+                      {(job.skills ?? []).slice(0, 4).map((skill) => (
+                        <span key={skill.id} className="dashboard-chip">{skill.skill.name}</span>
+                      ))}
+                    </div>
+                    <div className="studio-action-row">
+                      <Button to={`/jobs/${job.id}`} variant="secondary">Details</Button>
+                      <Button to={`/jobs/${job.id}`} variant="primary">Apply</Button>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </Card>
+
+            <Card className="studio-block">
+              <div className="studio-section__head">
+                <div>
+                  <p className="eyebrow">Activity timeline</p>
+                  <h2>Latest movement across your account</h2>
+                </div>
+                <Button to="/profile" variant="ghost">Profile settings</Button>
+              </div>
+              <div className="studio-stack">
+                {recentActivity.length === 0 ? (
+                  <div className="studio-inline-item">
+                    <div>
+                      <strong>No recent updates</strong>
+                      <p>Your timeline appears as soon as you apply or complete a course.</p>
+                    </div>
+                  </div>
+                ) : (
+                  recentActivity.map((activity) => (
+                    <Link key={activity.id} to={activity.href} className="studio-inline-item">
+                      <div>
+                        <strong>{activity.title}</strong>
+                        <p>{activity.detail}</p>
+                      </div>
+                      <span>{new Date(activity.date).toLocaleDateString()}</span>
+                    </Link>
+                  ))
+                )}
+              </div>
+            </Card>
+          </main>
+
+          <aside className="dashboard-rail">
+            <Card className="studio-block">
+              <CardEyebrow>Learning progress</CardEyebrow>
+              <CardTitle>{continueLearningCourse ? continueLearningCourse.title : 'No active course yet'}</CardTitle>
+              <CardMeta>
+                {continueLearningCourse
+                  ? `${continueLearningCourse.provider}`
+                  : 'Start from the course catalog to build your learning streak.'}
+              </CardMeta>
+              <ProgressBar value={Math.min(100, progressValue)} label="Learning momentum" />
+              <Button to={continueLearningCourse ? `/courses/${continueLearningCourse.id}` : '/courses'} variant="primary" className="button--pill">
+                {continueLearningCourse ? 'Resume course' : 'Browse courses'}
+              </Button>
+            </Card>
+
+            <Card className="studio-block">
+              <CardEyebrow>Upcoming actions</CardEyebrow>
+              <div className="studio-stack">
+                {upcomingDeadlines.map((task) => (
+                  <Link key={task.title} to={task.href ?? '/dashboard'} className="studio-inline-item">
+                    <div>
+                      <strong>{task.title}</strong>
+                      <p>{task.detail}</p>
+                    </div>
+                    <span>{task.meta}</span>
+                  </Link>
+                ))}
+              </div>
+            </Card>
+
+            <Card className="studio-block">
+              <CardEyebrow>Top skills in demand</CardEyebrow>
+              <div className="studio-chip-row">
+                {topSkills.length === 0 ? (
+                  <CardMeta>No skill demand yet from current jobs.</CardMeta>
+                ) : (
+                  topSkills.map((skill) => (
+                    <span key={skill.name} className="dashboard-chip">
+                      {skill.name} · {skill.count}
+                    </span>
+                  ))
+                )}
+              </div>
+            </Card>
+
+            <Card className="studio-block">
+              <CardEyebrow>Application stages</CardEyebrow>
+              <div className="studio-stage-list">
+                {applicationStages.map((stage) => (
+                  <div key={stage.stage} className="studio-stage-item">
+                    <span>{stage.stage.replace('_', ' ')}</span>
+                    <strong>{stage.count}</strong>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </aside>
+        </section>
+        </div>
+      </div>
+    </SiteLayout>
+  );
 }

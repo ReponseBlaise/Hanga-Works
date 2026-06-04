@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { Router } from 'express';
 import { AuthController } from '../controllers/auth.controller';
 import { authenticateJWT, requireRoles } from '../middlewares/auth.middleware';
@@ -25,3 +26,5 @@ router.get(
 );
 
 export default router;
+=======
+>>>>>>> main

@@ -1,35 +1,64 @@
-import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { DashboardLayout } from '../../components/layout/DashboardLayout';
-import { CourseProgressBar } from '../../components/learning/CourseProgressBar';
+import { useEffect, useMemo, useState } from 'react';
+import { BsFillGrid3X3GapFill, BsListUl } from 'react-icons/bs';
+import { MdSchool, MdGroups, MdCheckCircle, MdMenuBook } from 'react-icons/md';
+import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
-import { categoryLabels, courses, levelLabels } from '../../data/courses';
-import type { Course, CourseCategory, CourseLevel } from '../../types/course';
-
-type ProgressFilter = 'all' | 'not-started' | 'in-progress' | 'completed';
-
-const categories: Array<CourseCategory | 'all'> = ['all', 'development', 'career', 'analytics', 'design'];
-const levels: Array<CourseLevel | 'all'> = ['all', 'beginner', 'intermediate', 'advanced'];
-const progressFilters: { value: ProgressFilter; label: string }[] = [
-	{ value: 'all', label: 'All progress' },
-	{ value: 'not-started', label: 'Not started' },
-	{ value: 'in-progress', label: 'In progress' },
-	{ value: 'completed', label: 'Completed' },
-];
-
-function matchesProgress(course: Course, filter: ProgressFilter) {
-	if (filter === 'all') return true;
-	if (filter === 'not-started') return course.progress === 0;
-	if (filter === 'completed') return course.progress === 100;
-	return course.progress > 0 && course.progress < 100;
-}
+import { getCourses, getManageableCourses, getMyProgress, type BackendCourse } from '../../services/courses.service';
+import { useAuth } from '../../context/AuthContext';
 
 export function CourseList() {
+	const { isAuthenticated, user } = useAuth();
 	const [search, setSearch] = useState('');
-	const [category, setCategory] = useState<CourseCategory | 'all'>('all');
-	const [level, setLevel] = useState<CourseLevel | 'all'>('all');
-	const [progressFilter, setProgressFilter] = useState<ProgressFilter>('all');
+	const [courses, setCourses] = useState<BackendCourse[]>([]);
+	const [enrolledCourseIds, setEnrolledCourseIds] = useState<Set<string>>(new Set());
+	const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+	const [publishFilter, setPublishFilter] = useState<'ALL' | 'PUBLISHED' | 'DRAFT'>('ALL');
+	const [loading, setLoading] = useState(true);
+	const canCreateCourse = ['ADMIN', 'INSTITUTION'].includes((user?.role ?? '').toUpperCase());
+
+	useEffect(() => {
+		let active = true;
+		const fetcher = (user?.role === 'INSTITUTION') ? getManageableCourses : getCourses;
+		
+		fetcher()
+			.then((items) => {
+				if (active) setCourses(items ?? []);
+			})
+			.catch((error) => {
+				console.error('Failed to load courses', error);
+				if (active) setCourses([]);
+			})
+			.finally(() => {
+				if (active) setLoading(false);
+			});
+
+		return () => {
+			active = false;
+		};
+	}, [user?.role]);
+
+	useEffect(() => {
+		if (!isAuthenticated) {
+			if (enrolledCourseIds.size > 0) setEnrolledCourseIds(new Set());
+			return;
+		}
+
+		let active = true;
+		getMyProgress()
+			.then((items) => {
+				if (!active) return;
+				setEnrolledCourseIds(new Set((items ?? []).map((item) => item.course.id)));
+			})
+			.catch((error) => {
+				console.error('Failed to load learner enrollments for course badges', error);
+				if (active) setEnrolledCourseIds(new Set());
+			});
+
+		return () => {
+			active = false;
+		};
+	}, [isAuthenticated]);
 
 	const filteredCourses = useMemo(() => {
 		const query = search.trim().toLowerCase();
@@ -38,172 +67,167 @@ export function CourseList() {
 				!query ||
 				course.title.toLowerCase().includes(query) ||
 				course.description.toLowerCase().includes(query) ||
-				course.provider.toLowerCase().includes(query) ||
-				course.skills.some((skill) => skill.toLowerCase().includes(query));
-			const matchesCategory = category === 'all' || course.category === category;
-			const matchesLevel = level === 'all' || course.level === level;
-			return matchesSearch && matchesCategory && matchesLevel && matchesProgress(course, progressFilter);
+				course.institution?.name?.toLowerCase().includes(query) ||
+				(course.skills ?? []).some((skill) => skill.skill.name.toLowerCase().includes(query));
+			const matchesPublish =
+				publishFilter === 'ALL' ||
+				(publishFilter === 'PUBLISHED' && course.published) ||
+				(publishFilter === 'DRAFT' && !course.published);
+
+			return matchesSearch && matchesPublish;
 		});
-	}, [search, category, level, progressFilter]);
+	}, [courses, publishFilter, search]);
+
+	const totalEnrollments = useMemo(
+		() => courses.reduce((sum, course) => sum + (course._count?.enrollments ?? 0), 0),
+		[courses],
+	);
+
+	const topSkills = useMemo(() => {
+		const counts = new Map<string, number>();
+		courses.forEach((course) => {
+			(course.skills ?? []).forEach((skill) => {
+				counts.set(skill.skill.name, (counts.get(skill.skill.name) ?? 0) + 1);
+			});
+		});
+		return Array.from(counts.entries()).sort((left, right) => right[1] - left[1]).slice(0, 4).map(([name, count]) => ({ name, count }));
+	}, [courses]);
+
+	const enrolledCount = useMemo(
+		() => courses.filter((course) => enrolledCourseIds.has(course.id)).length,
+		[courses, enrolledCourseIds],
+	);
 
 	return (
-		<DashboardLayout>
-			<div className="courses-page">
-				<section className="courses-hero card">
-					<div>
-						<p className="section-head__eyebrow">Learning</p>
-						<h2 className="courses-hero__title">Browse courses</h2>
-						<p className="card-meta">
-							Search and filter courses by skill area, level, and your progress. Pick up where you left off or start something new.
-						</p>
+		<SiteLayout>
+			<section className="studio-catalog">
+				<section className="studio-catalog__hero" style={{ 
+					backgroundImage: "linear-gradient(to right, rgba(0, 10, 40, 0.82) 0%, rgba(0, 10, 40, 0.5) 100%), url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1600&q=80')",
+					backgroundSize: 'cover',
+					backgroundPosition: 'center top',
+					color: 'white',
+				}}>
+					<div className="studio-catalog__headline">
+						<p className="eyebrow" style={{ color: 'rgba(255,255,255,0.8)' }}>Course catalog</p>
+						<h1 className="display" style={{ color: 'white' }}>A redesigned learning marketplace with faster discovery.</h1>
+						<p className="lead" style={{ color: 'rgba(255,255,255,0.9)' }}>Switch between card and row formats, combine keyword and publication filters, and jump into enrolled courses directly.</p>
+						<div className="studio-action-row">
+							<Button to="/jobs" variant="secondary">View jobs</Button>
+							{canCreateCourse ? <Button to="/courses/new" variant="primary">Create course</Button> : null}
+						</div>
 					</div>
-					<div className="courses-hero__stats">
-						<div className="hero-stat">
-							<span>Enrolled</span>
-							<strong>{courses.filter((c) => c.enrolled).length}</strong>
-							<p>Active learning paths</p>
-						</div>
-						<div className="hero-stat">
-							<span>In progress</span>
-							<strong>{courses.filter((c) => c.progress > 0 && c.progress < 100).length}</strong>
-							<p>Courses underway</p>
-						</div>
+					<div className="studio-catalog__stats">
+						<div><span><span className="ui-icon" aria-hidden="true"><MdSchool /></span>Total courses</span><strong style={{ color: 'white' }}>{courses.length}</strong></div>
+						<div><span><span className="ui-icon" aria-hidden="true"><MdGroups /></span>Total enrollments</span><strong style={{ color: 'white' }}>{totalEnrollments}</strong></div>
+						<div><span><span className="ui-icon" aria-hidden="true"><MdCheckCircle /></span>Enrolled by you</span><strong style={{ color: 'white' }}>{enrolledCount}</strong></div>
 					</div>
 				</section>
 
-				<section className="courses-toolbar card">
-					<label className="courses-search">
-						<span className="courses-search__label">Search courses</span>
-						<input
-							type="search"
-							placeholder="Search by title, skill, or provider..."
-							value={search}
-							onChange={(e) => setSearch(e.target.value)}
-						/>
-					</label>
+				<section className="studio-catalog__layout">
+					<aside className="studio-catalog__filters">
+							<Card className="studio-block">
+								<CardEyebrow>Search and filter</CardEyebrow>
+								<div className="form-stack">
+									<label>
+										Keyword
+										<input
+											type="search"
+											placeholder="Title, institution, skill"
+											value={search}
+											onChange={(event) => setSearch(event.target.value)}
+										/>
+									</label>
+									<label>
+										Publication status
+										<select value={publishFilter} onChange={(event) => setPublishFilter(event.target.value as typeof publishFilter)}>
+											<option value="ALL">All</option>
+											<option value="PUBLISHED">Published</option>
+											<option value="DRAFT">Draft</option>
+										</select>
+									</label>
+								</div>
+								<div className="studio-action-row">
+									<Button type="button" variant="ghost" onClick={() => setSearch('')}>Clear search</Button>
+									<Button to="/jobs" variant="secondary">View jobs</Button>
+								</div>
+							</Card>
 
-					<div className="courses-filters">
-						<FilterSelect
-							label="Category"
-							value={category}
-							options={categories.map((value) => ({
-								value,
-								label: value === 'all' ? 'All categories' : categoryLabels[value],
-							}))}
-							onChange={(value) => setCategory(value as CourseCategory | 'all')}
-						/>
-						<FilterSelect
-							label="Level"
-							value={level}
-							options={levels.map((value) => ({
-								value,
-								label: value === 'all' ? 'All levels' : levelLabels[value],
-							}))}
-							onChange={(value) => setLevel(value as CourseLevel | 'all')}
-						/>
-						<FilterSelect
-							label="Progress"
-							value={progressFilter}
-							options={progressFilters.map(({ value, label }) => ({ value, label }))}
-							onChange={(value) => setProgressFilter(value as ProgressFilter)}
-						/>
-					</div>
-				</section>
+							<Card className="studio-block">
+								<CardEyebrow>Skill heatmap</CardEyebrow>
+								<div className="studio-chip-row">
+									{topSkills.map((item) => (
+										<span key={item.name} className="dashboard-chip">{item.name} · {item.count}</span>
+									))}
+								</div>
+							</Card>
+					</aside>
 
-				<section className="courses-results">
-					<p className="courses-results__count">
-						{filteredCourses.length} course{filteredCourses.length === 1 ? '' : 's'} found
-					</p>
+					<main className="studio-catalog__results">
+						<div className="studio-catalog__toolbar">
+							<div>
+								<p className="eyebrow">Results</p>
+								<h2>{filteredCourses.length} course matches</h2>
+							</div>
+							<div className="studio-toggle-group" role="tablist" aria-label="Catalog view mode">
+								<button
+									type="button"
+									className={`studio-toggle ${viewMode === 'grid' ? 'is-active' : ''}`.trim()}
+									onClick={() => setViewMode('grid')}
+								>
+									<span className="ui-icon" aria-hidden="true"><BsFillGrid3X3GapFill /></span> Grid
+								</button>
+								<button
+									type="button"
+									className={`studio-toggle ${viewMode === 'list' ? 'is-active' : ''}`.trim()}
+									onClick={() => setViewMode('list')}
+								>
+									<span className="ui-icon" aria-hidden="true"><BsListUl /></span> List
+								</button>
+							</div>
+						</div>
 
-					{filteredCourses.length === 0 ? (
-						<Card className="courses-empty">
-							<CardTitle>No courses match your filters</CardTitle>
-							<CardMeta>Try clearing search or choosing a broader category.</CardMeta>
-							<Button
-								type="button"
-								variant="ghost"
-								onClick={() => {
-									setSearch('');
-									setCategory('all');
-									setLevel('all');
-									setProgressFilter('all');
-								}}
-							>
-								Reset filters
-							</Button>
-						</Card>
-					) : (
-						<div className="courses-grid">
+						{loading ? <Card className="studio-block"><CardMeta>Loading courses...</CardMeta></Card> : null}
+
+						{!loading && filteredCourses.length === 0 ? (
+							<Card className="studio-block">
+								<CardTitle>No courses match this view</CardTitle>
+								<CardMeta>Try a broader search keyword or reset publication status.</CardMeta>
+							</Card>
+						) : null}
+
+						<div className={viewMode === 'grid' ? 'studio-catalog-grid' : 'studio-catalog-list'}>
 							{filteredCourses.map((course) => {
-								const completedLessons = course.modules.filter((m) => m.completed).length;
+								const isEnrolled = enrolledCourseIds.has(course.id);
 								return (
-									<Card key={course.id} className="course-list-card">
-										<div className="course-list-card__top">
+									<Card key={course.id} className="studio-catalog-card">
+										<div className="studio-catalog-card__head">
 											<div>
-												<CardEyebrow>
-													{categoryLabels[course.category]} · {levelLabels[course.level]}
-												</CardEyebrow>
-												<CardTitle>
-													<Link to={`/courses/${course.id}`}>{course.title}</Link>
-												</CardTitle>
+												<CardEyebrow>{course.institution?.name ?? 'Hanga Works'}</CardEyebrow>
+												<CardTitle>{course.title}</CardTitle>
 											</div>
-											<span className="course-list-card__provider">{course.provider}</span>
+											<div className="studio-chip-row">
+												<span className="dashboard-chip">{course.published ? 'Published' : 'Draft'}</span>
+												{isEnrolled ? <span className="dashboard-chip">Enrolled</span> : null}
+											</div>
 										</div>
-										<CardMeta>{course.summary}</CardMeta>
-										<div className="course-list-card__tags">
-											{course.skills.map((skill) => (
-												<span key={skill}>{skill}</span>
+										<CardMeta>{course.description}</CardMeta>
+										<p className="muted"><span className="ui-icon" aria-hidden="true"><MdMenuBook /></span>{course._count?.modules ?? course.modules?.length ?? 0} modules · <span className="ui-icon" aria-hidden="true"><MdGroups /></span>{course._count?.enrollments ?? 0} enrollments</p>
+										<div className="studio-chip-row">
+											{(course.skills ?? []).slice(0, 5).map((skill) => (
+												<span key={skill.id} className="dashboard-chip">{skill.skill.name}</span>
 											))}
 										</div>
-										<p className="course-list-card__meta">
-											{course.duration} · {course.lessons} lessons
-										</p>
-										{course.enrolled ? (
-											<CourseProgressBar
-												value={course.progress}
-												completedLessons={completedLessons}
-												totalLessons={course.modules.length}
-											/>
-										) : (
-											<p className="course-list-card__status">Not enrolled yet</p>
-										)}
-										<div className="course-list-card__actions">
-											<Button to={`/courses/${course.id}`} variant="primary">
-												{course.enrolled ? 'Continue' : 'View course'}
-											</Button>
+										<div className="studio-action-row">
+											<Button to={`/courses/${course.id}`} variant="secondary">Preview</Button>
+											<Button to={`/courses/${course.id}`} variant="primary">{isEnrolled ? 'Resume' : 'Enroll now'}</Button>
 										</div>
 									</Card>
 								);
 							})}
 						</div>
-					)}
+					</main>
 				</section>
-			</div>
-		</DashboardLayout>
-	);
-}
-
-function FilterSelect({
-	label,
-	value,
-	options,
-	onChange,
-}: {
-	label: string;
-	value: string;
-	options: { value: string; label: string }[];
-	onChange: (value: string) => void;
-}) {
-	return (
-		<label className="courses-filter">
-			<span>{label}</span>
-			<select value={value} onChange={(e) => onChange(e.target.value)}>
-				{options.map((option) => (
-					<option key={option.value} value={option.value}>
-						{option.label}
-					</option>
-				))}
-			</select>
-		</label>
+			</section>
+		</SiteLayout>
 	);
 }

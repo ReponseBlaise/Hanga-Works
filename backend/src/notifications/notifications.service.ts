@@ -1,0 +1,183 @@
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import * as nodemailer from 'nodemailer';
+import { NotificationsGateway } from './notifications.gateway';
+import { PrismaService } from '../prisma/prisma.service';
+
+@Injectable()
+export class NotificationsService {
+  private readonly logger = new Logger(NotificationsService.name);
+  private transporter: nodemailer.Transporter | null = null;
+
+  constructor(
+    private readonly gateway: NotificationsGateway,
+    private readonly prisma: PrismaService,
+  ) {
+    const appPassword = process.env.APP_PASSWORD;
+    if (appPassword) {
+      this.transporter = nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false, // true for 465, false for other ports
+        auth: {
+          user: process.env.EMAIL_USER || 'kafurukaleo66@gmail.com',
+          pass: appPassword,
+        },
+      });
+      this.logger.log('Nodemailer initialized with Gmail');
+    } else {
+      this.logger.warn('APP_PASSWORD is not set. Emails will only be logged, not sent.');
+    }
+  }
+
+  async sendEmail(to: string, subject: string, text: string, html?: string) {
+    if (!this.transporter) {
+      this.logger.debug(`[MOCK EMAIL] To: ${to} | Subject: ${subject}\nText: ${text}`);
+      return;
+    }
+
+    try {
+      await this.transporter.sendMail({
+        from: process.env.EMAIL_FROM || '"HANGA WORKS Support" <kafurukaleo66@gmail.com>',
+        to,
+        subject,
+        text,
+        html: html || text,
+      });
+      this.logger.log(`Email sent to ${to}`);
+    } catch (error) {
+      this.logger.error(`Failed to send email to ${to}`, error);
+    }
+  }
+
+  // --- AUTH MODULE HOOKS ---
+  async sendRegistrationConfirmation(email: string, name: string) {
+    await this.sendEmail(
+      email,
+      'Welcome to Hanga Works!',
+      `Hi ${name}, welcome to Hanga Works. Your registration is successfully complete.`,
+    );
+  }
+
+  async sendEmailVerification(email: string, name: string, token: string) {
+    const verifyUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email?token=${token}`;
+    await this.sendEmail(
+      email,
+      'Verify your Hanga Works email',
+      `Hi ${name}, verify your email: ${verifyUrl}`,
+      `<p>Hi ${name},</p><p><a href="${verifyUrl}">Click here to verify your email</a></p>`,
+    );
+  }
+
+  async createInApp(
+    userId: string,
+    type: string,
+    payload: Record<string, unknown>,
+  ) {
+    const row = await this.prisma.notification.create({
+      data: {
+        userId,
+        type,
+        payload: JSON.stringify(payload),
+      },
+    });
+
+    this.gateway.server?.emit(`notification-${userId}`, {
+      id: row.id,
+      type: row.type,
+      payload,
+      createdAt: row.createdAt,
+    });
+
+    return row;
+  }
+
+  async listForUser(userId: string, unreadOnly = false) {
+    return this.prisma.notification.findMany({
+      where: {
+        userId,
+        ...(unreadOnly ? { read: false } : {}),
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
+  }
+
+  async markRead(userId: string, notificationId: string) {
+    const row = await this.prisma.notification.findFirst({
+      where: { id: notificationId, userId },
+    });
+    if (!row) throw new NotFoundException('Notification not found');
+
+    return this.prisma.notification.update({
+      where: { id: notificationId },
+      data: { read: true },
+    });
+  }
+
+  async markAllRead(userId: string) {
+    const result = await this.prisma.notification.updateMany({
+      where: { userId, read: false },
+      data: { read: true },
+    });
+    return { updated: result.count };
+  }
+
+  async sendPasswordReset(email: string, token: string) {
+    const resetUrl = `${process.env.APP_URL || 'http://localhost:3000'}/reset-password?token=${token}`;
+    await this.sendEmail(
+      email,
+      'Password Reset Request',
+      `Click the following link to reset your password: ${resetUrl}`
+    );
+  }
+
+  emitUserLoggedIn(userId: string) {
+    this.gateway.emitUserLoggedIn(userId);
+  }
+
+  emitCourseComplete(userId: string, courseData: Record<string, unknown>) {
+    this.gateway.emitCourseComplete(userId, courseData);
+  }
+
+  // --- TEAMMATE HOOKS (LMS / JOBS) ---
+  // Your teammate can call these functions without us touching their files!
+  async sendApplicationStatusUpdate(email: string, status: string, jobTitle: string) {
+    await this.sendEmail(
+      email,
+      'Application Status Update',
+      `Your application for ${jobTitle} is now: ${status}`
+    );
+  }
+
+  async sendAdminReviewEmail(adminEmail: string, newUserEmail: string, role: string) {
+    await this.sendEmail(
+      adminEmail,
+      `Action Required: Review New ${role} Registration`,
+      `A new user has registered as a ${role} with the email: ${newUserEmail}. Their account requires your review and approval before they can log in.`
+    );
+  }
+
+  async sendRegistrationFeedbackEmail(userEmail: string, status: string, feedback?: string) {
+    await this.sendEmail(
+      userEmail,
+      `Registration Status: ${status}`,
+      `Your registration status has been updated to: ${status}.${feedback ? ` Feedback: ${feedback}` : ''}`
+    );
+  }
+
+  async sendCourseCompletion(email: string, courseTitle: string) {
+    await this.sendEmail(
+      email,
+      'Congratulations on completing your course!',
+      `You have successfully completed: ${courseTitle}.`
+    );
+  }
+
+  async sendCertificateIssued(email: string, courseTitle: string, certUrl: string) {
+    await this.sendEmail(
+      email,
+      'Your Certificate is Ready!',
+      `Your certificate for ${courseTitle} has been issued. View it here: ${certUrl}`
+    );
+  }
+}

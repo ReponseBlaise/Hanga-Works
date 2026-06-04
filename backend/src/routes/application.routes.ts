@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { Router } from 'express';
 import {
   applyForJob,
@@ -18,3 +19,5 @@ router.get('/my-applications', authenticateJWT, requireRoles(['LEARNER']), getUs
 router.put('/status', authenticateJWT, requireRoles(['EMPLOYER', 'ADMIN']), validateDto(UpdateApplicationStatusDto), updateApplicationStatus);
 
 export default router;
+=======
+>>>>>>> main

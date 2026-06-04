@@ -1,101 +1,175 @@
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { MdEmail, MdHelpOutline, MdSchool } from 'react-icons/md';
 
-const columns = [
+type FooterColumn = {
+  title: string;
+  links: Array<{ label: string; href: string }>;
+};
+
+const publicColumns: FooterColumn[] = [
   {
     title: 'Resources',
-    links: ['About Us', 'Our Team', 'Products', 'Contact'],
+    links: [
+      { label: 'Home', href: '/' },
+      { label: 'Courses', href: '/courses' },
+      { label: 'Jobs', href: '/jobs' },
+      { label: 'Contact', href: '/contact' },
+    ],
   },
   {
     title: 'Community',
-    links: ['Feature', 'Blog', 'Credit', 'FAQ'],
+    links: [
+      { label: 'Mentors', href: '/mentors' },
+      { label: 'Certifications', href: '/certifications' },
+      { label: 'Login', href: '/login' },
+    ],
   },
   {
     title: 'Quick Links',
-    links: ['iOS', 'Android', 'Microsoft', 'Desktop'],
+    links: [
+      { label: 'Register', href: '/register' },
+      { label: 'Profile', href: '/profile' },
+      { label: 'Applications', href: '/applications' },
+    ],
   },
   {
     title: 'More',
-    links: ['Privacy', 'Help', 'Terms', 'FAQ'],
+    links: [
+      { label: 'Privacy', href: '/contact' },
+      { label: 'Help', href: '/contact' },
+      { label: 'Terms', href: '/contact' },
+      { label: 'FAQ', href: '/contact' },
+    ],
   },
 ];
 
+const roleColumns: Record<string, FooterColumn[]> = {
+  EMPLOYER: [
+    {
+      title: 'Employer',
+      links: [
+        { label: 'Dashboard', href: '/employer' },
+        { label: 'Post a Job', href: '/employer/post-job' },
+        { label: 'Applicants', href: '/employer/applicants' },
+      ],
+    },
+    {
+      title: 'Hiring',
+      links: [
+        { label: 'Jobs', href: '/jobs' },
+        { label: 'Candidates', href: '/candidates' },
+        { label: 'Profile', href: '/profile' },
+      ],
+    },
+  ],
+  INSTITUTION: [
+    {
+      title: 'Institution',
+      links: [
+        { label: 'Courses', href: '/courses' },
+        { label: 'Create Course', href: '/courses/new' },
+        { label: 'Profile', href: '/profile' },
+      ],
+    },
+    {
+      title: 'Learning',
+      links: [
+        { label: 'Certifications', href: '/certifications' },
+        { label: 'Intelligence', href: '/intelligence' },
+        { label: 'Contact', href: '/contact' },
+      ],
+    },
+  ],
+  MENTOR: [
+    {
+      title: 'Mentor',
+      links: [
+        { label: 'Mentors', href: '/mentors' },
+        { label: 'Profile', href: '/profile' },
+        { label: 'Courses', href: '/courses' },
+      ],
+    },
+    {
+      title: 'Support',
+      links: [
+        { label: 'Jobs', href: '/jobs' },
+        { label: 'Contact', href: '/contact' },
+        { label: 'Certifications', href: '/certifications' },
+      ],
+    },
+  ],
+  ADMIN: [
+    {
+      title: 'Admin',
+      links: [
+        { label: 'Admin Home', href: '/admin' },
+        { label: 'Exports', href: '/admin/export' },
+        { label: 'Moderation', href: '/admin/moderation' },
+      ],
+    },
+    {
+      title: 'Platform',
+      links: [
+        { label: 'Users', href: '/admin' },
+        { label: 'Courses', href: '/courses' },
+        { label: 'Jobs', href: '/jobs' },
+      ],
+    },
+  ],
+  LEARNER: publicColumns,
+};
+
 export default function Footer() {
+  const { user } = useAuth();
+  const role = (user?.role ?? 'LEARNER').toUpperCase();
+  const columns = roleColumns[role] ?? publicColumns;
+
   return (
-    <footer style={{
-      background: 'rgba(255, 255, 255, 0.76)',
-      borderTop: '1px solid var(--border)',
-      marginTop: 'auto',
-      backdropFilter: 'blur(18px)',
-    }}>
-      {/* Main footer */}
-      <div style={{
-        maxWidth: '1180px',
-        margin: '0 auto',
-        padding: '40px 24px 32px',
-        display: 'grid',
-        gridTemplateColumns: '1.6fr 1fr 1fr 1fr 1fr',
-        gap: '32px',
-      }}>
-        {/* Brand column */}
-        <div>
-          <div style={{ marginBottom: '12px' }}>
-            <img src="/hanga-works-logo.svg" alt="Hanga Works Logo" style={{ height: '40px', width: 'auto' }} />
-          </div>
-          <p style={{ fontSize: '0.82rem', color: 'var(--text-soft)', lineHeight: 1.6, margin: '0 0 16px', maxWidth: '200px' }}>
-            HANGA WORKS is the home of the skills employment and workforce intelligence platform.
+    <footer className="site-footer">
+      <div className="site-footer__inner">
+        <div className="site-footer__brand">
+          <img src="/hanga-works-logo.svg" alt="Hanga Works Logo" />
+          <p className="site-footer__brand-text">
+            Hanga Works unifies learning, hiring, and workforce intelligence in one enterprise-ready workspace.
           </p>
-          {/* Social icons */}
-          <div style={{ display: 'flex', gap: '10px' }}>
-            {['f', 't', 'in'].map(s => (
-              <a key={s} href="#" style={{
-                width: '30px', height: '30px', borderRadius: '50%',
-                background: 'var(--accent-wash)',
-                display: 'grid', placeItems: 'center',
-                fontSize: '0.75rem', fontWeight: 700,
-                color: 'var(--accent)', textDecoration: 'none',
-              }}>{s}</a>
-            ))}
+          <div className="site-footer__social">
+            <a href="mailto:hello@hanga.works" className="site-footer__social-link" aria-label="email">
+              <MdEmail size={20} />
+            </a>
+            <a href="/contact" className="site-footer__social-link" aria-label="support">
+              <MdHelpOutline size={20} />
+            </a>
+            <a href="/courses" className="site-footer__social-link" aria-label="learn">
+              <MdSchool size={20} />
+            </a>
           </div>
         </div>
 
-        {/* Link columns */}
-        {columns.map(col => (
-          <div key={col.title}>
-            <p style={{ margin: '0 0 12px', fontWeight: 700, fontSize: '0.88rem', color: 'var(--text)' }}>
-              {col.title}
-            </p>
-            <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {col.links.map(link => (
-                <li key={link}>
-                  <Link to="#" style={{ fontSize: '0.82rem', color: 'var(--text-soft)', textDecoration: 'none' }}>
-                    {link}
-                  </Link>
-                </li>
+        {columns.map((col) => (
+          <div key={col.title} className="site-footer__column">
+            <p className="site-footer__column-title">{col.title}</p>
+            <div className="site-footer__links">
+              {col.links.map((link) => (
+                <Link key={link.label} to={link.href} className="site-footer__link">
+                  {link.label}
+                </Link>
               ))}
-            </ul>
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Bottom bar */}
-      <div style={{
-        borderTop: '1px solid var(--border)',
-        padding: '14px 24px',
-        maxWidth: '1180px',
-        margin: '0 auto',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: '8px',
-      }}>
-        <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-soft)' }}>
-          Copyright © 2024. Hanga Works. All rights reserved.
-        </p>
-        <div style={{ display: 'flex', gap: '20px' }}>
-          {['Privacy Policy', 'Terms & Conditions', 'Security'].map(item => (
-            <Link key={item} to="#" style={{ fontSize: '0.78rem', color: 'var(--text-soft)', textDecoration: 'none' }}>
-              {item}
+      <div className="site-footer__bottom">
+        <p className="site-footer__legal-link">Copyright © 2024. Hanga Works. All rights reserved.</p>
+        <div className="site-footer__legal-links">
+          {[
+            { label: 'Privacy Policy', href: '/contact' },
+            { label: 'Terms & Conditions', href: '/contact' },
+            { label: 'Security', href: '/contact' },
+          ].map((item) => (
+            <Link key={item.label} to={item.href} className="site-footer__legal-link">
+              {item.label}
             </Link>
           ))}
         </div>

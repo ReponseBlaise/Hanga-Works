@@ -1,11 +1,3 @@
-// ============================================================
-// HANGA WORKS — Prisma Schema
-// File: backend/prisma/schema.prisma
-// Database: PostgreSQL
-// ORM: Prisma
-// Version: 1.0 — Phase 1
-// ============================================================
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -15,9 +7,325 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ============================================================
-// ENUMS
-// ============================================================
+model User {
+  id                 String          @id @default(uuid())
+  name               String
+  email              String          @unique
+  phone              String?         @unique
+  passwordHash       String
+  role               Role            @default(LEARNER)
+  status             AccountStatus   @default(ACTIVE)
+  bio                String?
+  avatarUrl          String?
+  location           String?
+  resetToken         String?
+  resetTokenExpires  DateTime?
+  emailVerified      Boolean         @default(false)
+  emailVerifyToken   String?
+  emailVerifyExpires DateTime?
+  organizationId     String?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  applications       Application[]
+  auditLogs          AuditLog[]
+  certifications     Certification[]
+  enrollments        Enrollment[]
+  mentorProfile      MentorProfile?
+  mentorSessions     MentorSession[]
+  notifications      Notification[]
+  refreshTokens      RefreshToken[]
+  organization       Organization?   @relation(fields: [organizationId], references: [id])
+  skills             UserSkill[]
+  testAttempts       TestAttempt[]
+
+  @@index([email])
+  @@index([role])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  isRevoked Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Organization {
+  id                  String          @id @default(uuid())
+  name                String
+  type                OrgType
+  website             String?
+  companyCertificate  String?
+  trainingCertificate String?
+  createdAt           DateTime        @default(now())
+  certifications      Certification[]
+  courses             Course[]
+  jobs                Job[]
+  users               User[]
+}
+
+model Skill {
+  id           String        @id @default(uuid())
+  name         String        @unique
+  tag          String?
+  courseSkills CourseSkill[]
+  jobSkills    JobSkill[]
+  userSkills   UserSkill[]
+}
+
+model UserSkill {
+  id        String           @id @default(uuid())
+  userId    String
+  skillId   String
+  level     ProficiencyLevel @default(BEGINNER)
+  verified  Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  skill     Skill            @relation(fields: [skillId], references: [id])
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, skillId])
+}
+
+model Course {
+  id             String          @id @default(uuid())
+  title          String
+  slug           String          @unique
+  description    String
+  published      Boolean         @default(false)
+  thumbnailUrl   String?
+  institutionId  String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  certifications Certification[]
+  institution    Organization?   @relation(fields: [institutionId], references: [id])
+  modules        CourseModule[]
+  skills         CourseSkill[]
+  enrollments    Enrollment[]
+  test           CourseTest?
+
+  @@index([published])
+}
+
+model CourseModule {
+  id        String   @id @default(uuid())
+  courseId  String
+  title     String
+  content   String?
+  videoUrl  String?
+  order     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId])
+}
+
+model Enrollment {
+  id          String           @id @default(uuid())
+  userId      String
+  courseId    String
+  progress    Int              @default(0)
+  status      EnrollmentStatus @default(ENROLLED)
+  startedAt   DateTime         @default(now())
+  completedAt DateTime?
+  updatedAt   DateTime         @updatedAt
+  course      Course           @relation(fields: [courseId], references: [id])
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@index([userId])
+  @@index([status])
+}
+
+model Certification {
+  id        String        @id @default(uuid())
+  code      String        @unique @default(uuid())
+  userId    String
+  courseId  String?
+  issuerId  String?
+  pdfUrl    String?
+  issuedAt  DateTime      @default(now())
+  expiresAt DateTime?
+  course    Course?       @relation(fields: [courseId], references: [id])
+  issuer    Organization? @relation(fields: [issuerId], references: [id])
+  user      User          @relation(fields: [userId], references: [id])
+
+  @@unique([userId, courseId])
+  @@index([code])
+}
+
+model Job {
+  id           String        @id @default(uuid())
+  title        String
+  slug         String        @unique
+  description  String
+  location     String?
+  jobType      JobType       @default(FULL_TIME)
+  salaryMin    Int?
+  salaryMax    Int?
+  isActive     Boolean       @default(true)
+  employerId   String
+  postedAt     DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  expiresAt    DateTime?
+  applications Application[]
+  employer     Organization  @relation(fields: [employerId], references: [id])
+  skills       JobSkill[]
+
+  @@index([isActive])
+  @@index([employerId])
+}
+
+model JobSkill {
+  id      String @id @default(uuid())
+  jobId   String
+  skillId String
+  job     Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  skill   Skill  @relation(fields: [skillId], references: [id])
+
+  @@unique([jobId, skillId])
+}
+
+model CourseSkill {
+  id       String @id @default(uuid())
+  courseId String
+  skillId  String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  skill    Skill  @relation(fields: [skillId], references: [id])
+
+  @@unique([courseId, skillId])
+}
+
+model Application {
+  id        String            @id @default(uuid())
+  userId    String
+  jobId     String
+  status    ApplicationStatus @default(APPLIED)
+  appliedAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  job       Job               @relation(fields: [jobId], references: [id])
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobId])
+  @@index([userId])
+  @@index([jobId])
+  @@index([status])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  payload   String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  actorId   String?
+  action    String
+  meta      String?
+  createdAt DateTime @default(now())
+  actor     User?    @relation(fields: [actorId], references: [id])
+
+  @@index([actorId])
+}
+
+model MentorProfile {
+  id           String          @id @default(uuid())
+  userId       String          @unique
+  expertise    String
+  bio          String?
+  hourlyRate   Int?            @default(0)
+  availability String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions     MentorSession[]
+}
+
+model CourseTest {
+  id           String         @id @default(uuid())
+  courseId     String         @unique
+  instructions String?
+  passingScore Int            @default(80)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  course       Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  questions    TestQuestion[]
+  attempts     TestAttempt[]
+}
+
+model TestQuestion {
+  id        String       @id @default(uuid())
+  testId    String
+  question  String
+  createdAt DateTime     @default(now())
+  options   TestOption[]
+  test      CourseTest   @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  @@index([testId])
+}
+
+model TestOption {
+  id         String       @id @default(uuid())
+  questionId String
+  text       String
+  isCorrect  Boolean      @default(false)
+  question   TestQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
+}
+
+model TestAttempt {
+  id        String     @id @default(uuid())
+  testId    String
+  userId    String
+  score     Int
+  passed    Boolean
+  createdAt DateTime   @default(now())
+  test      CourseTest @relation(fields: [testId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([testId])
+  @@index([userId])
+}
+
+model MentorSession {
+  id              String         @id @default(uuid())
+  mentorId        String
+  menteeId        String
+  status          SessionStatus  @default(PENDING)
+  scheduledAt     DateTime
+  durationMinutes Int            @default(60)
+  meetingLink     String?
+  notes           String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  mentee          User           @relation(fields: [menteeId], references: [id], onDelete: Cascade)
+  mentor          MentorProfile  @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  review          SessionReview?
+
+  @@index([mentorId])
+  @@index([menteeId])
+}
+
+model SessionReview {
+  id        String        @id @default(uuid())
+  sessionId String        @unique
+  rating    Int
+  feedback  String?
+  createdAt DateTime      @default(now())
+  session   MentorSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
 
 enum Role {
   LEARNER
@@ -28,6 +336,7 @@ enum Role {
 }
 
 enum AccountStatus {
+  PENDING
   ACTIVE
   SUSPENDED
   DEACTIVATED
@@ -68,278 +377,10 @@ enum OrgType {
   INSTITUTION
 }
 
-// ============================================================
-// USER & IDENTITY
-// ============================================================
-
-model User {
-  id           String        @id @default(uuid())
-  name         String
-  email        String        @unique
-  phone        String?       @unique
-  passwordHash String
-  role         Role          @default(LEARNER)
-  password     String
-  status       AccountStatus @default(ACTIVE)
-  bio          String?
-  avatarUrl    String?
-  location     String?
-
-  // Relations
-  organizationId String?
-  organization   Organization? @relation(fields: [organizationId], references: [id])
-
-  skills         UserSkill[]
-  enrollments    Enrollment[]
-  certifications Certification[]
-  applications   Application[]
-  notifications  Notification[]
-  auditLogs      AuditLog[]
-  refreshTokens  RefreshToken[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([email])
-  @@index([role])
-}
-
-model RefreshToken {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  token     String   @unique
-  expiresAt DateTime
-  isRevoked Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  @@index([userId])
-}
-
-// ============================================================
-// ORGANIZATION
-// ============================================================
-
-model Organization {
-  id      String  @id @default(uuid())
-  name    String
-  type    OrgType
-  website String?
-
-  // Relations
-  users          User[]
-  courses        Course[]
-  jobs           Job[]
-  certifications Certification[]
-
-  createdAt DateTime @default(now())
-}
-
-// ============================================================
-// SKILLS
-// ============================================================
-
-model Skill {
-  id   String  @id @default(uuid())
-  name String  @unique
-  tag  String?
-
-  // Relations
-  userSkills   UserSkill[]
-  jobSkills    JobSkill[]
-  courseSkills CourseSkill[]
-}
-
-model UserSkill {
-  id      String           @id @default(uuid())
-  userId  String
-  user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  skillId String
-  skill   Skill            @relation(fields: [skillId], references: [id])
-  level   ProficiencyLevel @default(BEGINNER)
-  verified Boolean         @default(false)
-
-  createdAt DateTime @default(now())
-
-  @@unique([userId, skillId])
-}
-
-// ============================================================
-// LEARNING MANAGEMENT SYSTEM
-// ============================================================
-
-model Course {
-  id          String  @id @default(uuid())
-  title       String
-  slug        String  @unique
-  description String
-  published   Boolean @default(false)
-  thumbnailUrl String?
-
-  // Relations
-  institutionId  String?
-  institution    Organization?   @relation(fields: [institutionId], references: [id])
-  modules        CourseModule[]
-  enrollments    Enrollment[]
-  certifications Certification[]
-  skills         CourseSkill[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([published])
-}
-
-model CourseModule {
-  id       String  @id @default(uuid())
-  courseId String
-  course   Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  title    String
-  content  String?
-  videoUrl String?
-  order    Int
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([courseId])
-}
-
-model Enrollment {
-  id       String           @id @default(uuid())
-  userId   String
-  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  courseId String
-  course   Course           @relation(fields: [courseId], references: [id])
-  progress Int              @default(0)
-  status   EnrollmentStatus @default(ENROLLED)
-
-  startedAt   DateTime  @default(now())
-  completedAt DateTime?
-  updatedAt   DateTime  @updatedAt
-
-  @@unique([userId, courseId])
-  @@index([userId])
-  @@index([status])
-}
-
-// ============================================================
-// CERTIFICATION
-// ============================================================
-
-model Certification {
-  id       String  @id @default(uuid())
-  code     String  @unique @default(uuid())
-  userId   String
-  user     User    @relation(fields: [userId], references: [id])
-  courseId String?
-  course   Course? @relation(fields: [courseId], references: [id])
-  issuerId String?
-  issuer   Organization? @relation(fields: [issuerId], references: [id])
-  pdfUrl   String?
-
-  issuedAt  DateTime  @default(now())
-  expiresAt DateTime?
-
-  @@unique([userId, courseId])
-  @@index([code])
-}
-
-// ============================================================
-// JOB MARKETPLACE
-// ============================================================
-
-model Job {
-  id          String  @id @default(uuid())
-  title       String
-  slug        String  @unique
-  description String
-  location    String?
-  jobType     JobType @default(FULL_TIME)
-  salaryMin   Int?
-  salaryMax   Int?
-  isActive    Boolean @default(true)
-
-  // Relations
-  employerId   String
-  employer     Organization  @relation(fields: [employerId], references: [id])
-  skills       JobSkill[]
-  applications Application[]
-
-  postedAt  DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  expiresAt DateTime?
-
-  @@index([isActive])
-  @@index([employerId])
-}
-
-model JobSkill {
-  id      String @id @default(uuid())
-  jobId   String
-  job     Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  skillId String
-  skill   Skill  @relation(fields: [skillId], references: [id])
-
-  @@unique([jobId, skillId])
-}
-
-model CourseSkill {
-  id       String @id @default(uuid())
-  courseId String
-  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  skillId  String
-  skill    Skill  @relation(fields: [skillId], references: [id])
-
-  @@unique([courseId, skillId])
-}
-
-model Application {
-  id     String            @id @default(uuid())
-  userId String
-  user   User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  jobId  String
-  job    Job               @relation(fields: [jobId], references: [id])
-  status ApplicationStatus @default(APPLIED)
-
-  appliedAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([userId, jobId])
-  @@index([userId])
-  @@index([jobId])
-  @@index([status])
-}
-
-// ============================================================
-// NOTIFICATIONS
-// ============================================================
-
-model Notification {
-  id      String  @id @default(uuid())
-  userId  String
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type    String
-  payload String?
-  read    Boolean @default(false)
-
-  createdAt DateTime @default(now())
-
-  @@index([userId, read])
-}
-
-// ============================================================
-// AUDIT LOG
-// ============================================================
-
-model AuditLog {
-  id      String  @id @default(uuid())
-  actorId String?
-  actor   User?   @relation(fields: [actorId], references: [id])
-  action  String
-  meta    String?
-
-  createdAt DateTime @default(now())
-
-  @@index([actorId])
+enum SessionStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  COMPLETED
+  CANCELLED
 }
