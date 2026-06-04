@@ -5,7 +5,7 @@ import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
 import { getCourses, getManageableCourses, getMyProgress, type BackendCourse } from '../../services/courses.service';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 
 export function CourseList() {
 	const { isAuthenticated, user } = useAuth();
@@ -36,11 +36,13 @@ export function CourseList() {
 		return () => {
 			active = false;
 		};
-	}, [user?.role]);
+	}, [isAuthenticated, enrolledCourseIds.size]);
 
 	useEffect(() => {
 		if (!isAuthenticated) {
-			if (enrolledCourseIds.size > 0) setEnrolledCourseIds(new Set());
+			setTimeout(() => {
+				setEnrolledCourseIds(new Set());
+			}, 0);
 			return;
 		}
 

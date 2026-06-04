@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { resetPassword } from '../../services/auth.service';
 
@@ -16,7 +16,9 @@ export default function ResetPassword() {
 	useEffect(() => {
 		const targetToken = routeToken || searchParams.get('token') || '';
 		if (token !== targetToken) {
-			setToken(targetToken);
+			setTimeout(() => {
+				setToken(targetToken);
+			}, 0);
 		}
 	}, [routeToken, searchParams, token]);
 

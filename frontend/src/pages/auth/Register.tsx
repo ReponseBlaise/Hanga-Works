@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import * as authService from '../../services/auth.service';
 import { REGISTER_ROLES, type PublicRegisterRole } from '../../constants/roles';
 

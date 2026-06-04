@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { ProficiencyLevel } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { MediaUploadService } from '../storage/media-upload.service';
@@ -78,45 +79,40 @@ export class UsersService {
   }
 
   async updateProfile(userId: string, dto: UpdateUserDto) {
-    try {
-      const { skills, ...userData } = dto;
+    const { skills, ...userData } = dto;
 
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: userData,
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: userData,
+    });
+
+    if (skills) {
+      await this.prisma.userSkill.deleteMany({
+        where: { userId },
       });
 
-      if (skills) {
-        await this.prisma.userSkill.deleteMany({
-          where: { userId },
+      for (const s of skills) {
+        let skill = await this.prisma.skill.findUnique({
+          where: { name: s.skillName },
         });
 
-        for (const s of skills) {
-          let skill = await this.prisma.skill.findUnique({
-            where: { name: s.skillName },
-          });
-
-          if (!skill) {
-            skill = await this.prisma.skill.create({
-              data: { name: s.skillName },
-            });
-          }
-
-          await this.prisma.userSkill.create({
-            data: {
-              userId,
-              skillId: skill.id,
-              level: s.level,
-            },
+        if (!skill) {
+          skill = await this.prisma.skill.create({
+            data: { name: s.skillName },
           });
         }
-      }
 
-      return this.getProfile(userId);
-    } catch (error: any) {
-      require('fs').writeFileSync('updateProfile-error.log', String(error) + '\n' + (error.stack || ''));
-      throw error;
+        await this.prisma.userSkill.create({
+          data: {
+            userId,
+            skillId: skill.id,
+            level: s.level as ProficiencyLevel,
+          },
+        });
+      }
     }
+
+    return this.getProfile(userId);
   }
 
   async getProfileSetupStatus(userId: string) {

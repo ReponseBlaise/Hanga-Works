@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { SiteLayout } from '../../components/layout/SiteLayout';
 import { getMyCertificates, LearnerCertificate } from '../../services/certificates.service';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { API_BASE_URL } from '../../services/api';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';

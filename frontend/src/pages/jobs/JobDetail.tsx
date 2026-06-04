@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
@@ -21,8 +21,16 @@ export default function JobDetail() {
 	useEffect(() => {
 		if (!id) return;
 		let active = true;
-		if (!loading) setLoading(true);
-		if (error) setError('');
+		if (!loading) {
+			setTimeout(() => {
+				if (active) setLoading(true);
+			}, 0);
+		}
+		if (error) {
+			setTimeout(() => {
+				if (active) setError('');
+			}, 0);
+		}
 		const applicationsPromise = isAuthenticated ? getApplications() : Promise.resolve([]);
 		Promise.all([getJobById(id), getJobs(), applicationsPromise])
 			.then(([foundJob, allJobs, items]) => {
@@ -42,17 +50,18 @@ export default function JobDetail() {
 		return () => {
 			active = false;
 		};
-	}, [id, isAuthenticated]);
+	}, [id, isAuthenticated, error, loading]);
 
 	const employerInitials = useMemo(() => {
-		if (!job?.employer.name) return 'HW';
-		return job.employer.name
+		const name = job?.employer?.name;
+		if (!name) return 'HW';
+		return name
 			.split(' ')
 			.filter(Boolean)
 			.slice(0, 2)
 			.map((part) => part[0]?.toUpperCase())
 			.join('');
-	}, [job?.employer.name]);
+	}, [job?.employer?.name]);
 
 	return (
 		<SiteLayout>

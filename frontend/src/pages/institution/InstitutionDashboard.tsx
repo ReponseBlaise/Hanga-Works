@@ -3,7 +3,7 @@ import { Link, Navigate } from 'react-router-dom';
 import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { getManageableCourses, type BackendCourse } from '../../services/courses.service';
 
 export default function InstitutionDashboard() {
