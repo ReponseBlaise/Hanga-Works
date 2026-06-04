@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { publicNavItems } from '../../constants/routes';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { NotificationBell } from '../shared/NotificationBell';
 import { useNotificationsFeed } from '../../services/notifications.service';
 import { Avatar } from '../shared/Avatar';
@@ -16,7 +16,8 @@ export default function Navbar() {
 
 	useEffect(() => {
 		if (menuOpen) {
-			setMenuOpen(false);
+			const timer = setTimeout(() => setMenuOpen(false), 0);
+			return () => clearTimeout(timer);
 		}
 	}, [location.pathname, menuOpen]);
 
@@ -37,9 +38,7 @@ export default function Navbar() {
 		}
 		if (userRole === 'ADMIN') {
 			return [
-				{ label: 'Admin Home', href: '/admin' },
-				{ label: 'Exports', href: '/admin/export' },
-				{ label: 'Moderation', href: '/admin/moderation' },
+				{ label: 'Dashboard', href: '/admin' },
 			];
 		}
 		if (userRole === 'INSTITUTION') {

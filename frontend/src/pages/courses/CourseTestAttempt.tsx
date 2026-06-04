@@ -7,7 +7,6 @@ import { getCourseTest, submitTestAttempt } from '../../services/courses.service
 
 export default function CourseTestAttempt() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const [test, setTest] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);

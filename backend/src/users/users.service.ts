@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { ProficiencyLevel } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { MediaUploadService } from '../storage/media-upload.service';
@@ -37,12 +38,9 @@ export class UsersService {
         avatarUrl: true,
         location: true,
         createdAt: true,
-        skills: {
-          select: {
-            skill: true,
-            level: true,
-          },
-        },
+        organization: { select: { id: true, name: true, type: true, website: true } },
+        skills: { select: { skill: true, level: true } },
+        mentorProfile: { select: { expertise: true, bio: true, hourlyRate: true, availability: true } },
       },
     });
 
@@ -64,12 +62,10 @@ export class UsersService {
         location: true,
         emailVerified: true,
         createdAt: true,
-        skills: {
-          select: {
-            skill: true,
-            level: true,
-          },
-        },
+        organizationId: true,
+        organization: { select: { id: true, name: true, type: true, website: true } },
+        skills: { select: { id: true, skill: true, level: true } },
+        mentorProfile: { select: { id: true, expertise: true, bio: true, hourlyRate: true, availability: true } },
       },
     });
 
@@ -78,45 +74,28 @@ export class UsersService {
   }
 
   async updateProfile(userId: string, dto: UpdateUserDto) {
-    try {
-      const { skills, ...userData } = dto;
+    const { skills, ...userData } = dto;
 
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: userData,
-      });
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: userData,
+    });
 
-      if (skills) {
-        await this.prisma.userSkill.deleteMany({
-          where: { userId },
-        });
+    if (skills) {
+      await this.prisma.userSkill.deleteMany({ where: { userId } });
 
-        for (const s of skills) {
-          let skill = await this.prisma.skill.findUnique({
-            where: { name: s.skillName },
-          });
-
-          if (!skill) {
-            skill = await this.prisma.skill.create({
-              data: { name: s.skillName },
-            });
-          }
-
-          await this.prisma.userSkill.create({
-            data: {
-              userId,
-              skillId: skill.id,
-              level: s.level,
-            },
-          });
+      for (const s of skills) {
+        let skill = await this.prisma.skill.findUnique({ where: { name: s.skillName } });
+        if (!skill) {
+          skill = await this.prisma.skill.create({ data: { name: s.skillName } });
         }
+        await this.prisma.userSkill.create({
+          data: { userId, skillId: skill.id, level: s.level as ProficiencyLevel },
+        });
       }
-
-      return this.getProfile(userId);
-    } catch (error: any) {
-      require('fs').writeFileSync('updateProfile-error.log', String(error) + '\n' + (error.stack || ''));
-      throw error;
     }
+
+    return this.getProfile(userId);
   }
 
   async getProfileSetupStatus(userId: string) {
@@ -156,19 +135,8 @@ export class UsersService {
   }
 
   async uploadAvatar(user: CurrentUserPayload, file: Express.Multer.File) {
-    const uploaded = await this.mediaUpload.uploadFile({
-      purpose: 'avatar',
-      file,
-      user,
-    });
-
-    const profile = await this.updateProfile(user.userId, {
-      avatarUrl: uploaded.publicUrl,
-    });
-
-    return {
-      ...uploaded,
-      profile,
-    };
+    const uploaded = await this.mediaUpload.uploadFile({ purpose: 'avatar', file, user });
+    const profile = await this.updateProfile(user.userId, { avatarUrl: uploaded.publicUrl });
+    return { ...uploaded, profile };
   }
 }

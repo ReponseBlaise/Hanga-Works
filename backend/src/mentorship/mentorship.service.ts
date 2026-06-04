@@ -120,4 +120,50 @@ export class MentorshipService {
       });
     }
   }
+
+  private async getSessionForMentor(sessionId: string, userId: string) {
+    const session = await this.prisma.mentorSession.findUnique({
+      where: { id: sessionId },
+      include: { mentor: true },
+    });
+    if (!session) throw new NotFoundException('Session not found');
+    if (session.mentor.userId !== userId) throw new ForbiddenException('Not your session');
+    return session;
+  }
+
+  async acceptSession(sessionId: string, userId: string) {
+    await this.getSessionForMentor(sessionId, userId);
+    return this.prisma.mentorSession.update({
+      where: { id: sessionId },
+      data: { status: 'ACCEPTED' },
+    });
+  }
+
+  async rejectSession(sessionId: string, userId: string) {
+    await this.getSessionForMentor(sessionId, userId);
+    return this.prisma.mentorSession.update({
+      where: { id: sessionId },
+      data: { status: 'REJECTED' },
+    });
+  }
+
+  async completeSession(sessionId: string, userId: string) {
+    await this.getSessionForMentor(sessionId, userId);
+    return this.prisma.mentorSession.update({
+      where: { id: sessionId },
+      data: { status: 'COMPLETED' },
+    });
+  }
+
+  async addReview(sessionId: string, menteeId: string, rating: number, feedback?: string) {
+    const session = await this.prisma.mentorSession.findUnique({ where: { id: sessionId } });
+    if (!session) throw new NotFoundException('Session not found');
+    if (session.menteeId !== menteeId) throw new ForbiddenException('Not your session');
+    if (session.status !== 'COMPLETED') throw new ConflictException('Session not completed');
+    return this.prisma.sessionReview.upsert({
+      where: { sessionId },
+      update: { rating, feedback },
+      create: { sessionId, rating, feedback },
+    });
+  }
 }

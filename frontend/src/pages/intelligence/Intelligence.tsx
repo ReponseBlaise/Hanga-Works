@@ -3,7 +3,7 @@ import { Navigate, Link } from 'react-router-dom';
 import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { getJobs, type JobSummary } from '../../services/jobs.service';
 import { getCareerPathway, getSkillGapAnalysis, type CareerPathway } from '../../services/intelligence.service';
 
@@ -45,13 +45,17 @@ export default function Intelligence() {
 
   useEffect(() => {
     if (!selectedJobId) {
-      if (gapAnalysis !== null) setGapAnalysis(null);
-      if (loadingAnalysis) setLoadingAnalysis(false);
+      setTimeout(() => {
+        setGapAnalysis(null);
+        setLoadingAnalysis(false);
+      }, 0);
       return;
     }
 
     let active = true;
-    setLoadingAnalysis(true);
+    setTimeout(() => {
+      if (active) setLoadingAnalysis(true);
+    }, 0);
     getSkillGapAnalysis(selectedJobId)
       .then((analysis) => {
         if (active) setGapAnalysis(analysis);
@@ -67,7 +71,7 @@ export default function Intelligence() {
     return () => {
       active = false;
     };
-  }, [selectedJobId]);
+  }, [selectedJobId, gapAnalysis, loadingAnalysis]);
 
   const selectedJob = useMemo(() => jobs.find((job) => job.id === selectedJobId) ?? null, [jobs, selectedJobId]);
 
