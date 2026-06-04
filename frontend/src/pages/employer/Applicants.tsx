@@ -3,7 +3,7 @@ import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Card, CardMeta, CardTitle } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getEmployerJobs, getApplicantsForJob, updateApplicationStage, type EmployerApplicant } from '../../services/employer.service';
 
@@ -29,7 +29,8 @@ const stageLabels: Record<Candidate['stage'], string> = {
 export default function Applicants() {
   const { user } = useAuth();
   const [jobs, setJobs] = useState<Array<{ id: string; title: string; employer: { id: string } }>>([]);
-  const [selectedJobId, setSelectedJobId] = useState('');
+  const { id } = useParams<{ id: string }>();
+  const [selectedJobId, setSelectedJobId] = useState(id || '');
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [active, setActive] = useState<Candidate | null>(null);
   const [loading, setLoading] = useState(false);
@@ -47,7 +48,9 @@ export default function Applicants() {
           ? allJobs.filter((job) => job.employer.id === user.organizationId)
           : allJobs;
         setJobs(ownJobs);
-        setSelectedJobId((current) => current || ownJobs[0]?.id || '');
+        if (!id) {
+          setSelectedJobId((current) => current || ownJobs[0]?.id || '');
+        }
       })
       .catch((error) => {
         console.error('Failed to load jobs', error);

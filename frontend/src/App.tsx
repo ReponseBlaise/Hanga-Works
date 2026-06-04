@@ -21,6 +21,7 @@ import { Dashboard } from './pages/dashboard/Dashboard';
 import Profile from './pages/profile/Profile';
 import EmployerDashboard from './pages/employer/EmployerDashboard';
 import PostJob from './pages/employer/PostJob';
+import EditJob from './pages/employer/EditJob';
 import Applicants from './pages/employer/Applicants';
 import AdminPanelPage from './pages/admin/AdminPanelPage';
 import AdminExportPage from './pages/admin/AdminExportPage';
@@ -105,7 +106,9 @@ export default function App() {
           <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
           <Route path="/employer" element={<EmployerRoute><EmployerDashboard /></EmployerRoute>} />
           <Route path="/employer/post-job" element={<EmployerRoute><PostJob /></EmployerRoute>} />
+          <Route path="/employer/jobs/:id/edit" element={<EmployerRoute><EditJob /></EmployerRoute>} />
           <Route path="/employer/applicants" element={<EmployerRoute><Applicants /></EmployerRoute>} />
+          <Route path="/employer/jobs/:id/applicants" element={<EmployerRoute><Applicants /></EmployerRoute>} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/admin" element={<AdminRoute><AdminPanelPage /></AdminRoute>} />
           <Route path="/admin/export" element={<AdminRoute><AdminExportPage /></AdminRoute>} />
