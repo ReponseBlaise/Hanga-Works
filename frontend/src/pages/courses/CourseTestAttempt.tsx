@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Card, CardTitle, CardMeta, CardEyebrow } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
