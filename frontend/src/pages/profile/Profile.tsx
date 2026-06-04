@@ -172,25 +172,24 @@ export default function Profile() {
           </div>
         </header>
 
-        <section className="learning-redesign__layout" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '32px', marginTop: '32px' }}>
-          <aside className="learning-redesign__sidebar" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <section className="learning-redesign__layout">
+          <aside className="learning-redesign__sidebar">
             <Card className="studio-block">
               <CardEyebrow>Profile Picture</CardEyebrow>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', marginTop: '16px' }}>
-                <div style={{ width: '120px', height: '120px', borderRadius: '50%', overflow: 'hidden', background: 'var(--surface-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border)' }}>
+              <div className="profile-avatar-block">
+                <div className="profile-avatar-circle">
                   {previewUrl || avatarUrl ? (
-                    <img src={previewUrl || avatarUrl} alt="Profile preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={previewUrl || avatarUrl} alt="Profile preview" />
                   ) : (
-                    <span style={{ fontSize: '2rem', fontWeight: 600, color: 'var(--text-soft)' }}>{(authUser?.name ?? 'HW').slice(0, 2).toUpperCase()}</span>
+                    <span className="profile-avatar-initials">{(authUser?.name ?? 'HW').slice(0, 2).toUpperCase()}</span>
                   )}
                 </div>
                 {!isPublicView && (
-                  <div style={{ width: '100%' }}>
-                    <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-soft)', display: 'block', marginBottom: '8px' }}>Upload new picture</label>
+                  <label className="profile-upload-label">
+                    Upload new picture
                     <input
                       type="file"
                       accept="image/*"
-                      style={{ width: '100%', padding: '8px', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)' }}
                       onChange={(event) => {
                         const file = event.target.files?.[0];
                         if (!file) return;
@@ -198,7 +197,7 @@ export default function Profile() {
                         setPreviewUrl(URL.createObjectURL(file));
                       }}
                     />
-                  </div>
+                  </label>
                 )}
               </div>
             </Card>
@@ -221,26 +220,14 @@ export default function Profile() {
             </Card>
           </aside>
 
-          <div className="learning-redesign__content" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div className="learning-redesign__content">
             <Card className="studio-block">
               <CardEyebrow>Basic Information</CardEyebrow>
-              <div className="profile-form-grid" style={{ marginTop: '16px', display: 'grid', gap: '16px' }}>
-                <label className="form-stack">
-                  <span style={{ fontWeight: 600 }}>Full Name</span>
-                  <input value={name} onChange={(event) => setName(event.target.value)} disabled={isPublicView} />
-                </label>
-                <label className="form-stack">
-                  <span style={{ fontWeight: 600 }}>Location</span>
-                  <input value={location} onChange={(event) => setLocation(event.target.value)} disabled={isPublicView} />
-                </label>
-                <label className="form-stack">
-                  <span style={{ fontWeight: 600 }}>Professional Headline</span>
-                  <input value={headline} onChange={(event) => setHeadline(event.target.value)} disabled={isPublicView} placeholder="e.g. Senior Frontend Engineer" />
-                </label>
-                <label className="form-stack">
-                  <span style={{ fontWeight: 600 }}>About Me (Bio)</span>
-                  <textarea value={bio} onChange={(event) => setBio(event.target.value)} rows={5} disabled={isPublicView} placeholder="Write a brief introduction..." />
-                </label>
+              <div className="form-stack mt-md">
+                <label>Full Name<input value={name} onChange={(event) => setName(event.target.value)} disabled={isPublicView} /></label>
+                <label>Location<input value={location} onChange={(event) => setLocation(event.target.value)} disabled={isPublicView} /></label>
+                <label>Professional Headline<input value={headline} onChange={(event) => setHeadline(event.target.value)} disabled={isPublicView} placeholder="e.g. Senior Frontend Engineer" /></label>
+                <label>About Me<textarea value={bio} onChange={(event) => setBio(event.target.value)} rows={5} disabled={isPublicView} placeholder="Write a brief introduction..." /></label>
               </div>
             </Card>
 

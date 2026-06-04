@@ -246,19 +246,19 @@ export function Dashboard() {
           <div className="dashboard-redesign__headline-stats">
             <div>
               <span>Learning momentum</span>
-              <strong>{learningMomentum}</strong>
+              <strong style={{ color: 'var(--text)' }}>{learningMomentum}</strong>
             </div>
             <div>
               <span>Open applications</span>
-              <strong>{loading ? '...' : applications.length}</strong>
+              <strong style={{ color: 'var(--text)' }}>{loading ? '...' : applications.length}</strong>
             </div>
             <div>
               <span>Courses active</span>
-              <strong>{loading ? '...' : enrollments.length}</strong>
+              <strong style={{ color: 'var(--text)' }}>{loading ? '...' : enrollments.length}</strong>
             </div>
             <div>
               <span>Certificates</span>
-              <strong>{loading ? '...' : certificates.length}</strong>
+              <strong style={{ color: 'var(--text)' }}>{loading ? '...' : certificates.length}</strong>
             </div>
           </div>
         </section>
