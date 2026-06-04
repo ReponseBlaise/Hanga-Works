@@ -442,7 +442,7 @@ export class CoursesService {
     return { message: 'Test created successfully', testId: test.id };
   }
 
-  async getCourseTest(courseId: string, user: CurrentUserPayload) {
+  async getCourseTest(courseId: string) {
     const test = await this.prisma.courseTest.findUnique({
       where: { courseId },
       include: {
@@ -483,7 +483,7 @@ export class CoursesService {
     const score = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
     const passed = score >= test.passingScore;
 
-    const attempt = await this.prisma.testAttempt.create({
+    await this.prisma.testAttempt.create({
       data: {
         testId: test.id,
         userId,

@@ -4,7 +4,7 @@ import axios from 'axios';
 import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { applyForJob, getApplications, getJobById, type JobSummary } from '../../services/jobs.service';
 import type { JobApplication } from '../../types/job.types';
 
@@ -34,7 +34,11 @@ export default function JobApply() {
   useEffect(() => {
     if (!id) return;
     let active = true;
-    if (!loading) setLoading(true);
+    if (!loading) {
+      setTimeout(() => {
+        if (active) setLoading(true);
+      }, 0);
+    }
 
     Promise.all([getJobById(id), getApplications()])
       .then(([foundJob, items]) => {
@@ -57,7 +61,7 @@ export default function JobApply() {
     return () => {
       active = false;
     };
-  }, [id]);
+  }, [id, loading]);
 
   async function handleApply() {
     if (!job) return;

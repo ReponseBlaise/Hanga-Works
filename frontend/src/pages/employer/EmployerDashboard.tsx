@@ -4,8 +4,8 @@ import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { ProgressBar } from '../../components/shared/ProgressBar';
-import { useAuth } from '../../context/AuthContext';
-import { getEmployerAnalytics, getEmployerJobs, deleteJob, type EmployerStats } from '../../services/employer.service';
+import { useAuth } from '../../hooks/useAuth';
+import { getEmployerAnalytics, getEmployerJobs, type EmployerStats } from '../../services/employer.service';
 
 export default function EmployerDashboard() {
   const { user, isAuthenticated } = useAuth();

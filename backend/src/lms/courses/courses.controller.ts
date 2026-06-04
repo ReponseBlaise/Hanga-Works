@@ -167,11 +167,8 @@ export class CoursesController {
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get the test for a course (options are randomized, correct answers hidden)' })
   @ApiResponse({ status: 200, description: 'Returns the test questions' })
-  getCourseTest(
-    @Param('id') courseId: string,
-    @CurrentUser() user: CurrentUserPayload,
-  ) {
-    return this.coursesService.getCourseTest(courseId, user);
+  getCourseTest(@Param('id') courseId: string) {
+    return this.coursesService.getCourseTest(courseId);
   }
 
   @Post(':id/test/attempt')

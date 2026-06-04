@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
@@ -21,7 +21,7 @@ function getEmbedUrl(url: string) {
 			const videoId = parsed.pathname.slice(1);
 			if (videoId) return `https://www.youtube.com/embed/${videoId}`;
 		}
-	} catch (e) {
+	} catch {
 		// Ignore invalid URLs
 	}
 	return url;
@@ -51,8 +51,16 @@ export function CourseDetail() {
 	useEffect(() => {
 		if (!id) return;
 		let active = true;
-		if (!loading) setLoading(true);
-		if (error) setError('');
+		if (!loading) {
+			setTimeout(() => {
+				if (active) setLoading(true);
+			}, 0);
+		}
+		if (error) {
+			setTimeout(() => {
+				if (active) setError('');
+			}, 0);
+		}
 
 		Promise.all([getCourseById(id), getJobs({ perPage: 40, page: 1 })])
 			.then(([item, jobsResponse]) => {
@@ -74,9 +82,11 @@ export function CourseDetail() {
 
 	useEffect(() => {
 		if (!isAuthenticated) {
-			if (enrollments.length > 0) setEnrollments([]);
-			if (certificates.length > 0) setCertificates([]);
-			if (progressValue !== 0) setProgressValue(0);
+			setTimeout(() => {
+				setEnrollments([]);
+				setCertificates([]);
+				setProgressValue(0);
+			}, 0);
 			return;
 		}
 
@@ -103,20 +113,26 @@ export function CourseDetail() {
 	const currentCertificate = useMemo(() => certificates.find((item) => item.courseId === id) ?? null, [certificates, id]);
 
 	useEffect(() => {
-		setProgressValue(currentEnrollment?.progress ?? 0);
+		setTimeout(() => {
+			setProgressValue(currentEnrollment?.progress ?? 0);
+		}, 0);
 	}, [currentEnrollment]);
 
 	useEffect(() => {
 		if (!course?.modules?.length) {
-			setActiveModuleId('');
+			setTimeout(() => {
+				setActiveModuleId('');
+			}, 0);
 			return;
 		}
-		setActiveModuleId((previous) => {
-			if (previous && course.modules?.some((module) => module.id === previous)) {
-				return previous;
-			}
-			return course.modules?.[0]?.id ?? '';
-		});
+		setTimeout(() => {
+			setActiveModuleId((previous) => {
+				if (previous && course.modules?.some((module) => module.id === previous)) {
+					return previous;
+				}
+				return course.modules?.[0]?.id ?? '';
+			});
+		}, 0);
 	}, [course]);
 
 	async function handleEnroll() {

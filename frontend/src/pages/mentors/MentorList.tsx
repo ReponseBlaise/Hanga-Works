@@ -3,7 +3,7 @@ import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Card, CardEyebrow, CardTitle, CardMeta } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { getMentors, MentorSummary } from '../../services/mentors.service';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 
 export default function MentorList() {
   const { user } = useAuth();

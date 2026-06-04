@@ -3,8 +3,8 @@ import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Card, CardMeta, CardTitle } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
 import { getEmployerJobs, getApplicantsForJob, updateApplicationStage, type EmployerApplicant } from '../../services/employer.service';
 
 type Candidate = {
@@ -63,7 +63,9 @@ export default function Applicants() {
 
   useEffect(() => {
     if (!selectedJobId) {
-      if (candidates.length > 0) setCandidates([]);
+      setTimeout(() => {
+        setCandidates([]);
+      }, 0);
       return;
     }
 

@@ -18,7 +18,11 @@ export default function AdminPanelPage() {
 
   useEffect(() => {
     let active = true;
-    if (!loading) setLoading(true);
+    if (!loading) {
+      setTimeout(() => {
+        if (active) setLoading(true);
+      }, 0);
+    }
 
     Promise.all([
       api.get('/users').catch(() => ({ data: { data: [] } })),
@@ -45,7 +49,7 @@ export default function AdminPanelPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [loading]);
 
   return (
     <SiteLayout>

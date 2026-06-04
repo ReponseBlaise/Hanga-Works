@@ -18,7 +18,11 @@ export default function AdminModerationPage() {
 
   useEffect(() => {
     let active = true;
-    if (!loading) setLoading(true);
+    if (!loading) {
+      setTimeout(() => {
+        if (active) setLoading(true);
+      }, 0);
+    }
 
     const fetchData = async () => {
       try {
@@ -42,7 +46,7 @@ export default function AdminModerationPage() {
     fetchData();
 
     return () => { active = false; };
-  }, [activeTab, courses.length, jobs.length, users.length]);
+  }, [activeTab, courses.length, jobs.length, users.length, loading]);
 
   const handleToggleUser = async (id: string, currentStatus: string) => {
     const nextStatus = currentStatus === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';

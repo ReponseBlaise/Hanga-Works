@@ -2,9 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
-import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
-import { ProgressBar } from '../../components/shared/ProgressBar';
-import { useAuth } from '../../context/AuthContext';
+import { Card, CardEyebrow, CardMeta } from '../../components/ui/Card';
+import { useAuth } from '../../hooks/useAuth';
 import { getMySessions, createProfile, type MentorSession } from '../../services/mentorship.service';
 
 export default function MentorDashboard() {

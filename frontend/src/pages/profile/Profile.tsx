@@ -3,11 +3,12 @@ import { useParams } from 'react-router-dom';
 import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import api from '../../services/api';
-import authService, { updateProfile, uploadProfilePicture, type AuthUser as RemoteAuthUser } from '../../services/auth.service';
+import authService, { updateProfile, uploadProfilePicture } from '../../services/auth.service';
 import { getMyCertificates, type LearnerCertificate } from '../../services/certificates.service';
 import type { ProfileSkill, Proficiency } from '../../types/user.types';
+import type { AuthUser as RemoteAuthUser } from '../../types/auth.types';
 
 const proficiencyLabels: Record<Proficiency, string> = {
   BEGINNER: 'Beginner',
@@ -46,8 +47,10 @@ export default function Profile() {
 
   useEffect(() => {
     if (!isAuthenticated && !isPublicView) {
-      if (loadingProfile) setLoadingProfile(false);
-      if (loadingCertificates) setLoadingCertificates(false);
+      setTimeout(() => {
+        setLoadingProfile(false);
+        setLoadingCertificates(false);
+      }, 0);
       return;
     }
 
@@ -65,7 +68,7 @@ export default function Profile() {
         if (remoteProfile.bio) setBio(remoteProfile.bio);
         if (remoteProfile.skills?.length) {
           setSkills(
-            remoteProfile.skills.map((skill, index) => ({
+            remoteProfile.skills.map((skill: any, index: number) => ({
               id: skill.id ?? `skill-${index}`,
               name: skill.skill.name,
               proficiency: (skill.level === 'EXPERT' ? 'ADVANCED' : skill.level as Proficiency) ?? 'BEGINNER',
@@ -94,13 +97,15 @@ export default function Profile() {
           if (active) setLoadingCertificates(false);
         });
     } else {
-      setLoadingCertificates(false);
+      setTimeout(() => {
+        if (active) setLoadingCertificates(false);
+      }, 0);
     }
 
     return () => {
       active = false;
     };
-  }, [isAuthenticated, isPublicView, params.id]);
+  }, [isAuthenticated, isPublicView, params.id, loadingCertificates, loadingProfile]);
 
   const userName = params.username ?? authUser?.username ?? authUser?.name ?? 'learner';
   const publicProfileLink = useMemo(() => `/profile/${userName.toLowerCase().replace(/\s+/g, '-')}`, [userName]);

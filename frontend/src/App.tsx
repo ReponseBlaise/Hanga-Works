@@ -27,7 +27,7 @@ import AdminPanelPage from './pages/admin/AdminPanelPage';
 import AdminExportPage from './pages/admin/AdminExportPage';
 import AdminModerationPage from './pages/admin/AdminModerationPage';
 import AdminUserDetailPage from './pages/admin/AdminUserDetailPage';
-import { useAuth } from './context/AuthContext';
+import { useAuth } from './hooks/useAuth';
 import CertificationList from './pages/certifications/CertificationList';
 import CertificationVerify from './pages/certifications/CertificationVerify';
 import MentorList from './pages/mentors/MentorList';

@@ -5,7 +5,7 @@ import type { AuthUser, AuthContextValue } from '../types/auth.types';
 
 const AUTH_STORAGE_KEY = 'sewi-platform-auth-user';
 
-const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 function readStoredUser(): AuthUser | null {
   if (typeof window === 'undefined') {
@@ -87,14 +87,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-
-  return context;
 }

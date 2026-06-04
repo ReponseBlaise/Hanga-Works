@@ -13,8 +13,16 @@ export default function CertificationVerify() {
   useEffect(() => {
     let active = true;
     if (!token) {
-      if (error !== 'No verification token provided.') setError('No verification token provided.');
-      if (loading) setLoading(false);
+      if (error !== 'No verification token provided.') {
+        setTimeout(() => {
+          if (active) setError('No verification token provided.');
+        }, 0);
+      }
+      if (loading) {
+        setTimeout(() => {
+          if (active) setLoading(false);
+        }, 0);
+      }
       return;
     }
 
