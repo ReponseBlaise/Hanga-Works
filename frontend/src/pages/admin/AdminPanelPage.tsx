@@ -18,12 +18,7 @@ export default function AdminPanelPage() {
 
   useEffect(() => {
     let active = true;
-    if (!loading) {
-      setTimeout(() => {
-        if (active) setLoading(true);
-      }, 0);
-    }
-
+    setLoading(true);
     Promise.all([
       api.get('/users').catch(() => ({ data: { data: [] } })),
       getCourses().catch(() => []),
@@ -37,19 +32,13 @@ export default function AdminPanelPage() {
         setOverview(analyticsResponse);
       })
       .catch(() => {
-        if (active) {
-          setUsers([]);
-          setCourses([]);
-        }
+        if (active) { setUsers([]); setCourses([]); }
       })
       .finally(() => {
         if (active) setLoading(false);
       });
-
-    return () => {
-      active = false;
-    };
-  }, [loading]);
+    return () => { active = false; };
+  }, []);
 
   return (
     <SiteLayout>
