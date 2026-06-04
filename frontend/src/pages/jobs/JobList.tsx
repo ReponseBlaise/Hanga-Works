@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BsFillGrid3X3GapFill, BsListUl } from 'react-icons/bs';
-import { MdWork, MdLocationOn, MdAttachMoney, MdFilterList } from 'react-icons/md';
+import { MdWork, MdLocationOn, MdAttachMoney } from 'react-icons/md';
 import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
@@ -37,7 +37,6 @@ export default function JobList() {
   const [savedJobIds, setSavedJobIds] = useState<string[]>([]);
   const [savedOnly, setSavedOnly] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
     try {
@@ -176,94 +175,72 @@ export default function JobList() {
 
           <section className="joblist-redesign__layout">
             <aside className="studio-jobs__filters">
-              <button
-                type="button"
-                className="joblist-filter-toggle"
-                onClick={() => setFiltersOpen((o) => !o)}
-              >
-                <span className="ui-icon" aria-hidden="true"><MdFilterList /></span>
-                {filtersOpen ? 'Hide filters' : 'Filters & Search'}
-              </button>
-              <div className={`joblist-filter-panel${filtersOpen ? ' is-open' : ''}`}>
-                <Card className="studio-block">
-                  <CardEyebrow>Search filters</CardEyebrow>
-                  <div className="form-stack">
+              <Card className="studio-block">
+                <CardEyebrow>Search filters</CardEyebrow>
+                <div className="form-stack">
+                  <label>
+                    Search
+                    <input
+                      value={filters.search}
+                      onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
+                      placeholder="Frontend, analytics, mentorship"
+                    />
+                  </label>
+                  <label>
+                    Location
+                    <input
+                      value={filters.location}
+                      onChange={(e) => setFilters((prev) => ({ ...prev, location: e.target.value }))}
+                      placeholder="Kigali, remote, hybrid"
+                    />
+                  </label>
+                  <label>
+                    Role type
+                    <select value={filters.jobType} onChange={(e) => setFilters((prev) => ({ ...prev, jobType: e.target.value as JobType | 'ALL' }))}>
+                      {filterOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                    </select>
+                  </label>
+                  <div className="profile-form-grid">
                     <label>
-                      Search
-                      <input
-                        value={filters.search}
-                        onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
-                        placeholder="Frontend, analytics, mentorship"
-                      />
-                    </label>
-                    <label>
-                      Location
-                      <input
-                        value={filters.location}
-                        onChange={(e) => setFilters((prev) => ({ ...prev, location: e.target.value }))}
-                        placeholder="Kigali, remote, hybrid"
-                      />
-                    </label>
-                    <label>
-                      Role type
-                      <select value={filters.jobType} onChange={(e) => setFilters((prev) => ({ ...prev, jobType: e.target.value as JobType | 'ALL' }))}>
-                        {filterOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-                      </select>
-                    </label>
-                    <div className="profile-form-grid">
-                      <label>
-                        Min salary
-                        <input
-                          type="number"
-                          min="0"
-                          value={filters.salaryMin}
-                          onChange={(e) => setFilters((prev) => ({ ...prev, salaryMin: e.target.value }))}
-                          placeholder="500000"
-                        />
-                      </label>
-                      <label>
-                        Max salary
-                        <input
-                          type="number"
-                          min="0"
-                          value={filters.salaryMax}
-                          onChange={(e) => setFilters((prev) => ({ ...prev, salaryMax: e.target.value }))}
-                          placeholder="1500000"
-                        />
-                      </label>
-                    </div>
-                    <label>
-                      Sort by
-                      <select value={sortBy} onChange={(e) => { setSortBy(e.target.value as typeof sortBy); setPage(1); }}>
-                        <option value="newest">Newest</option>
-                        <option value="relevance">Relevance</option>
-                        <option value="salary-desc">Salary (high to low)</option>
-                        <option value="salary-asc">Salary (low to high)</option>
-                      </select>
+                      Min salary
+                      <input type="number" min="0" value={filters.salaryMin} onChange={(e) => setFilters((prev) => ({ ...prev, salaryMin: e.target.value }))} placeholder="500000" />
                     </label>
                     <label>
-                      Per page
-                      <select value={perPage} onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1); }}>
-                        <option value={6}>6</option>
-                        <option value={12}>12</option>
-                        <option value={24}>24</option>
-                      </select>
-                    </label>
-                    <label className="job-market-toolbar__toggle">
-                      <input type="checkbox" checked={filters.remoteOnly} onChange={(e) => setFilters((prev) => ({ ...prev, remoteOnly: e.target.checked }))} />
-                      <span>Remote only</span>
-                    </label>
-                    <label className="job-market-toolbar__toggle">
-                      <input type="checkbox" checked={savedOnly} onChange={(e) => setSavedOnly(e.target.checked)} />
-                      <span>Saved jobs only</span>
+                      Max salary
+                      <input type="number" min="0" value={filters.salaryMax} onChange={(e) => setFilters((prev) => ({ ...prev, salaryMax: e.target.value }))} placeholder="1500000" />
                     </label>
                   </div>
-                  <div className="studio-action-row">
-                    <Button type="button" variant="ghost" onClick={() => setFilters({ search: '', location: '', jobType: 'ALL', remoteOnly: false, salaryMin: '', salaryMax: '' })}>Reset filters</Button>
-                    <Button to="/applications" variant="secondary">My applications</Button>
-                  </div>
-                </Card>
-              </div>
+                  <label>
+                    Sort by
+                    <select value={sortBy} onChange={(e) => { setSortBy(e.target.value as typeof sortBy); setPage(1); }}>
+                      <option value="newest">Newest</option>
+                      <option value="relevance">Relevance</option>
+                      <option value="salary-desc">Salary (high to low)</option>
+                      <option value="salary-asc">Salary (low to high)</option>
+                    </select>
+                  </label>
+                  <label>
+                    Per page
+                    <select value={perPage} onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1); }}>
+                      <option value={6}>6</option>
+                      <option value={12}>12</option>
+                      <option value={24}>24</option>
+                    </select>
+                  </label>
+                  <label className="job-market-toolbar__toggle">
+                    <input type="checkbox" checked={filters.remoteOnly} onChange={(e) => setFilters((prev) => ({ ...prev, remoteOnly: e.target.checked }))} />
+                    <span>Remote only</span>
+                  </label>
+                  <label className="job-market-toolbar__toggle">
+                    <input type="checkbox" checked={savedOnly} onChange={(e) => setSavedOnly(e.target.checked)} />
+                    <span>Saved jobs only</span>
+                  </label>
+                </div>
+                <div className="studio-action-row">
+                  <Button type="button" variant="ghost" onClick={() => setFilters({ search: '', location: '', jobType: 'ALL', remoteOnly: false, salaryMin: '', salaryMax: '' })}>Reset</Button>
+                  <Button to="/applications" variant="secondary">My applications</Button>
+                </div>
+              </Card>
             </aside>
 
             <main className="studio-jobs__results">
