@@ -20,7 +20,7 @@ export type CareerPathway = {
 	currentLevel: string;
 	nextMilestone: string;
 	recommendedCourses: CareerPathwayCourse[];
-	trendingSkillsToLearn: Array<{ skillId: string; _count?: { skillId?: number } }>;
+	trendingSkillsToLearn: Array<{ skillId: string; skillName?: string; _count?: { skillId?: number } }>;
 };
 
 function unwrap<T>(payload: unknown): T {
@@ -43,4 +43,30 @@ export async function getSkillGapAnalysis(jobId: string) {
 export async function getCareerPathway() {
 	const response = await api.get('/intelligence/pathway');
 	return unwrap<CareerPathway>(response.data);
+}
+
+export type SalaryBenchmark = {
+	role: string;
+	minSalary: number;
+	maxSalary: number;
+	jobCount: number;
+};
+
+export async function getSalaryBenchmark(role?: string) {
+	const response = await api.get('/intelligence/salary-benchmark', { params: { role } });
+	return unwrap<SalaryBenchmark[]>(response.data);
+}
+
+export type IndustryTrend = {
+	skillId: string;
+	skillName: string;
+	jobCount: number;
+	growthRate?: number;
+	relatedCourses: Array<{ id: string; title: string; slug: string }>;
+	relatedJobs: Array<{ id: string; title: string; slug: string; employer: { name: string } }>;
+};
+
+export async function getIndustryTrends() {
+	const response = await api.get('/intelligence/trends');
+	return unwrap<IndustryTrend[]>(response.data);
 }

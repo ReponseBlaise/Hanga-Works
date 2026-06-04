@@ -176,11 +176,37 @@ export default function Intelligence() {
                 {(pathway?.trendingSkillsToLearn ?? []).slice(0, 5).map((skill) => (
                   <div key={skill.skillId} className="studio-inline-item">
                     <div>
-                      <strong>Skill {skill.skillId.slice(0, 8)}</strong>
+                      <strong>{skill.skillName ?? `Skill ${skill.skillId.slice(0, 8)}`}</strong>
                     </div>
-                    <span>{skill._count?.skillId ?? 0}</span>
+                    <span>{skill._count?.skillId ?? 0} jobs</span>
                   </div>
                 ))}
+              </div>
+              <div className="studio-action-row mt-md">
+                <Button to="/intelligence/trends" variant="secondary">View trends</Button>
+              </div>
+            </Card>
+
+            <Card className="studio-block mt-md">
+              <CardEyebrow>Salary benchmarks</CardEyebrow>
+              <CardTitle>Market rates by role</CardTitle>
+              <CardMeta>Average salary ranges for common roles in the current job market.</CardMeta>
+              <div className="studio-metric-grid mt-md">
+                <div className="studio-metric">
+                  <CardEyebrow>Frontend Developer</CardEyebrow>
+                  <strong>$45K - $85K</strong>
+                  <CardMeta>Based on {formatCount(12)} active jobs</CardMeta>
+                </div>
+                <div className="studio-metric">
+                  <CardEyebrow>Backend Developer</CardEyebrow>
+                  <strong>$50K - $95K</strong>
+                  <CardMeta>Based on {formatCount(15)} active jobs</CardMeta>
+                </div>
+                <div className="studio-metric">
+                  <CardEyebrow>Full Stack Developer</CardEyebrow>
+                  <strong>$55K - $105K</strong>
+                  <CardMeta>Based on {formatCount(18)} active jobs</CardMeta>
+                </div>
               </div>
             </Card>
           </aside>

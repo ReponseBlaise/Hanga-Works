@@ -41,6 +41,7 @@ import Pricing from './pages/pricing/Pricing';
 import Candidates from './pages/candidates/Candidates';
 import Blog from './pages/blog/Blog';
 import Intelligence from './pages/intelligence/Intelligence';
+import IndustryTrends from './pages/intelligence/IndustryTrends';
 import Notifications from './pages/notifications/Notifications';
 
 function RoleBasedRedirect({ children }: { children: JSX.Element }) {
@@ -102,6 +103,7 @@ export default function App() {
           <Route path="/candidates" element={<Candidates />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/intelligence" element={<ProtectedRoute><Intelligence /></ProtectedRoute>} />
+          <Route path="/intelligence/trends" element={<ProtectedRoute><IndustryTrends /></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
           <Route path="/employer" element={<EmployerRoute><EmployerDashboard /></EmployerRoute>} />
           <Route path="/employer/post-job" element={<EmployerRoute><PostJob /></EmployerRoute>} />

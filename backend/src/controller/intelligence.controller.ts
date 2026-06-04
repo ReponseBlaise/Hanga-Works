@@ -19,4 +19,14 @@ export class IntelligenceController {
   async getPathway(@Request() req: { user: { userId: string } }) {
     return this.intelligenceService.getCareerPathway(req.user.userId);
   }
+
+  @Get('salary-benchmark')
+  async getSalaryBenchmark(@Query('role') role?: string) {
+    return this.intelligenceService.getSalaryBenchmark(role);
+  }
+
+  @Get('trends')
+  async getIndustryTrends() {
+    return this.intelligenceService.getIndustryTrends();
+  }
 }
