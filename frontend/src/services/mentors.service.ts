@@ -83,11 +83,6 @@ export async function bookSession(mentorId: string, payload: { date: string; not
 }
 
 export async function createMentorProfile(payload: { title?: string; bio?: string; skills?: string[] }) {
-  try {
-    const res = await api.post('/mentorship/profile', payload);
-    return res.data?.data ?? res.data;
-  } catch (err) {
-    // bubble up error so UI can handle role/permission cases
-    throw err;
-  }
+  const res = await api.post('/mentorship/profile', payload);
+  return res.data?.data ?? res.data;
 }

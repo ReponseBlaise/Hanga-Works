@@ -5,7 +5,6 @@ import { useAuth } from '../../context/AuthContext';
 import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
-import { ProgressBar } from '../../components/shared/ProgressBar';
 import { getCourseById, getMyProgress, enrollInCourse, updateLessonProgress, createCourseModule, updateCourseModule, deleteCourseModule, uploadModuleMedia, type BackendCourse, type CourseEnrollment } from '../../services/courses.service';
 import { getMyCertificates, type LearnerCertificate } from '../../services/certificates.service';
 import { getJobs, type JobSummary } from '../../services/jobs.service';
@@ -52,8 +51,8 @@ export function CourseDetail() {
 	useEffect(() => {
 		if (!id) return;
 		let active = true;
-		setLoading(true);
-		setError('');
+		if (!loading) setLoading(true);
+		if (error) setError('');
 
 		Promise.all([getCourseById(id), getJobs({ perPage: 40, page: 1 })])
 			.then(([item, jobsResponse]) => {
@@ -75,9 +74,9 @@ export function CourseDetail() {
 
 	useEffect(() => {
 		if (!isAuthenticated) {
-			setEnrollments([]);
-			setCertificates([]);
-			setProgressValue(0);
+			if (enrollments.length > 0) setEnrollments([]);
+			if (certificates.length > 0) setCertificates([]);
+			if (progressValue !== 0) setProgressValue(0);
 			return;
 		}
 

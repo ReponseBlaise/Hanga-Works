@@ -43,9 +43,12 @@ export default function JobList() {
       const raw = window.localStorage.getItem('hanga-saved-job-ids');
       if (!raw) return;
       const parsed = JSON.parse(raw) as string[];
-      setSavedJobIds(Array.isArray(parsed) ? parsed : []);
+      const valid = Array.isArray(parsed) ? parsed : [];
+      if (JSON.stringify(savedJobIds) !== JSON.stringify(valid)) {
+        setSavedJobIds(valid);
+      }
     } catch {
-      setSavedJobIds([]);
+      if (savedJobIds.length > 0) setSavedJobIds([]);
     }
   }, []);
 
@@ -55,8 +58,8 @@ export default function JobList() {
 
   useEffect(() => {
     let active = true;
-    setLoading(true);
-    setError(null);
+    if (!loading) setLoading(true);
+    if (error) setError(null);
 
     getJobs({
       search: filters.search,
@@ -111,7 +114,7 @@ export default function JobList() {
         (maxSalary == null || (jobSalaryMin != null && jobSalaryMin <= maxSalary) || (jobSalaryMax != null && jobSalaryMax <= maxSalary));
       return matchesQuery && matchesLocation && matchesType && matchesRemote && matchesSaved && matchesSalary;
     });
-  }, [filters.search, filters.location, filters.jobType, filters.remoteOnly, jobs, savedOnly, savedJobIds]);
+  }, [filters.search, filters.location, filters.jobType, filters.remoteOnly, filters.salaryMax, filters.salaryMin, jobs, savedOnly, savedJobIds]);
 
   const sortedJobs = useMemo(() => {
     const copy = [...filteredJobs];

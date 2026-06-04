@@ -7,7 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import { getManageableCourses, type BackendCourse } from '../../services/courses.service';
 
 export default function InstitutionDashboard() {
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [courses, setCourses] = useState<BackendCourse[]>([]);
   const [loading, setLoading] = useState(true);
 

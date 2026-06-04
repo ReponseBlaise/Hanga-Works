@@ -34,7 +34,7 @@ export default function JobApply() {
   useEffect(() => {
     if (!id) return;
     let active = true;
-    setLoading(true);
+    if (!loading) setLoading(true);
 
     Promise.all([getJobById(id), getApplications()])
       .then(([foundJob, items]) => {

@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { BsFillGrid3X3GapFill, BsListUl } from 'react-icons/bs';
 import { MdSchool, MdGroups, MdCheckCircle, MdMenuBook } from 'react-icons/md';
 import { SiteLayout } from '../../components/layout/SiteLayout';
@@ -37,11 +36,11 @@ export function CourseList() {
 		return () => {
 			active = false;
 		};
-	}, []);
+	}, [user?.role]);
 
 	useEffect(() => {
 		if (!isAuthenticated) {
-			setEnrolledCourseIds(new Set());
+			if (enrolledCourseIds.size > 0) setEnrolledCourseIds(new Set());
 			return;
 		}
 

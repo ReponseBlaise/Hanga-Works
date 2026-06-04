@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { SiteLayout } from '../../components/layout/SiteLayout';
-import { Card, CardMeta, CardTitle, CardEyebrow } from '../../components/ui/Card';
+import { Card, CardMeta } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import api from '../../services/api';
 import { getCourses } from '../../services/courses.service';
