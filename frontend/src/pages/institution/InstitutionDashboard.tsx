@@ -7,7 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import { getManageableCourses, type BackendCourse } from '../../services/courses.service';
 
 export default function InstitutionDashboard() {
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [courses, setCourses] = useState<BackendCourse[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -73,15 +73,15 @@ export default function InstitutionDashboard() {
             <div className="dashboard-redesign__headline-stats">
               <div>
                 <span>Total Courses</span>
-                <strong>{loading ? '...' : courses.length}</strong>
+                <strong style={{ color: 'var(--text)' }}>{loading ? '...' : courses.length}</strong>
               </div>
               <div>
                 <span>Published</span>
-                <strong>{loading ? '...' : publishedCourses}</strong>
+                <strong style={{ color: 'var(--text)' }}>{loading ? '...' : publishedCourses}</strong>
               </div>
               <div>
                 <span>Total Enrollments</span>
-                <strong>{loading ? '...' : totalEnrollments}</strong>
+                <strong style={{ color: 'var(--text)' }}>{loading ? '...' : totalEnrollments}</strong>
               </div>
             </div>
           </section>

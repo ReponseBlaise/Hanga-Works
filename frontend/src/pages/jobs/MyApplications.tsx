@@ -24,8 +24,8 @@ export default function MyApplications() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      setApplications([]);
-      setLoading(false);
+      if (applications.length > 0) setApplications([]);
+      if (loading) setLoading(false);
       return;
     }
 

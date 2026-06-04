@@ -20,7 +20,12 @@ import { NotificationsModule } from '../../notifications/notifications.module';
     NotificationsModule,
   ],
   controllers: [CoursesController],
-  providers: [CoursesService, PrismaService, RedisService, JwtStrategy],
+  providers: [
+    CoursesService,
+    PrismaService,
+    RedisService,
+    JwtStrategy,
+  ],
   exports: [CoursesService],
 })
 export class CoursesModule {}

@@ -37,7 +37,7 @@ export default function EmployerDashboard() {
   const ownJobs = useMemo(() => {
     if (!user?.organizationId) return jobs;
     return jobs.filter((job) => job.employer.id === user.organizationId);
-  }, [jobs, user?.organizationId]);
+  }, [jobs, user]);
 
   const pipeline = useMemo(
     () => [
@@ -92,15 +92,15 @@ export default function EmployerDashboard() {
             <div className="dashboard-redesign__headline-stats">
               <div>
                 <span>Active jobs</span>
-                <strong>{loading ? '...' : (stats?.totalJobs ?? ownJobs.length)}</strong>
+                <strong style={{ color: 'var(--text)' }}>{loading ? '...' : (stats?.totalJobs ?? ownJobs.length)}</strong>
               </div>
               <div>
                 <span>Total applicants</span>
-                <strong>{loading ? '...' : (stats?.totalApplicants ?? 0)}</strong>
+                <strong style={{ color: 'var(--text)' }}>{loading ? '...' : (stats?.totalApplicants ?? 0)}</strong>
               </div>
               <div>
                 <span>Total hires</span>
-                <strong>{loading ? '...' : (stats?.breakdown.HIRED ?? 0)}</strong>
+                <strong style={{ color: 'var(--text)' }}>{loading ? '...' : (stats?.breakdown.HIRED ?? 0)}</strong>
               </div>
             </div>
           </section>

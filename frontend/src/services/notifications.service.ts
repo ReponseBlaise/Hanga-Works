@@ -111,7 +111,7 @@ export function useNotificationsFeed(userId?: string) {
 			setConnected(false);
 		});
 
-		socket.on('auth-event', (payload: unknown) => {
+		socket.on('auth-event', () => {
 			// Intentionally empty: removed spammy auth event notifications
 		});
 

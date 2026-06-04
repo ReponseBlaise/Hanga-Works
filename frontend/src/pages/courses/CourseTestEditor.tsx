@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { SiteLayout } from '../../components/layout/SiteLayout';
-import { Card, CardTitle, CardMeta, CardEyebrow } from '../../components/ui/Card';
+import { Card, CardTitle, CardEyebrow } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { createCourseTest, getCourseTest } from '../../services/courses.service';
 
@@ -13,6 +13,10 @@ export default function CourseTestEditor() {
   const [questions, setQuestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  const addQuestion = useCallback(() => {
+    setQuestions([...questions, { question: '', options: [{ text: '', isCorrect: true }, { text: '', isCorrect: false }] }]);
+  }, [questions]);
 
   useEffect(() => {
     if (!id) return;
@@ -32,11 +36,7 @@ export default function CourseTestEditor() {
         }
       })
       .finally(() => setLoading(false));
-  }, [id]);
-
-  const addQuestion = () => {
-    setQuestions([...questions, { question: '', options: [{ text: '', isCorrect: true }, { text: '', isCorrect: false }] }]);
-  };
+  }, [id, addQuestion, questions.length]);
 
   const addOption = (qIndex: number) => {
     const newQs = [...questions];

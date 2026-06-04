@@ -1,3 +1,4 @@
+# Environment files
 .env
 .env.*
 !.env.example
@@ -8,8 +9,20 @@ backend/.env
 backend/.env.*
 !backend/.env.example
 
-# Node
+# Node modules (all depths)
 node_modules/
 */node_modules/
+**/node_modules/
+
+# Build output
 dist/
 */dist/
+**/dist/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db

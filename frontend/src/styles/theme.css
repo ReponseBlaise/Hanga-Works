@@ -1717,6 +1717,79 @@ input, textarea, select { color: var(--text); }
 .app-shell-nav__item:hover { background: rgba(37, 99, 235, 0.07); color: var(--accent); border-color: rgba(37, 99, 235, 0.18); }
 .app-shell-nav__item.is-active { background: rgba(37, 99, 235, 0.12); color: var(--accent); border-color: rgba(37, 99, 235, 0.24); }
 
+.joblist-filter-toggle {
+  display: none;
+}
+.joblist-filter-panel {
+  display: grid;
+  gap: 14px;
+}
+@media (max-width: 1180px) {
+  .joblist-filter-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    cursor: pointer;
+    background: var(--surface-muted);
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    font-weight: 600;
+    color: var(--text);
+    font: inherit;
+    margin-bottom: 8px;
+  }
+  .joblist-filter-panel {
+    display: none;
+  }
+  .joblist-filter-panel.is-open {
+    display: grid;
+  }
+}
+
+/* Ensure headline stat numbers always use --text regardless of parent color */
+.dashboard-redesign__headline-stats strong,
+.joblist-redesign__stats strong,
+.studio-catalog__stats strong,
+.studio-jobs__hero-stats strong,
+.studio-recruiter__stats strong {
+  color: var(--text);
+}
+
+/* Profile avatar block */
+.profile-avatar-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+.profile-avatar-circle {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--surface-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+}
+.profile-avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
+.profile-avatar-initials { font-size: 2rem; font-weight: 600; color: var(--text-soft); }
+.profile-upload-label { width: 100%; display: grid; gap: 6px; font-size: 0.85rem; font-weight: 600; color: var(--text-soft); }
+.profile-upload-label input[type='file'] {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+}
+
+/* Card stack for cert list */
+.card-stack { display: grid; gap: 16px; }
+
 .joblist-redesign { gap: 16px; }
 .joblist-redesign__hero {
   border: 1px solid var(--border);
@@ -1755,7 +1828,7 @@ input, textarea, select { color: var(--text); }
   text-transform: uppercase;
   font-weight: 800;
 }
-.joblist-redesign__stats strong { display: block; margin-top: 6px; font-size: 1.42rem; letter-spacing: -0.04em; }
+.joblist-redesign__stats strong { display: block; margin-top: 6px; font-size: 1.42rem; letter-spacing: -0.04em; color: var(--text); }
 .joblist-redesign__layout {
   display: grid;
   grid-template-columns: minmax(270px, 320px) minmax(0, 1fr);

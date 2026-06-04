@@ -21,8 +21,8 @@ export default function JobDetail() {
 	useEffect(() => {
 		if (!id) return;
 		let active = true;
-		setLoading(true);
-		setError('');
+		if (!loading) setLoading(true);
+		if (error) setError('');
 		const applicationsPromise = isAuthenticated ? getApplications() : Promise.resolve([]);
 		Promise.all([getJobById(id), getJobs(), applicationsPromise])
 			.then(([foundJob, allJobs, items]) => {
@@ -42,7 +42,7 @@ export default function JobDetail() {
 		return () => {
 			active = false;
 		};
-	}, [id]);
+	}, [id, isAuthenticated]);
 
 	const employerInitials = useMemo(() => {
 		if (!job?.employer.name) return 'HW';
