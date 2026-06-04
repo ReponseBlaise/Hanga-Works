@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BsFillGrid3X3GapFill, BsListUl } from 'react-icons/bs';
-import { MdSchool, MdGroups, MdCheckCircle, MdMenuBook, MdFilterList } from 'react-icons/md';
+import { MdSchool, MdGroups, MdCheckCircle, MdMenuBook } from 'react-icons/md';
 import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
@@ -103,9 +103,9 @@ export function CourseList() {
 		<SiteLayout>
 			<section className="studio-catalog">
 				<section className="studio-catalog__hero" style={{ 
-					backgroundImage: "linear-gradient(rgba(0, 10, 30, 0.7), rgba(0, 10, 30, 0.8)), url('https://images.unsplash.com/photo-1513258496099-481620202951?auto=format&fit=crop&q=80')",
+					backgroundImage: "linear-gradient(to right, rgba(0, 10, 40, 0.82) 0%, rgba(0, 10, 40, 0.5) 100%), url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1600&q=80')",
 					backgroundSize: 'cover',
-					backgroundPosition: 'center',
+					backgroundPosition: 'center top',
 					color: 'white',
 				}}>
 					<div className="studio-catalog__headline">
@@ -118,56 +118,49 @@ export function CourseList() {
 						</div>
 					</div>
 					<div className="studio-catalog__stats">
-						<div><span><span className="ui-icon" aria-hidden="true"><MdSchool /></span>Total courses</span><strong>{courses.length}</strong></div>
-						<div><span><span className="ui-icon" aria-hidden="true"><MdGroups /></span>Total enrollments</span><strong>{totalEnrollments}</strong></div>
-						<div><span><span className="ui-icon" aria-hidden="true"><MdCheckCircle /></span>Enrolled by you</span><strong>{enrolledCount}</strong></div>
+						<div><span><span className="ui-icon" aria-hidden="true"><MdSchool /></span>Total courses</span><strong style={{ color: 'white' }}>{courses.length}</strong></div>
+						<div><span><span className="ui-icon" aria-hidden="true"><MdGroups /></span>Total enrollments</span><strong style={{ color: 'white' }}>{totalEnrollments}</strong></div>
+						<div><span><span className="ui-icon" aria-hidden="true"><MdCheckCircle /></span>Enrolled by you</span><strong style={{ color: 'white' }}>{enrolledCount}</strong></div>
 					</div>
 				</section>
 
 				<section className="studio-catalog__layout">
 					<aside className="studio-catalog__filters">
-						<details className="studio-mobile-filters">
-							<summary className="studio-mobile-filters__summary">
-								<span className="ui-icon" aria-hidden="true"><MdFilterList /></span> Filters & Search
-							</summary>
-							<div className="studio-mobile-filters__content">
-								<Card className="studio-block">
-									<CardEyebrow>Search and filter</CardEyebrow>
-									<div className="form-stack">
-										<label>
-											Keyword
-											<input
-												type="search"
-												placeholder="Title, institution, skill"
-												value={search}
-												onChange={(event) => setSearch(event.target.value)}
-											/>
-										</label>
-										<label>
-											Publication status
-											<select value={publishFilter} onChange={(event) => setPublishFilter(event.target.value as typeof publishFilter)}>
-												<option value="ALL">All</option>
-												<option value="PUBLISHED">Published</option>
-												<option value="DRAFT">Draft</option>
-											</select>
-										</label>
-									</div>
-									<div className="studio-action-row">
-										<Button type="button" variant="ghost" onClick={() => setSearch('')}>Clear search</Button>
-										<Button to="/jobs" variant="secondary">View jobs</Button>
-									</div>
-								</Card>
+							<Card className="studio-block">
+								<CardEyebrow>Search and filter</CardEyebrow>
+								<div className="form-stack">
+									<label>
+										Keyword
+										<input
+											type="search"
+											placeholder="Title, institution, skill"
+											value={search}
+											onChange={(event) => setSearch(event.target.value)}
+										/>
+									</label>
+									<label>
+										Publication status
+										<select value={publishFilter} onChange={(event) => setPublishFilter(event.target.value as typeof publishFilter)}>
+											<option value="ALL">All</option>
+											<option value="PUBLISHED">Published</option>
+											<option value="DRAFT">Draft</option>
+										</select>
+									</label>
+								</div>
+								<div className="studio-action-row">
+									<Button type="button" variant="ghost" onClick={() => setSearch('')}>Clear search</Button>
+									<Button to="/jobs" variant="secondary">View jobs</Button>
+								</div>
+							</Card>
 
-								<Card className="studio-block">
-									<CardEyebrow>Skill heatmap</CardEyebrow>
-									<div className="studio-chip-row">
-										{topSkills.map((item) => (
-											<span key={item.name} className="dashboard-chip">{item.name} · {item.count}</span>
-										))}
-									</div>
-								</Card>
-							</div>
-						</details>
+							<Card className="studio-block">
+								<CardEyebrow>Skill heatmap</CardEyebrow>
+								<div className="studio-chip-row">
+									{topSkills.map((item) => (
+										<span key={item.name} className="dashboard-chip">{item.name} · {item.count}</span>
+									))}
+								</div>
+							</Card>
 					</aside>
 
 					<main className="studio-catalog__results">

@@ -6,36 +6,39 @@ import {
   IsUrl,
   MinLength,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateCourseDto {
-  @ApiProperty({ example: 'Introduction to Web Development', description: 'The title of the course' })
+  @ApiProperty({ example: 'Introduction to Web Development' })
   @IsString()
   @IsNotEmpty()
   title: string;
 
-  @ApiProperty({ example: 'intro-to-web-dev', description: 'Unique slug for the course URL' })
+  @ApiProperty({ example: 'intro-to-web-dev' })
   @IsString()
   @IsNotEmpty()
   slug: string;
 
-  @ApiProperty({ example: 'Learn the basics of HTML, CSS, and JavaScript in this comprehensive beginner course.', description: 'Course description' })
+  @ApiProperty({ example: 'Learn the basics of HTML, CSS, and JavaScript.' })
   @IsString()
   @MinLength(10)
   description: string;
 
-  @ApiProperty({ example: true, required: false, description: 'Whether the course is publicly visible' })
+  @ApiProperty({ required: false })
   @IsOptional()
   @IsBoolean()
   published?: boolean;
 
-  @ApiProperty({ example: 'https://res.cloudinary.com/demo/image/upload/v1/course-thumbnail.jpg', required: false, description: 'URL for the course thumbnail image' })
+  @ApiProperty({ required: false })
   @IsOptional()
-  @IsUrl()
+  @Transform(({ value }) => (value === '' ? undefined : value))
+  @IsUrl({}, { message: 'thumbnailUrl must be a valid URL' })
   thumbnailUrl?: string;
 
-  @ApiProperty({ example: 'uuid-institution-1234', required: false, description: 'ID of the institution offering the course' })
+  @ApiProperty({ required: false })
   @IsOptional()
+  @Transform(({ value }) => (value === '' ? undefined : value))
   @IsString()
   institutionId?: string;
 }
