@@ -67,6 +67,20 @@ export type IndustryTrend = {
 };
 
 export async function getIndustryTrends() {
-	const response = await api.get('/intelligence/trends');
+	const response = await api.get('/intelligence/industry-trends');
 	return unwrap<IndustryTrend[]>(response.data);
+}
+
+export type CareerModel = {
+	viabilityScore: number;
+	jobsMatchingAny: number;
+	totalActiveJobs: number;
+	deprecatedSkills: Array<{ skillId: string; name: string; jobCount: number }>;
+	pivotPathways: Array<{ id: string; title: string; employer: string; matchPct: number; missingSkills: string[] }>;
+	upgradeCourses: Array<{ id: string; title: string; slug: string; institution: { name: string } | null }>;
+};
+
+export async function getCareerModel() {
+	const response = await api.get('/intelligence/career-model');
+	return unwrap<CareerModel>(response.data);
 }

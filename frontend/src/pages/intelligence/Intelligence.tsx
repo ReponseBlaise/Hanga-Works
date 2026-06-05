@@ -94,6 +94,12 @@ export default function Intelligence() {
           </div>
         </header>
 
+        <div className="studio-action-row mt-md">
+          <Button to="/intelligence" variant="ghost">Skill gap</Button>
+          <Button to="/intelligence/trends" variant="ghost">Industry trends</Button>
+          <Button to="/intelligence/career-model" variant="secondary">Career model →</Button>
+        </div>
+
         {error ? <Card className="studio-block"><CardTitle>{error}</CardTitle><CardMeta>Try refreshing the page or checking the backend API.</CardMeta></Card> : null}
 
         <section className="dashboard-layout dashboard-layout--two-col-right mt-lg">
@@ -187,7 +193,8 @@ export default function Intelligence() {
                 ))}
               </div>
               <div className="studio-action-row mt-md">
-                <Button to="/intelligence/trends" variant="secondary">View trends</Button>
+                <Button to="/intelligence/trends" variant="secondary">Industry trends</Button>
+                <Button to="/intelligence/career-model" variant="primary">Career model</Button>
               </div>
             </Card>
 

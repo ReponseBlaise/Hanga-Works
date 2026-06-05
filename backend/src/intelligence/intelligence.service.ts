@@ -57,12 +57,11 @@ export class IntelligenceService {
     const recommendedSkills = demand.filter((d) => !userSkillIds.has(d.skillId));
     const skillIds = recommendedSkills.map((rs) => rs.skillId);
 
-    const skills = await this.prisma.skill.findMany({
+    const skillNames = await this.prisma.skill.findMany({
       where: { id: { in: skillIds } },
       select: { id: true, name: true },
     });
-
-    const skillMap = new Map(skills.map((s) => [s.id, s.name]));
+    const skillMap = new Map(skillNames.map((s) => [s.id, s.name]));
 
     const courses =
       skillIds.length === 0
@@ -81,20 +80,14 @@ export class IntelligenceService {
             include: { skills: { include: { skill: true } } },
           });
 
-    const skillDetails = await this.prisma.skill.findMany({
-      where: { id: { in: recommendedSkills.map(r => r.skillId) } },
-      select: { id: true, name: true },
-    });
-    const skillMap = new Map(skillDetails.map(s => [s.id, s.name]));
-
     return {
       currentLevel: 'Entry Level',
       nextMilestone: 'Advanced Practitioner',
       recommendedCourses: courses,
-      trendingSkillsToLearn: recommendedSkills.map(r => ({
+      trendingSkillsToLearn: recommendedSkills.map((r) => ({
         skillId: r.skillId,
-        name: skillMap.get(r.skillId) ?? r.skillId,
-        jobCount: r._count.skillId,
+        skillName: skillMap.get(r.skillId) ?? r.skillId,
+        _count: r._count,
       })),
     };
   }
@@ -147,5 +140,84 @@ export class IntelligenceService {
       tag: skillMap.get(d.skillId)?.tag ?? null,
       jobCount: d._count.skillId,
     }));
+  }
+
+  async getCareerModel(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { skills: { include: { skill: true } } },
+    });
+    if (!user) throw new NotFoundException('User not found');
+
+    const userSkillIds = user.skills.map((s) => s.skillId);
+    const userSkillNames = user.skills.map((s) => s.skill.name.toLowerCase());
+
+    // Total active jobs and how many require at least one user skill
+    const totalActiveJobs = await this.prisma.job.count({ where: { isActive: true } });
+    const jobsMatchingAny = await this.prisma.job.count({
+      where: {
+        isActive: true,
+        skills: { some: { skillId: { in: userSkillIds } } },
+      },
+    });
+    const viabilityScore = totalActiveJobs > 0
+      ? Math.round((jobsMatchingAny / totalActiveJobs) * 100)
+      : 0;
+
+    // Deprecation: user skills that appear in 2 or fewer active jobs
+    const demand = await this.prisma.jobSkill.groupBy({
+      by: ['skillId'],
+      where: { job: { isActive: true } },
+      _count: { skillId: true },
+    });
+    const demandMap = new Map(demand.map((d) => [d.skillId, d._count.skillId]));
+    const deprecatedSkills = user.skills
+      .filter((s) => (demandMap.get(s.skillId) ?? 0) <= 2)
+      .map((s) => ({ skillId: s.skillId, name: s.skill.name, jobCount: demandMap.get(s.skillId) ?? 0 }));
+
+    // Pivot pathways: top 3 adjacent job titles the user is partially qualified for
+    const pivotJobs = await this.prisma.job.findMany({
+      where: {
+        isActive: true,
+        skills: { some: { skillId: { in: userSkillIds } } },
+      },
+      include: { skills: { include: { skill: true } }, employer: { select: { name: true } } },
+      orderBy: { postedAt: 'desc' },
+      take: 20,
+    });
+
+    const pivotPathways = pivotJobs
+      .map((job) => {
+        const jobSkillNames = job.skills.map((s) => s.skill.name.toLowerCase());
+        const matched = jobSkillNames.filter((s) => userSkillNames.includes(s)).length;
+        const missing = jobSkillNames.filter((s) => !userSkillNames.includes(s));
+        const matchPct = jobSkillNames.length > 0 ? Math.round((matched / jobSkillNames.length) * 100) : 0;
+        return { id: job.id, title: job.title, employer: job.employer.name, matchPct, missingSkills: missing.slice(0, 3) };
+      })
+      .filter((j) => j.matchPct > 0 && j.matchPct < 100)
+      .sort((a, b) => b.matchPct - a.matchPct)
+      .slice(0, 5);
+
+    // Courses that cover deprecated or missing pivot skills
+    const targetSkillNames = [
+      ...new Set([
+        ...deprecatedSkills.map((s) => s.name.toLowerCase()),
+        ...pivotPathways.flatMap((p) => p.missingSkills),
+      ]),
+    ];
+    const upgradeSkills = await this.prisma.skill.findMany({
+      where: { name: { in: targetSkillNames, mode: 'insensitive' } },
+      select: { id: true },
+    });
+    const upgradeSkillIds = upgradeSkills.map((s) => s.id);
+    const upgradeCourses = upgradeSkillIds.length
+      ? await this.prisma.course.findMany({
+          where: { published: true, skills: { some: { skillId: { in: upgradeSkillIds } } } },
+          select: { id: true, title: true, slug: true, institution: { select: { name: true } } },
+          take: 4,
+        })
+      : [];
+
+    return { viabilityScore, jobsMatchingAny, totalActiveJobs, deprecatedSkills, pivotPathways, upgradeCourses };
   }
 }

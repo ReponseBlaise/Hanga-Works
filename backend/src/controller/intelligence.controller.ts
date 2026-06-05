@@ -29,4 +29,9 @@ export class IntelligenceController {
   async getIndustryTrends() {
     return this.intelligenceService.getIndustryTrends();
   }
+
+  @Get('career-model')
+  async getCareerModel(@Request() req: { user: { userId: string } }) {
+    return this.intelligenceService.getCareerModel(req.user.userId);
+  }
 }
