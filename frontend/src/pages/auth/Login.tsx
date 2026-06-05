@@ -41,7 +41,7 @@ export default function Login() {
       })
       .catch((err) => {
         console.error(err);
-        setError(err?.response?.data?.message || err.message || 'Login failed');
+        setError(err?.response?.data?.message || err.message || 'Login failed. Check your email and password.');
       })
       .finally(() => setLoading(false));
   };
