@@ -27,7 +27,7 @@ export class AuthService {
     }
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
-    const userRole = (dto.role || 'LEARNER') as Role;
+    const userRole = ((dto.role as string) || 'LEARNER') as Role;
     
     let organizationId = undefined;
     const isEmployerOrInstitution = userRole === Role.EMPLOYER || userRole === Role.INSTITUTION;
