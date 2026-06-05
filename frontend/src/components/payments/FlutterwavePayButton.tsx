@@ -1,14 +1,9 @@
 import { useRef } from 'react';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore – flutterwave-react-v3 ships its own types but declaration may vary
+import type { FlutterWaveResponse as FlutterwaveResponseType } from 'flutterwave-react-v3/dist/types';
 import { useFlutterwave, closePaymentModal } from 'flutterwave-react-v3';
 
-type FlutterWaveResponse = {
-	status: string;
-	tx_ref: string;
-	transaction_id: number;
-	[key: string]: unknown;
-};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type FlutterWaveResponse = FlutterwaveResponseType & { [key: string]: any };
 
 type Props = {
 	courseId: string;
@@ -78,7 +73,7 @@ export function FlutterwavePayButton({
 							}
 						}
 					},
-					onclose: () => {
+					onClose: () => {
 						onClose?.();
 					},
 				});
