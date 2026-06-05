@@ -38,12 +38,9 @@ export class UsersService {
         avatarUrl: true,
         location: true,
         createdAt: true,
-        skills: {
-          select: {
-            skill: true,
-            level: true,
-          },
-        },
+        organization: { select: { id: true, name: true, type: true, website: true } },
+        skills: { select: { skill: true, level: true } },
+        mentorProfile: { select: { expertise: true, bio: true, hourlyRate: true, availability: true } },
       },
     });
 
@@ -65,12 +62,10 @@ export class UsersService {
         location: true,
         emailVerified: true,
         createdAt: true,
-        skills: {
-          select: {
-            skill: true,
-            level: true,
-          },
-        },
+        organizationId: true,
+        organization: { select: { id: true, name: true, type: true, website: true } },
+        skills: { select: { id: true, skill: true, level: true } },
+        mentorProfile: { select: { id: true, expertise: true, bio: true, hourlyRate: true, availability: true } },
       },
     });
 
@@ -87,27 +82,15 @@ export class UsersService {
     });
 
     if (skills) {
-      await this.prisma.userSkill.deleteMany({
-        where: { userId },
-      });
+      await this.prisma.userSkill.deleteMany({ where: { userId } });
 
       for (const s of skills) {
-        let skill = await this.prisma.skill.findUnique({
-          where: { name: s.skillName },
-        });
-
+        let skill = await this.prisma.skill.findUnique({ where: { name: s.skillName } });
         if (!skill) {
-          skill = await this.prisma.skill.create({
-            data: { name: s.skillName },
-          });
+          skill = await this.prisma.skill.create({ data: { name: s.skillName } });
         }
-
         await this.prisma.userSkill.create({
-          data: {
-            userId,
-            skillId: skill.id,
-            level: s.level as ProficiencyLevel,
-          },
+          data: { userId, skillId: skill.id, level: s.level as ProficiencyLevel },
         });
       }
     }
@@ -152,19 +135,8 @@ export class UsersService {
   }
 
   async uploadAvatar(user: CurrentUserPayload, file: Express.Multer.File) {
-    const uploaded = await this.mediaUpload.uploadFile({
-      purpose: 'avatar',
-      file,
-      user,
-    });
-
-    const profile = await this.updateProfile(user.userId, {
-      avatarUrl: uploaded.publicUrl,
-    });
-
-    return {
-      ...uploaded,
-      profile,
-    };
+    const uploaded = await this.mediaUpload.uploadFile({ purpose: 'avatar', file, user });
+    const profile = await this.updateProfile(user.userId, { avatarUrl: uploaded.publicUrl });
+    return { ...uploaded, profile };
   }
 }

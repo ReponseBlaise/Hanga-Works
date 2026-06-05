@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards, Request, Param } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, UseGuards, Request, Param } from '@nestjs/common';
 import { MentorshipService } from '../mentorship/mentorship.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -50,5 +50,41 @@ export class MentorshipController {
   @Get('sessions')
   async getSessions(@Request() req: { user: { userId: string, role: string } }) {
     return this.mentorshipService.getMySessions(req.user.userId, req.user.role);
+  }
+
+  @Roles('MENTOR')
+  @Patch('sessions/:id/accept')
+  async acceptSession(
+    @Param('id') id: string,
+    @Request() req: { user: { userId: string } },
+  ) {
+    return this.mentorshipService.acceptSession(id, req.user.userId);
+  }
+
+  @Roles('MENTOR')
+  @Patch('sessions/:id/reject')
+  async rejectSession(
+    @Param('id') id: string,
+    @Request() req: { user: { userId: string } },
+  ) {
+    return this.mentorshipService.rejectSession(id, req.user.userId);
+  }
+
+  @Roles('MENTOR')
+  @Patch('sessions/:id/complete')
+  async completeSession(
+    @Param('id') id: string,
+    @Request() req: { user: { userId: string } },
+  ) {
+    return this.mentorshipService.completeSession(id, req.user.userId);
+  }
+
+  @Post('sessions/:id/review')
+  async addReview(
+    @Param('id') id: string,
+    @Request() req: { user: { userId: string } },
+    @Body() body: { rating: number; feedback?: string },
+  ) {
+    return this.mentorshipService.addReview(id, req.user.userId, body.rating, body.feedback);
   }
 }

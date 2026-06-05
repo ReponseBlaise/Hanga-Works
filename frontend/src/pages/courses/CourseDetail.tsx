@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../hooks/useAuth';
@@ -30,49 +30,51 @@ function getEmbedUrl(url: string) {
 export function CourseDetail() {
 	const { id } = useParams<{ id: string }>();
 	const navigate = useNavigate();
-	const { isAuthenticated } = useAuth();
+	const { isAuthenticated, user } = useAuth();
 	const [course, setCourse] = useState<BackendCourse | null>(null);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState('');
-	const [enrollments, setEnrollments] = useState<CourseEnrollment[]>([]);
-	const [certificates, setCertificates] = useState<LearnerCertificate[]>([]);
-	const [progressValue, setProgressValue] = useState(0);
+	const [courseLoading, setCourseLoading] = useState(true);
+	const [courseError, setCourseError] = useState('');
+	const [rawEnrollments, setRawEnrollments] = useState<CourseEnrollment[]>([]);
+	const [rawCertificates, setRawCertificates] = useState<LearnerCertificate[]>([]);
 	const [trackingMessage, setTrackingMessage] = useState('');
 	const [savingProgress, setSavingProgress] = useState(false);
-	const [activeModuleId, setActiveModuleId] = useState('');
 	const [relatedJobs, setRelatedJobs] = useState<JobSummary[]>([]);
-	const { user } = useAuth();
 	const isManager = user?.role === 'INSTITUTION' || user?.role === 'ADMIN' || user?.role === 'MENTOR';
 	const [isAddingModule, setIsAddingModule] = useState(false);
 	const [editingModuleId, setEditingModuleId] = useState<string | null>(null);
 	const [moduleForm, setModuleForm] = useState<{ title: string; content: string; videoUrl: string; order: number; file: File | null }>({ title: '', content: '', videoUrl: '', order: 1, file: null });
 	const [savingModule, setSavingModule] = useState(false);
+	const [activeModuleId, setActiveModuleId] = useState('');
+	const prevIdRef = useRef<string | undefined>(undefined);
+
+	// Derive enrollments/certificates — empty when not authenticated
+	const enrollments = useMemo(() => isAuthenticated ? rawEnrollments : [], [isAuthenticated, rawEnrollments]);
+	const certificates = useMemo(() => isAuthenticated ? rawCertificates : [], [isAuthenticated, rawCertificates]);
 
 	useEffect(() => {
 		if (!id) return;
 		let active = true;
-		if (!loading) {
-			setTimeout(() => {
-				if (active) setLoading(true);
-			}, 0);
-		}
-		if (error) {
-			setTimeout(() => {
-				if (active) setError('');
-			}, 0);
+		// Only reset loading/error when id changes
+		if (prevIdRef.current !== id) {
+			prevIdRef.current = id;
+			setCourseLoading(true);
+			setCourseError('');
 		}
 
 		Promise.all([getCourseById(id), getJobs({ perPage: 40, page: 1 })])
 			.then(([item, jobsResponse]) => {
-				if (active) setCourse(item ?? null);
-				if (active) setRelatedJobs(jobsResponse.jobs ?? []);
+				if (!active) return;
+				setCourse(item ?? null);
+				setRelatedJobs(jobsResponse.jobs ?? []);
+				setActiveModuleId(item?.modules?.[0]?.id ?? '');
+				setCourseLoading(false);
 			})
 			.catch((fetchError) => {
 				console.error(fetchError);
-				if (active) setError('This course could not be loaded.');
-			})
-			.finally(() => {
-				if (active) setLoading(false);
+				if (active) {
+					setCourseError('This course could not be loaded.');
+					setCourseLoading(false);
+				}
 			});
 
 		return () => {
@@ -81,27 +83,17 @@ export function CourseDetail() {
 	}, [id]);
 
 	useEffect(() => {
-		if (!isAuthenticated) {
-			setTimeout(() => {
-				setEnrollments([]);
-				setCertificates([]);
-				setProgressValue(0);
-			}, 0);
-			return;
-		}
+		if (!isAuthenticated) return;
 
 		let active = true;
 		Promise.all([getMyProgress(), getMyCertificates()])
 			.then(([progressItems, certificateItems]) => {
 				if (!active) return;
-				setEnrollments(progressItems ?? []);
-				setCertificates(certificateItems ?? []);
+				setRawEnrollments(progressItems ?? []);
+				setRawCertificates(certificateItems ?? []);
 			})
 			.catch((fetchError) => {
 				console.error('Failed to load study progress', fetchError);
-			})
-			.finally(() => {
-				if (!active) return;
 			});
 
 		return () => {
@@ -111,29 +103,12 @@ export function CourseDetail() {
 
 	const currentEnrollment = useMemo(() => enrollments.find((item) => item.course.id === id) ?? null, [enrollments, id]);
 	const currentCertificate = useMemo(() => certificates.find((item) => item.courseId === id) ?? null, [certificates, id]);
+	const progressValue = currentEnrollment?.progress ?? 0;
 
-	useEffect(() => {
-		setTimeout(() => {
-			setProgressValue(currentEnrollment?.progress ?? 0);
-		}, 0);
-	}, [currentEnrollment]);
-
-	useEffect(() => {
-		if (!course?.modules?.length) {
-			setTimeout(() => {
-				setActiveModuleId('');
-			}, 0);
-			return;
-		}
-		setTimeout(() => {
-			setActiveModuleId((previous) => {
-				if (previous && course.modules?.some((module) => module.id === previous)) {
-					return previous;
-				}
-				return course.modules?.[0]?.id ?? '';
-			});
-		}, 0);
-	}, [course]);
+	const resolvedActiveModule = useMemo(() => {
+		const modules = course?.modules ?? [];
+		return modules.find((m) => m.id === activeModuleId) ?? modules[0] ?? null;
+	}, [course, activeModuleId]);
 
 	async function handleEnroll() {
 		if (!course) return;
@@ -150,8 +125,7 @@ export function CourseDetail() {
 		setTrackingMessage('Creating your enrollment so the platform can track progress and issue a certificate when you complete the course.');
 		try {
 			const enrollment = await enrollInCourse(course.id);
-			setEnrollments((prev) => [enrollment, ...prev]);
-			setProgressValue(enrollment.progress ?? 0);
+			setRawEnrollments((prev) => [enrollment, ...prev]);
 			setTrackingMessage('Enrollment created. You can now track progress from this page.');
 		} catch (enrollError) {
 			console.error(enrollError);
@@ -173,8 +147,7 @@ export function CourseDetail() {
 		setTrackingMessage('Saving your study progress.');
 		try {
 			const updated = await updateLessonProgress(currentEnrollment.id, progressValue);
-			setEnrollments((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
-			setProgressValue(updated.progress ?? progressValue);
+			setRawEnrollments((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
 			setTrackingMessage(`Progress saved at ${updated.progress ?? progressValue}%. Take the final test to complete the course.`);
 		} catch (saveError) {
 			console.error(saveError);
@@ -233,7 +206,7 @@ export function CourseDetail() {
 		}
 	}
 
-	if (loading) {
+	if (courseLoading) {
 		return (
 			<SiteLayout>
 				<Card className="courses-empty">
@@ -244,11 +217,11 @@ export function CourseDetail() {
 		);
 	}
 
-	if (error) {
+	if (courseError) {
 		return (
 			<SiteLayout>
 				<Card className="courses-empty">
-					<CardTitle>{error}</CardTitle>
+					<CardTitle>{courseError}</CardTitle>
 					<CardMeta>The course may have been unpublished or the identifier is invalid.</CardMeta>
 					<Button to="/courses" variant="primary">Back to courses</Button>
 				</Card>
@@ -260,7 +233,6 @@ export function CourseDetail() {
 		return null;
 	}
 
-	const activeModule = (course.modules ?? []).find((module) => module.id === activeModuleId) ?? course.modules?.[0] ?? null;
 	const relatedFromSkills = relatedJobs
 		.filter((job) => job.id !== id)
 		.sort((left, right) => {
@@ -288,7 +260,7 @@ export function CourseDetail() {
 				<section className="learning-redesign__summary">
 					<div>
 						<span>Progress</span>
-						<strong>{currentEnrollment?.progress ?? 0}%</strong>
+						<strong>{progressValue}%</strong>
 					</div>
 					<div>
 						<span>Modules</span>
@@ -379,27 +351,27 @@ export function CourseDetail() {
 						<Card className="studio-block">
 							<CardEyebrow>Lesson stage</CardEyebrow>
 							<div className="studio-video-frame">
-								{activeModule?.videoUrl ? (
-									activeModule.videoUrl.endsWith('.pdf') ? (
+								{resolvedActiveModule?.videoUrl ? (
+									resolvedActiveModule.videoUrl.endsWith('.pdf') ? (
 										<iframe
-											title={activeModule.title}
-											src={activeModule.videoUrl}
+											title={resolvedActiveModule.title}
+											src={resolvedActiveModule.videoUrl}
 											width="100%"
 											height="500px"
 										/>
 									) : (
 										<iframe
-											title={activeModule.title}
-											src={getEmbedUrl(activeModule.videoUrl)}
+											title={resolvedActiveModule.title}
+											src={getEmbedUrl(resolvedActiveModule.videoUrl)}
 											allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
 											allowFullScreen
 										/>
 									)
 								) : (
 									<div className="studio-video-fallback">
-										<strong>{activeModule?.title ?? 'No module selected'}</strong>
+										<strong>{resolvedActiveModule?.title ?? 'No module selected'}</strong>
 										<p>Video/Document content is not available for this module yet.</p>
-										{activeModule?.content && <p style={{ marginTop: '16px', color: 'var(--text)' }}>{activeModule.content}</p>}
+										{resolvedActiveModule?.content && <p style={{ marginTop: '16px', color: 'var(--text)' }}>{resolvedActiveModule.content}</p>}
 									</div>
 								)}
 							</div>

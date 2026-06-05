@@ -18,6 +18,7 @@ export type AuthUser = {
 export type AuthContextValue = {
   user: AuthUser | null;
   isAuthenticated: boolean;
+  isReady: boolean;
   signIn: (user: AuthUser) => void;
   signOut: () => void;
 };

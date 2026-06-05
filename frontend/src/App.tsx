@@ -27,6 +27,9 @@ import AdminPanelPage from './pages/admin/AdminPanelPage';
 import AdminExportPage from './pages/admin/AdminExportPage';
 import AdminModerationPage from './pages/admin/AdminModerationPage';
 import AdminUserDetailPage from './pages/admin/AdminUserDetailPage';
+import AdminUsersPage from './pages/admin/AdminUsersPage';
+import AdminJobsPage from './pages/admin/AdminJobsPage';
+import AdminCoursesPage from './pages/admin/AdminCoursesPage';
 import { useAuth } from './hooks/useAuth';
 import CertificationList from './pages/certifications/CertificationList';
 import CertificationVerify from './pages/certifications/CertificationVerify';
@@ -45,8 +48,10 @@ import Intelligence from './pages/intelligence/Intelligence';
 import Notifications from './pages/notifications/Notifications';
 
 function RoleBasedRedirect({ children }: { children: JSX.Element }) {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isReady } = useAuth();
   
+  if (!isReady) return null;
+
   if (!isAuthenticated || !user) {
     return children;
   }
@@ -114,6 +119,9 @@ export default function App() {
           <Route path="/admin/export" element={<AdminRoute><AdminExportPage /></AdminRoute>} />
           <Route path="/admin/moderation" element={<AdminRoute><AdminModerationPage /></AdminRoute>} />
           <Route path="/admin/users/:id" element={<AdminRoute><AdminUserDetailPage /></AdminRoute>} />
+          <Route path="/admin/manage/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
+          <Route path="/admin/manage/jobs" element={<AdminRoute><AdminJobsPage /></AdminRoute>} />
+          <Route path="/admin/manage/courses" element={<AdminRoute><AdminCoursesPage /></AdminRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
@@ -132,8 +140,10 @@ function ScrollToTop() {
 }
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isReady } = useAuth();
   const location = useLocation();
+
+  if (!isReady) return null;
 
   if (!isAuthenticated || !user) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
@@ -143,14 +153,16 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
 }
 
   function EmployerRoute({ children }: { children: JSX.Element }) {
-    const { user } = useAuth();
+    const { user, isReady } = useAuth();
+    if (!isReady) return null;
     const role = user?.role ?? '';
     if (role && role.toUpperCase() === 'EMPLOYER') return children;
     return <Navigate to="/register" replace />;
   }
 
   function InstitutionOrAdminRoute({ children }: { children: JSX.Element }) {
-    const { user } = useAuth();
+    const { user, isReady } = useAuth();
+    if (!isReady) return null;
     const role = user?.role ?? '';
     const upper = role.toUpperCase();
     if (upper === 'INSTITUTION' || upper === 'ADMIN') return children;
@@ -158,14 +170,16 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
   }
 
   function MentorRoute({ children }: { children: JSX.Element }) {
-    const { user } = useAuth();
+    const { user, isReady } = useAuth();
+    if (!isReady) return null;
     const role = user?.role ?? '';
     if (role && role.toUpperCase() === 'MENTOR') return children;
     return <Navigate to="/register" replace />;
   }
 
 function AdminRoute({ children }: { children: JSX.Element }) {
-  const { user } = useAuth();
+  const { user, isReady } = useAuth();
+  if (!isReady) return null;
   const role = user?.role ?? '';
   if (role && role.toUpperCase() === 'ADMIN') return children;
   return <Navigate to="/" replace />;

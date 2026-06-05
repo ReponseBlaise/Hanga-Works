@@ -15,11 +15,8 @@ export default function Navbar() {
 	const visibleUnread = (notificationItems ?? []).filter((it) => it.source !== 'System' && !it.read).length;
 
 	useEffect(() => {
-		if (menuOpen) {
-			const timer = setTimeout(() => setMenuOpen(false), 0);
-			return () => clearTimeout(timer);
-		}
-	}, [location.pathname, menuOpen]);
+		setMenuOpen(false);
+	}, [location.pathname]);
 
 	const userRole = (user?.role ?? 'LEARNER').toUpperCase();
 
@@ -38,9 +35,7 @@ export default function Navbar() {
 		}
 		if (userRole === 'ADMIN') {
 			return [
-				{ label: 'Admin Home', href: '/admin' },
-				{ label: 'Exports', href: '/admin/export' },
-				{ label: 'Moderation', href: '/admin/moderation' },
+				{ label: 'Dashboard', href: '/admin' },
 			];
 		}
 		if (userRole === 'INSTITUTION') {

@@ -3,7 +3,7 @@ import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Card, CardMeta, CardTitle } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { getEmployerJobs, getApplicantsForJob, updateApplicationStage, type EmployerApplicant } from '../../services/employer.service';
 
@@ -31,12 +31,17 @@ export default function Applicants() {
   const [jobs, setJobs] = useState<Array<{ id: string; title: string; employer: { id: string } }>>([]);
   const { id } = useParams<{ id: string }>();
   const [selectedJobId, setSelectedJobId] = useState(id || '');
-  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [rawCandidates, setRawCandidates] = useState<Candidate[]>([]);
   const [active, setActive] = useState<Candidate | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [ratings, setRatings] = useState<Record<string, number>>({});
   const [comments, setComments] = useState<Record<string, string>>({});
+
+  const candidates = useMemo(
+    () => (selectedJobId ? rawCandidates : []),
+    [selectedJobId, rawCandidates],
+  );
 
   useEffect(() => {
     let activeFetch = true;
@@ -62,24 +67,22 @@ export default function Applicants() {
   }, [user?.organizationId]);
 
   useEffect(() => {
-    if (!selectedJobId) {
-      setTimeout(() => {
-        setCandidates([]);
-      }, 0);
-      return;
-    }
+    if (!selectedJobId) return;
 
-    setLoading(true);
-    getApplicantsForJob(selectedJobId)
-      .then((applications) => {
-        const mapped = applications.map(mapApplicantToCandidate);
-        setCandidates(mapped);
-      })
-      .catch((error) => {
+    let active = true;
+    void (async () => {
+      setLoading(true);
+      try {
+        const applications = await getApplicantsForJob(selectedJobId);
+        if (active) setRawCandidates(applications.map(mapApplicantToCandidate));
+      } catch (error) {
         console.error('Failed to load applicants', error);
-        setCandidates([]);
-      })
-      .finally(() => setLoading(false));
+        if (active) setRawCandidates([]);
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => { active = false; };
   }, [selectedJobId]);
 
   const grouped = useMemo(() => {
@@ -92,7 +95,7 @@ export default function Applicants() {
   function moveCandidate(id: string, to: Candidate['stage']) {
     updateApplicationStage(id, to)
       .then((updated) => {
-        setCandidates((prev) => prev.map((c) => (c.id === id ? mapApplicantToCandidate(updated) : c)));
+        setRawCandidates((prev) => prev.map((c) => (c.id === id ? mapApplicantToCandidate(updated) : c)));
       })
       .catch((error) => {
         console.error('Failed to update application stage', error);
