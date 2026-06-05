@@ -5,7 +5,8 @@ import { useAuth } from '../../hooks/useAuth';
 import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
-import { getCourseById, getMyProgress, enrollInCourse, updateLessonProgress, createCourseModule, updateCourseModule, deleteCourseModule, uploadModuleMedia, type BackendCourse, type CourseEnrollment } from '../../services/courses.service';
+import { getCourseById, getMyProgress, enrollInCourse, updateLessonProgress, createCourseModule, updateCourseModule, deleteCourseModule, uploadModuleMedia, verifyPayment, type BackendCourse, type CourseEnrollment } from '../../services/courses.service';
+import { FlutterwavePayButton } from '../../components/payments/FlutterwavePayButton';
 import { getMyCertificates, type LearnerCertificate } from '../../services/certificates.service';
 import { getJobs, type JobSummary } from '../../services/jobs.service';
 
@@ -37,6 +38,7 @@ export function CourseDetail() {
 	const [rawEnrollments, setRawEnrollments] = useState<CourseEnrollment[]>([]);
 	const [rawCertificates, setRawCertificates] = useState<LearnerCertificate[]>([]);
 	const [trackingMessage, setTrackingMessage] = useState('');
+	const [paymentVerifying, setPaymentVerifying] = useState(false);
 	const [savingProgress, setSavingProgress] = useState(false);
 	const [relatedJobs, setRelatedJobs] = useState<JobSummary[]>([]);
 	const isManager = user?.role === 'INSTITUTION' || user?.role === 'ADMIN' || user?.role === 'MENTOR';
@@ -109,6 +111,25 @@ export function CourseDetail() {
 		const modules = course?.modules ?? [];
 		return modules.find((m) => m.id === activeModuleId) ?? modules[0] ?? null;
 	}, [course, activeModuleId]);
+
+	async function handlePaymentSuccess(data: { txRef: string; transactionId: string }) {
+		if (!course) return;
+		setPaymentVerifying(true);
+		setTrackingMessage('Verifying payment with server…');
+		try {
+			const result = await verifyPayment({ txRef: data.txRef, transactionId: data.transactionId, courseId: course.id });
+			setRawEnrollments((prev) => {
+				const exists = prev.find((e) => e.course.id === course.id);
+				return exists ? prev : [result.enrollment, ...prev];
+			});
+			setTrackingMessage('Payment verified! You are now enrolled. Start learning below.');
+		} catch (err) {
+			console.error('Payment verification failed', err);
+			setTrackingMessage('Payment was received but verification failed. Contact support with your transaction reference: ' + data.txRef);
+		} finally {
+			setPaymentVerifying(false);
+		}
+	}
 
 	async function handleEnroll() {
 		if (!course) return;
@@ -247,7 +268,17 @@ export function CourseDetail() {
 			<div className="studio-course-detail learning-redesign">
 				<section className="studio-course-head">
 					<Link to="/courses" className="studio-inline-link">Back to catalog</Link>
-					<p className="eyebrow">{course.institution?.name ?? 'Hanga Works'} · {course.published ? 'Published' : 'Draft'}</p>
+					<div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+						<p className="eyebrow" style={{ margin: 0 }}>{course.institution?.name ?? 'Hanga Works'} · {course.published ? 'Published' : 'Draft'}</p>
+						{course.isPremium && (
+							<span className="dashboard-chip" style={{ background: 'rgba(244,123,32,0.12)', color: 'var(--brand-orange)', borderColor: 'rgba(244,123,32,0.28)' }}>
+								Premium · {course.currency ?? 'RWF'} {(course.price ?? 0).toLocaleString()}
+							</span>
+						)}
+						{!course.isPremium && (
+							<span className="dashboard-chip" style={{ background: 'rgba(22,163,74,0.1)', color: '#16a34a', borderColor: 'rgba(22,163,74,0.22)' }}>Free</span>
+						)}
+					</div>
 					<h1 className="display">{course.title}</h1>
 					<p className="lead">{course.description}</p>
 					<div className="studio-chip-row">
@@ -378,35 +409,73 @@ export function CourseDetail() {
 							</div>
 							{!isManager && (
 								<>
-									<div className="studio-action-row mt-md">
-										<Button variant="secondary" type="button" onClick={handleEnroll}>
-											{currentEnrollment ? 'Already enrolled' : 'Enroll in course'}
-										</Button>
-										<Button
-											type="button"
-											variant="primary"
-											disabled={!currentEnrollment || savingProgress}
-											onClick={() => handleSaveProgress()}
-										>
-											Save progress
-										</Button>
-										{currentEnrollment ? (
-											<Button to={`/courses/${course.id}/test`} variant="primary">
-												Take Final Test
+									{/* Premium course: show price banner + pay button when not enrolled */}
+									{course.isPremium && !currentEnrollment && (
+										<div className="studio-progress-stack mt-md" style={{ padding: '16px', background: 'rgba(244,123,32,0.07)', border: '1px solid rgba(244,123,32,0.24)', borderRadius: 'var(--radius-md)' }}>
+											<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+												<div>
+													<p className="eyebrow" style={{ color: 'var(--brand-orange)' }}>Premium course</p>
+													<strong style={{ fontSize: '1.5rem', letterSpacing: '-0.03em' }}>
+														{course.currency ?? 'RWF'} {(course.price ?? 0).toLocaleString()}
+													</strong>
+												</div>
+												{isAuthenticated && user ? (
+													<FlutterwavePayButton
+														courseId={course.id}
+														courseTitle={course.title}
+														amount={course.price ?? 0}
+														currency={course.currency ?? 'RWF'}
+														user={{ email: user.email, name: user.name, phone: user.phone }}
+														onSuccess={handlePaymentSuccess}
+														onClose={() => setTrackingMessage('Payment cancelled. You can try again anytime.')}
+														disabled={paymentVerifying}
+														label={paymentVerifying ? 'Verifying…' : `Pay ${course.currency ?? 'RWF'} ${(course.price ?? 0).toLocaleString()} & Enroll`}
+													/>
+												) : (
+													<Button variant="primary" onClick={() => navigate('/login', { state: { from: `/courses/${course.id}` } })}>
+														Sign in to purchase
+													</Button>
+												)}
+											</div>
+											{trackingMessage ? <p className="muted" style={{ marginTop: '8px' }}>{trackingMessage}</p> : null}
+										</div>
+									)}
+
+									{/* Free course OR already enrolled in premium: show normal controls */}
+									{(!course.isPremium || currentEnrollment) && (
+										<div className="studio-action-row mt-md">
+											<Button variant="secondary" type="button" onClick={handleEnroll}>
+												{currentEnrollment ? 'Already enrolled' : 'Enroll in course'}
 											</Button>
-										) : (
-											<Button variant="primary" disabled>
-												Take Final Test
+											<Button
+												type="button"
+												variant="primary"
+												disabled={!currentEnrollment || savingProgress}
+												onClick={() => handleSaveProgress()}
+											>
+												Save progress
 											</Button>
-										)}
-									</div>
+											{currentEnrollment ? (
+												<Button to={`/courses/${course.id}/test`} variant="primary">
+													Take Final Test
+												</Button>
+											) : (
+												<Button variant="primary" disabled>
+													Take Final Test
+												</Button>
+											)}
+										</div>
+									)}
+
 									<div className="studio-progress-stack">
 										<CardMeta>
 											{currentEnrollment
 												? `Enrollment status: ${currentEnrollment.status.toLowerCase()}`
+												: course.isPremium
+												? 'Purchase this course to start tracking your progress and unlock a certificate.'
 												: 'Enroll to start tracking your progress and unlock a certificate.'}
 										</CardMeta>
-										{trackingMessage ? <p className="muted">{trackingMessage}</p> : null}
+										{trackingMessage && course.isPremium && !currentEnrollment ? null : trackingMessage ? <p className="muted">{trackingMessage}</p> : null}
 										{currentCertificate ? (
 											<div className="studio-action-row">
 												<CardMeta>Certificate issued {new Date(currentCertificate.issuedAt).toLocaleDateString()}</CardMeta>

@@ -68,3 +68,17 @@ export async function updateApplicationStage(applicationId: string, stage: Emplo
 	const res = await api.patch(`/applications/${applicationId}/status`, { status: stage });
 	return (res.data?.data?.application ?? res.data?.application ?? res.data) as EmployerApplicant;
 }
+
+export async function updateJob(jobId: string, payload: Partial<CreateJobPayload>) {
+	const res = await api.patch(`/jobs/${jobId}`, {
+		...payload,
+		...(payload.salaryMin !== undefined && { salaryMin: payload.salaryMin === '' ? null : Number(payload.salaryMin) }),
+		...(payload.salaryMax !== undefined && { salaryMax: payload.salaryMax === '' ? null : Number(payload.salaryMax) }),
+	});
+	return (res.data?.data?.job ?? res.data?.job ?? res.data) as EmployerJob;
+}
+
+export async function deleteJob(jobId: string) {
+	const res = await api.delete(`/jobs/${jobId}`);
+	return res.data;
+}

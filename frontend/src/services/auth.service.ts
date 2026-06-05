@@ -50,6 +50,7 @@ export async function profile() {
 export async function updateProfile(payload: {
 	name?: string;
 	bio?: string;
+	headline?: string;
 	avatarUrl?: string;
 	location?: string;
 	skills?: Array<{ skillName: string; level: string }>;

@@ -90,11 +90,12 @@ export default function Profile() {
         if (p.location) setLocation(p.location);
         if (p.avatarUrl) setAvatarUrl(p.avatarUrl);
         if (p.bio) setBio(p.bio);
+        if (p.headline) setHeadline(p.headline);
         if (p.skills?.length) {
           setSkills(
             p.skills.map((s: any, i: number) => ({
               id: s.id ?? `skill-${i}`,
-              name: s.skill.name,
+              name: s.skill?.name ?? s.skillName ?? s.name,
               proficiency: (s.level === 'EXPERT' ? 'ADVANCED' : s.level) as Proficiency ?? 'BEGINNER',
             })),
           );
@@ -159,6 +160,7 @@ export default function Profile() {
       const updated = await updateProfile({
         name,
         bio,
+        headline,
         avatarUrl: finalAvatarUrl || undefined,
         location,
         skills: skills.map((s) => ({ skillName: s.name, level: toApiLevel(s.proficiency) })),

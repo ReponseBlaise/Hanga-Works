@@ -14,6 +14,9 @@ type CourseFormState = {
 	thumbnailUrl: string;
 	institutionId: string;
 	published: boolean;
+	isPremium: boolean;
+	price: string;
+	currency: string;
 };
 
 function slugify(value: string) {
@@ -36,6 +39,9 @@ export default function CourseCreate() {
 		thumbnailUrl: '',
 		institutionId: '',
 		published: true,
+		isPremium: false,
+		price: '',
+		currency: 'RWF',
 	});
 	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState('');
@@ -61,11 +67,14 @@ export default function CourseCreate() {
 				}
 			}
 
-			const payload: Parameters<typeof createCourse>[0] = {
+		const payload: Parameters<typeof createCourse>[0] = {
 				title: form.title.trim(),
 				slug: form.slug.trim() || slugify(form.title),
 				description: form.description.trim(),
 				published: form.published,
+				isPremium: form.isPremium,
+				price: form.isPremium && form.price ? Number(form.price) : 0,
+				currency: form.currency || 'RWF',
 			};
 			if (uploadedUrl) payload.thumbnailUrl = uploadedUrl;
 			if (form.institutionId.trim()) payload.institutionId = form.institutionId.trim();
@@ -153,7 +162,7 @@ export default function CourseCreate() {
 									placeholder="Optional for admin-created content"
 								/>
 							</label>
-							<div className="auth-note">
+						<div className="auth-note">
 								<input
 									type="checkbox"
 									checked={form.published}
@@ -164,6 +173,47 @@ export default function CourseCreate() {
 									<p className="muted">Uncheck to save the course as a draft.</p>
 								</div>
 							</div>
+
+							<div className="auth-note">
+								<input
+									type="checkbox"
+									checked={form.isPremium}
+									onChange={(event) => setForm((previous) => ({ ...previous, isPremium: event.target.checked }))}
+								/>
+								<div>
+									<strong>Premium course (paid)</strong>
+									<p className="muted">Learners must pay before enrolling. Set a price below.</p>
+								</div>
+							</div>
+
+							{form.isPremium && (
+								<div className="employer-form__grid">
+									<label>
+										Price
+										<input
+											type="number"
+											min={0}
+											required={form.isPremium}
+											value={form.price}
+											onChange={(event) => setForm((previous) => ({ ...previous, price: event.target.value }))}
+											placeholder="e.g. 5000"
+										/>
+									</label>
+									<label>
+										Currency
+										<select
+											value={form.currency}
+											onChange={(event) => setForm((previous) => ({ ...previous, currency: event.target.value }))}
+										>
+											<option value="RWF">RWF</option>
+											<option value="USD">USD</option>
+											<option value="NGN">NGN</option>
+											<option value="KES">KES</option>
+											<option value="UGX">UGX</option>
+										</select>
+									</label>
+								</div>
+							)}
 
 							<div className="studio-action-row">
 								<Button to="/courses" variant="secondary">Cancel</Button>

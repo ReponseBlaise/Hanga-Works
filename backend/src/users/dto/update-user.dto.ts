@@ -33,6 +33,10 @@ export class UpdateUserDto {
   @IsString()
   location?: string;
 
+  @IsOptional()
+  @IsString()
+  headline?: string;
+
   @ApiProperty({ example: '+250781234567', required: false, description: 'Phone number' })
   @IsOptional()
   @IsString()
