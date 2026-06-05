@@ -1442,6 +1442,14 @@ input, textarea, select { color: var(--text); }
     radial-gradient(circle at top right, rgba(37, 71, 202, 0.08), transparent 34%);
 }
 
+/* Remove the decorative right-side overlay for centered auth pages (login/register) */
+.auth-studio-shell--centered .auth-studio-rail::before,
+.auth-studio-shell--centered .auth-studio-content::before,
+.auth-studio-shell--centered .auth-studio-card::before {
+  background: none !important;
+  opacity: 0 !important;
+}
+
 .studio-hero__intro > *,
 .studio-hero__spotlight > *,
 .studio-block > *,
