@@ -205,10 +205,16 @@ export function CourseList() {
 												<CardEyebrow>{course.institution?.name ?? 'Hanga Works'}</CardEyebrow>
 												<CardTitle>{course.title}</CardTitle>
 											</div>
-											<div className="studio-chip-row">
-												<span className="dashboard-chip">{course.published ? 'Published' : 'Draft'}</span>
-												{isEnrolled ? <span className="dashboard-chip">Enrolled</span> : null}
-											</div>
+									<div className="studio-chip-row">
+											<span className="dashboard-chip">{course.published ? 'Published' : 'Draft'}</span>
+											{course.isPremium
+												? <span className="dashboard-chip" style={{ background: 'rgba(244,123,32,0.12)', color: 'var(--brand-orange)', borderColor: 'rgba(244,123,32,0.28)' }}>
+													Premium · {course.currency ?? 'RWF'} {(course.price ?? 0).toLocaleString()}
+												  </span>
+												: <span className="dashboard-chip" style={{ background: 'rgba(22,163,74,0.1)', color: '#16a34a', borderColor: 'rgba(22,163,74,0.22)' }}>Free</span>
+											}
+											{isEnrolled ? <span className="dashboard-chip">Enrolled</span> : null}
+										</div>
 										</div>
 										<CardMeta>{course.description}</CardMeta>
 										<p className="muted"><span className="ui-icon" aria-hidden="true"><MdMenuBook /></span>{course._count?.modules ?? course.modules?.length ?? 0} modules · <span className="ui-icon" aria-hidden="true"><MdGroups /></span>{course._count?.enrollments ?? 0} enrollments</p>
@@ -219,7 +225,9 @@ export function CourseList() {
 										</div>
 										<div className="studio-action-row">
 											<Button to={`/courses/${course.id}`} variant="secondary">Preview</Button>
-											<Button to={`/courses/${course.id}`} variant="primary">{isEnrolled ? 'Resume' : 'Enroll now'}</Button>
+											<Button to={`/courses/${course.id}`} variant="primary">
+												{isEnrolled ? 'Resume' : course.isPremium ? `Pay & Enroll` : 'Enroll now'}
+											</Button>
 										</div>
 									</Card>
 								);

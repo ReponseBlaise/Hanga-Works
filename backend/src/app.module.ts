@@ -19,6 +19,7 @@ import { IntelligenceModule } from './intelligence/intelligence.module';
 import { AuditInterceptor } from './common/interceptors/audit.interceptor';
 import { StorageModule } from './storage/storage.module';
 import { AdminModule } from './admin/admin.module';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { AdminModule } from './admin/admin.module';
     MentorshipModule,
     IntelligenceModule,
     AdminModule,
+    PaymentsModule,
   ],
   providers: [
     PrismaService, 

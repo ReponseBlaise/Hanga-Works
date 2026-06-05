@@ -34,6 +34,7 @@ model User {
   mentorProfile      MentorProfile?
   mentorSessions     MentorSession[]
   notifications      Notification[]
+  payments           Payment[]
   refreshTokens      RefreshToken[]
   testAttempts       TestAttempt[]
   organization       Organization?   @relation(fields: [organizationId], references: [id])
@@ -99,6 +100,9 @@ model Course {
   published      Boolean         @default(false)
   thumbnailUrl   String?
   institutionId  String?
+  isPremium      Boolean         @default(false)
+  price          Float?          @default(0)
+  currency       String?         @default("RWF")
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   certifications Certification[]
@@ -107,8 +111,10 @@ model Course {
   skills         CourseSkill[]
   test           CourseTest?
   enrollments    Enrollment[]
+  payments       Payment[]
 
   @@index([published])
+  @@index([isPremium])
 }
 
 model CourseModule {
@@ -384,4 +390,30 @@ enum SessionStatus {
   REJECTED
   COMPLETED
   CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  userId        String
+  courseId      String
+  txRef         String        @unique
+  transactionId String?
+  amount        Float
+  currency      String        @default("RWF")
+  status        PaymentStatus @default(PENDING)
+  provider      String        @default("flutterwave")
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course        Course        @relation(fields: [courseId], references: [id])
+
+  @@index([userId])
+  @@index([courseId])
+  @@index([txRef])
 }

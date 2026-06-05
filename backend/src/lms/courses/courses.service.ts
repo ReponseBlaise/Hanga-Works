@@ -186,6 +186,9 @@ export class CoursesService {
         published: dto.published ?? false,
         thumbnailUrl: dto.thumbnailUrl,
         institutionId,
+        isPremium: dto.isPremium ?? false,
+        price: dto.price ?? 0,
+        currency: dto.currency ?? 'RWF',
       },
       include: courseDetailInclude,
     });
