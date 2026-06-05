@@ -25,7 +25,7 @@
   --radius-md: 2px;
   --radius-sm: 0px;
   --content-width: 1440px;
-  --page-margin: 0;
+  --page-margin: 16px;
   --font-sans: 'Calibri', 'Segoe UI', system-ui, sans-serif;
 }
 
@@ -49,15 +49,24 @@ button, input, textarea, select { font: inherit; }
 input, textarea, select { color: var(--text); }
 #root { min-height: 100vh; }
 
+img, picture, video, iframe, svg {
+  max-width: 100%;
+  height: auto;
+}
+
+body, .site-page, .landing-page, .auth-page {
+  min-width: 0;
+}
+
 .site-page, .landing-page, .auth-page { min-height: 100vh; height: 100%; display: flex; flex-direction: column; }
 .site-main, .landing-main, .auth-page__main {
   width: 100%;
   margin: 0;
   min-width: 0;
 }
-.site-main { flex: 1; display: grid; gap: 28px; padding: 0; }
-.landing-main { flex: 1; display: grid; gap: 34px; padding: 0; }
-.auth-page__main { flex: 1; padding: 0; }
+.site-main { flex: 1; display: grid; gap: 28px; padding: var(--page-margin); }
+.landing-main { flex: 1; display: grid; gap: 34px; padding: var(--page-margin); }
+.auth-page__main { flex: 1; padding: var(--page-margin); }
 
 .display-large { font-size: 16pt; line-height: 1.2; font-weight: 600; }
 .display { font-size: 14pt; line-height: 1.2; font-weight: 600; }
@@ -1888,6 +1897,27 @@ input, textarea, select { color: var(--text); }
   .auth-page__shell { grid-template-columns: 1fr; }
   .auth-card__layout { grid-template-columns: 1fr; }
 
+  .landing-hero,
+  .page-head,
+  .intelligence-page__hero,
+  .notifications-page .page-head,
+  .dashboard-hero,
+  .profile-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .page-head__aside,
+  .intelligence-page__actions,
+  .notifications-page__summary,
+  .landing-hero__visual,
+  .dashboard-hero__visual,
+  .profile-hero__aside {
+    width: 100%;
+  }
+
+  .site-footer__inner { grid-template-columns: 1fr; }
+  .site-footer__bottom { flex-direction: column; align-items: stretch; }
+
   .studio-hero,
   .studio-layout,
   .studio-catalog__hero,
@@ -1972,6 +2002,16 @@ input, textarea, select { color: var(--text); }
 
   .studio-floating-actions { position: static; grid-auto-flow: column; }
   .site-main, .landing-main, .auth-page__main { padding-left: 16px; padding-right: 16px; }
+
+  .intelligence-page__hero { padding: 18px; gap: 16px; }
+  .intelligence-page__hero > div { gap: 14px; }
+  .intelligence-page__actions { display: flex; flex-direction: column; gap: 12px; }
+  .intelligence-page__actions > * { width: 100%; }
+  .course-stack { gap: 12px; }
+  .studio-course-detail { gap: 16px; }
+  .course-card { padding: 18px; }
+  .course-card .card-title { margin-bottom: 0.5rem; }
+  .course-card .card-meta { margin-top: 0.45rem; }
 }
 
 @media (max-width: 640px) {
