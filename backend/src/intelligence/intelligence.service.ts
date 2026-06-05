@@ -57,6 +57,13 @@ export class IntelligenceService {
     const recommendedSkills = demand.filter((d) => !userSkillIds.has(d.skillId));
     const skillIds = recommendedSkills.map((rs) => rs.skillId);
 
+    const skills = await this.prisma.skill.findMany({
+      where: { id: { in: skillIds } },
+      select: { id: true, name: true },
+    });
+
+    const skillMap = new Map(skills.map((s) => [s.id, s.name]));
+
     const courses =
       skillIds.length === 0
         ? await this.prisma.course.findMany({
