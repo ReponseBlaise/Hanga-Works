@@ -34,9 +34,18 @@ export class HttpExceptionFilter implements ExceptionFilter {
         }
       }
     } else if (exception instanceof Error) {
-      this.logger.error(exception.message, exception.stack);
-      // Don't leak internal error details to clients
-      message = 'A server error occurred. Please try again shortly.';
+      const rawMessage = exception.message;
+      this.logger.error(rawMessage, exception.stack);
+
+      if (rawMessage.includes('Authentication failed against database server')) {
+        message = 'Database login failed. Verify your database user, password, and host settings.';
+      } else if (rawMessage.includes('connect ECONNREFUSED') || rawMessage.includes('timed out')) {
+        message = 'Database connection error. Ensure the database server is running and reachable.';
+      } else if (process.env.NODE_ENV !== 'production') {
+        message = rawMessage;
+      } else {
+        message = 'A server error occurred. Please try again shortly.';
+      }
     }
 
     response.status(status).json({

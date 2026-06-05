@@ -25,12 +25,12 @@
   --radius-md: 2px;
   --radius-sm: 0px;
   --content-width: 1440px;
-  --page-margin: clamp(16px, 3vw, 40px);
+  --page-margin: 0;
   --font-sans: 'Calibri', 'Segoe UI', system-ui, sans-serif;
 }
 
 * { box-sizing: border-box; }
-html, body, #root { min-height: 100%; }
+html, body, #root { min-height: 100%; height: 100%; }
 html { background: var(--bg); scroll-behavior: smooth; }
 body {
   margin: 0;
@@ -49,15 +49,15 @@ button, input, textarea, select { font: inherit; }
 input, textarea, select { color: var(--text); }
 #root { min-height: 100vh; }
 
-.site-page, .landing-page, .auth-page { min-height: 100vh; display: flex; flex-direction: column; }
+.site-page, .landing-page, .auth-page { min-height: 100vh; height: 100%; display: flex; flex-direction: column; }
 .site-main, .landing-main, .auth-page__main {
-  width: min(100%, var(--content-width));
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
   min-width: 0;
 }
-.site-main { flex: 1; display: grid; gap: 28px; padding: 36px var(--page-margin) 88px; }
-.landing-main { flex: 1; display: grid; gap: 34px; padding: 36px var(--page-margin) 72px; }
-.auth-page__main { flex: 1; padding: 32px var(--page-margin) 56px; }
+.site-main { flex: 1; display: grid; gap: 28px; padding: 0; }
+.landing-main { flex: 1; display: grid; gap: 34px; padding: 0; }
+.auth-page__main { flex: 1; padding: 0; }
 
 .display-large { font-size: 16pt; line-height: 1.2; font-weight: 600; }
 .display { font-size: 14pt; line-height: 1.2; font-weight: 600; }
