@@ -27,8 +27,8 @@ import { AdminModule } from './admin/admin.module';
     }),
     StorageModule,
     ThrottlerModule.forRoot([{
-      ttl: 900000, // 15 minutes in milliseconds
-      limit: 100, // 100 requests per 15 minutes
+      ttl: 60000, // 1 minute
+      limit: 300, // 300 requests per minute
     }]),
     CoursesModule,
     EnrollmentModule,

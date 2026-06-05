@@ -34,23 +34,19 @@ export default function JobList() {
   const [perPage, setPerPage] = useState(12);
   const [sortBy, setSortBy] = useState<'newest' | 'relevance' | 'salary-desc' | 'salary-asc'>('newest');
   const [totalResults, setTotalResults] = useState(0);
-  const [savedJobIds, setSavedJobIds] = useState<string[]>([]);
-  const [savedOnly, setSavedOnly] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-
-  useEffect(() => {
+  const [savedJobIds, setSavedJobIds] = useState<string[]>(() => {
     try {
       const raw = window.localStorage.getItem('hanga-saved-job-ids');
-      if (!raw) return;
+      if (!raw) return [];
       const parsed = JSON.parse(raw) as string[];
-      const valid = Array.isArray(parsed) ? parsed : [];
-      if (JSON.stringify(savedJobIds) !== JSON.stringify(valid)) {
-        setSavedJobIds(valid);
-      }
+      return Array.isArray(parsed) ? parsed : [];
     } catch {
-      if (savedJobIds.length > 0) setSavedJobIds([]);
+      return [];
     }
-  }, []);
+  });
+
+  const [savedOnly, setSavedOnly] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   useEffect(() => {
     window.localStorage.setItem('hanga-saved-job-ids', JSON.stringify(savedJobIds));
@@ -58,8 +54,8 @@ export default function JobList() {
 
   useEffect(() => {
     let active = true;
-    if (!loading) setLoading(true);
-    if (error) setError(null);
+    setLoading(true);
+    setError(null);
 
     getJobs({
       search: filters.search,

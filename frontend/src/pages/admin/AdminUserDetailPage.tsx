@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { SiteLayout } from '../../components/layout/SiteLayout';
+import { AdminSidebar } from '../../components/layout/AdminSidebar';
 import { Card, CardTitle, CardMeta, CardEyebrow } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { getAdminUserDetail, updateAdminUserStatus } from '../../services/admin.service';
@@ -8,7 +9,6 @@ import { getAdminUserDetail, updateAdminUserStatus } from '../../services/admin.
 export default function AdminUserDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
@@ -18,15 +18,9 @@ export default function AdminUserDetailPage() {
     if (!id) return;
     let active = true;
     getAdminUserDetail(id)
-      .then(data => {
-        if (active) setUser(data);
-      })
-      .catch(err => {
-        if (active) setError(err?.response?.data?.message || 'Failed to load user details.');
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
+      .then(data => { if (active) setUser(data); })
+      .catch(err => { if (active) setError(err?.response?.data?.message || 'Failed to load user details.'); })
+      .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [id]);
 
@@ -50,8 +44,11 @@ export default function AdminUserDetailPage() {
   if (loading) {
     return (
       <SiteLayout>
-        <div className="page-shell">
-          <Card><CardMeta>Loading user details...</CardMeta></Card>
+        <div className="app-shell-layout">
+          <AdminSidebar />
+          <div className="studio-dashboard dashboard-redesign">
+            <CardMeta>Loading user details...</CardMeta>
+          </div>
         </div>
       </SiteLayout>
     );
@@ -60,14 +57,15 @@ export default function AdminUserDetailPage() {
   if (error || !user) {
     return (
       <SiteLayout>
-        <div className="page-shell">
-          <Card>
+        <div className="app-shell-layout">
+          <AdminSidebar />
+          <div className="studio-dashboard dashboard-redesign">
             <CardTitle>Error</CardTitle>
             <CardMeta>{error || 'User not found'}</CardMeta>
             <div className="mt-md">
               <Button to="/admin/moderation" variant="secondary">Back to Queue</Button>
             </div>
-          </Card>
+          </div>
         </div>
       </SiteLayout>
     );
@@ -78,18 +76,7 @@ export default function AdminUserDetailPage() {
   return (
     <SiteLayout>
       <div className="app-shell-layout">
-        <aside className="app-shell-sidebar">
-          <div className="app-shell-brand">
-            <strong>Hanga Works</strong>
-            <span>Admin Control</span>
-          </div>
-          <nav className="app-shell-nav">
-            <Link to="/admin" className="app-shell-nav__item">Platform Overview</Link>
-            <Link to="/admin/export" className="app-shell-nav__item">Data Exports</Link>
-            <Link to="/admin/moderation" className="app-shell-nav__item is-active">Moderation Queue</Link>
-            <Link to="/profile" className="app-shell-nav__item">Admin Profile</Link>
-          </nav>
-        </aside>
+        <AdminSidebar />
 
         <div className="studio-dashboard dashboard-redesign">
           <header className="dashboard-redesign__hero">
@@ -128,11 +115,8 @@ export default function AdminUserDetailPage() {
                   <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <div><strong>Type:</strong> {org.type}</div>
                     {org.website && (
-                      <div>
-                        <strong>Website:</strong> <a href={org.website} target="_blank" rel="noopener noreferrer">{org.website}</a>
-                      </div>
+                      <div><strong>Website:</strong> <a href={org.website} target="_blank" rel="noopener noreferrer">{org.website}</a></div>
                     )}
-                    
                     {org.companyCertificate && (
                       <div style={{ marginTop: '12px' }}>
                         <strong>Company Certificate:</strong><br />
@@ -141,7 +125,6 @@ export default function AdminUserDetailPage() {
                         </a>
                       </div>
                     )}
-
                     {org.trainingCertificate && (
                       <div style={{ marginTop: '12px' }}>
                         <strong>Training Certificate:</strong><br />
@@ -158,21 +141,11 @@ export default function AdminUserDetailPage() {
                 <Card className="studio-block" style={{ border: '2px solid var(--primary)' }}>
                   <CardTitle>Moderation Decision</CardTitle>
                   <CardMeta>Approving this account will grant them full access to post {user.role === 'EMPLOYER' ? 'jobs' : 'courses'} on Hanga Works.</CardMeta>
-                  
                   <div className="studio-action-row mt-md" style={{ gap: '16px' }}>
-                    <Button 
-                      variant="primary" 
-                      onClick={() => handleUpdateStatus('ACTIVE')}
-                      disabled={processing}
-                    >
+                    <Button variant="primary" onClick={() => handleUpdateStatus('ACTIVE')} disabled={processing}>
                       {processing ? 'Processing...' : 'Approve Account'}
                     </Button>
-                    <Button 
-                      variant="secondary" 
-                      onClick={() => handleUpdateStatus('REJECTED')}
-                      disabled={processing}
-                      style={{ color: 'red', borderColor: 'red' }}
-                    >
+                    <Button variant="secondary" onClick={() => handleUpdateStatus('REJECTED')} disabled={processing} style={{ color: 'red', borderColor: 'red' }}>
                       Reject Account
                     </Button>
                   </div>

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { getApplications } from '../../services/jobs.service';
 import type { JobApplication, JobApplicationStage } from '../../types/job.types';
 
@@ -24,8 +24,10 @@ export default function MyApplications() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      if (applications.length > 0) setApplications([]);
-      if (loading) setLoading(false);
+      setTimeout(() => {
+        setApplications([]);
+        setLoading(false);
+      }, 0);
       return;
     }
 
@@ -45,7 +47,7 @@ export default function MyApplications() {
     return () => {
       active = false;
     };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, applications.length, loading]);
 
   const grouped = useMemo(() => {
     return stages.reduce<Record<JobApplicationStage, JobApplication[]>>((acc, stage) => {

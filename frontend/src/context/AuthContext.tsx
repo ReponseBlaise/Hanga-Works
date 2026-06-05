@@ -1,11 +1,11 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useEffect, useState, type ReactNode } from 'react';
 import { AUTH_TOKEN_KEY, setAuthToken } from '../services/api';
 import authService from '../services/auth.service';
 import type { AuthUser, AuthContextValue } from '../types/auth.types';
 
 const AUTH_STORAGE_KEY = 'sewi-platform-auth-user';
 
-const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 function readStoredUser(): AuthUser | null {
   if (typeof window === 'undefined') {
@@ -28,14 +28,14 @@ function readStoredUser(): AuthUser | null {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(() => readStoredUser());
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     if (user) {
       window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
-      return;
+    } else {
+      window.localStorage.removeItem(AUTH_STORAGE_KEY);
     }
-
-    window.localStorage.removeItem(AUTH_STORAGE_KEY);
   }, [user]);
 
   useEffect(() => {
@@ -49,33 +49,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
   }, []);
 
+  // Always validate session on startup
   useEffect(() => {
-    if (!user) {
-      return;
-    }
-
-    const storedToken = window.localStorage.getItem(AUTH_TOKEN_KEY);
-
-    if (storedToken) {
+    if (!readStoredUser()) {
+      setIsReady(true);
       return;
     }
 
     void authService.refresh().then((data) => {
       if (!data?.access_token) {
         setAuthToken(null);
+        window.localStorage.removeItem(AUTH_TOKEN_KEY);
         setUser(null);
-        return;
-      }
-
-      if (data.user) {
+      } else if (data.user) {
         setUser(data.user);
       }
-    });
-  }, [user]);
+    }).finally(() => setIsReady(true));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const value: AuthContextValue = {
     user,
     isAuthenticated: user !== null,
+    isReady,
     signIn: (nextUser) => {
       setUser(nextUser);
     },
@@ -87,14 +83,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-
-  return context;
 }

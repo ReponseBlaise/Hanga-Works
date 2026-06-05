@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards, Request, Param } from '@nestjs/common';
 import { IntelligenceService } from '../intelligence/intelligence.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -21,11 +21,11 @@ export class IntelligenceController {
   }
 
   @Get('salary-benchmark')
-  async getSalaryBenchmark(@Query('role') role?: string) {
+  async getSalaryBenchmark(@Query('role') role: string) {
     return this.intelligenceService.getSalaryBenchmark(role);
   }
 
-  @Get('trends')
+  @Get('industry-trends')
   async getIndustryTrends() {
     return this.intelligenceService.getIndustryTrends();
   }

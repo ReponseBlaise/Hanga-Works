@@ -19,7 +19,7 @@ type AnchorButtonProps = SharedProps & AnchorHTMLAttributes<HTMLAnchorElement> &
 	to?: undefined;
 };
 
-type RouterLinkButtonProps = SharedProps & {
+type RouterLinkButtonProps = SharedProps & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href'> & {
 	to: string;
 	href?: undefined;
 };
@@ -30,9 +30,9 @@ function getButtonClassName(variant: ButtonVariant = 'primary', className = '') 
 
 export function Button(props: NativeButtonProps | AnchorButtonProps | RouterLinkButtonProps) {
 	if ('to' in props && props.to) {
-		const { variant = 'primary', className = '', children, to } = props;
+		const { variant = 'primary', className = '', children, to, href: _href, ...rest } = props as RouterLinkButtonProps;
 		return (
-			<Link className={getButtonClassName(variant, className)} to={to}>
+			<Link className={getButtonClassName(variant, className)} to={to} {...rest}>
 				{children}
 			</Link>
 		);

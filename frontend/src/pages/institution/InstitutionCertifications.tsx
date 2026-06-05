@@ -6,7 +6,6 @@ import { Button } from '../../components/ui/Button';
 import { getManageableCertificates } from '../../services/certificates.service';
 
 export default function InstitutionCertifications() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [certificates, setCertificates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 

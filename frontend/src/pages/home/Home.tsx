@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { getJobs, type JobSummary } from '../../services/jobs.service';
 import { getCourses, type BackendCourse } from '../../services/courses.service';
 

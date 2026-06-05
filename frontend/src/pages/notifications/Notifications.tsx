@@ -2,7 +2,7 @@ import { SiteLayout } from '../../components/layout/SiteLayout';
 import { NotificationBell } from '../../components/shared/NotificationBell';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { useNotificationsFeed } from '../../services/notifications.service';
 
 const kindLabels = {
