@@ -807,6 +807,12 @@ body, .site-page, .landing-page, .auth-page {
   background: transparent;
   box-shadow: none;
 }
+.auth-studio-shell--centered .auth-studio-content,
+.auth-studio-shell--centered .auth-studio-card {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+}
 .auth-studio-content--centered > * { width: 100%; }
 .auth-studio-card { padding: 28px; display: grid; gap: 18px; }
 .auth-studio-grid { display: grid; gap: 16px; grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.8fr); }
@@ -886,6 +892,11 @@ body, .site-page, .landing-page, .auth-page {
   background:
     radial-gradient(circle at top right, rgba(63, 102, 244, 0.22), transparent 22%),
     radial-gradient(circle at bottom left, rgba(37, 71, 202, 0.16), transparent 28%);
+}
+
+.auth-page .auth-page__main::before {
+  background: none !important;
+  opacity: 0 !important;
 }
 
 .landing-hero,
