@@ -61,22 +61,23 @@ export default function IndustryTrends() {
                   <div className="studio-job-card__head">
                     <div>
                       <CardEyebrow>Skill</CardEyebrow>
-                      <CardTitle>{trend.skillName}</CardTitle>
+                      <CardTitle>{trend.name}</CardTitle>
+                      {trend.tag ? <CardMeta>{trend.tag}</CardMeta> : null}
                     </div>
                     <span className="dashboard-chip">{trend.jobCount} jobs</span>
                   </div>
-                  
-                  {trend.growthRate != null && (
-                    <CardMeta className="mt-sm">
-                      Growth: <strong>{trend.growthRate > 0 ? '+' : ''}{trend.growthRate}%</strong>
-                    </CardMeta>
-                  )}
 
                   <div className="mt-md">
-                    <CardEyebrow>Related courses</CardEyebrow>
-                    {trend.relatedCourses.length === 0 ? (
-                      <CardMeta>No courses available yet.</CardMeta>
-                    ) : (
+                    <CardMeta>
+                      {trend.jobCount > 0
+                        ? `This skill appears in ${trend.jobCount.toLocaleString()} active jobs.`
+                        : 'Live demand information is not available yet.'}
+                    </CardMeta>
+                  </div>
+
+                  {trend.relatedCourses?.length ? (
+                    <div className="mt-md">
+                      <CardEyebrow>Related courses</CardEyebrow>
                       <div className="studio-chip-row mt-sm">
                         {trend.relatedCourses.slice(0, 3).map((course) => (
                           <Link key={course.id} to={`/courses/${course.id}`} className="dashboard-chip">
@@ -84,14 +85,12 @@ export default function IndustryTrends() {
                           </Link>
                         ))}
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  ) : null}
 
-                  <div className="mt-md">
-                    <CardEyebrow>Related jobs</CardEyebrow>
-                    {trend.relatedJobs.length === 0 ? (
-                      <CardMeta>No jobs available.</CardMeta>
-                    ) : (
+                  {trend.relatedJobs?.length ? (
+                    <div className="mt-md">
+                      <CardEyebrow>Related jobs</CardEyebrow>
                       <div className="studio-stack mt-sm">
                         {trend.relatedJobs.slice(0, 3).map((job) => (
                           <div key={job.id} className="studio-inline-item">
@@ -100,12 +99,12 @@ export default function IndustryTrends() {
                           </div>
                         ))}
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  ) : null}
 
                   <div className="studio-action-row mt-md">
-                    <Button to={`/jobs?skillId=${trend.skillId}`} variant="secondary" size="sm">
-                      View all jobs
+                    <Button to={`/jobs?skillId=${trend.skillId}`} variant="secondary">
+                      View related jobs
                     </Button>
                   </div>
                 </Card>

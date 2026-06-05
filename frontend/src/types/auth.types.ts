@@ -8,6 +8,7 @@ export type AuthUser = {
   organizationId?: string | null;
   avatarUrl?: string | null;
   bio?: string | null;
+  headline?: string | null;
   location?: string | null;
   skills?: Array<{
     id: string;

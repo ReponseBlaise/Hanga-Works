@@ -5,7 +5,7 @@ import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
 import { useAuth } from '../../hooks/useAuth';
 import { getJobs, type JobSummary } from '../../services/jobs.service';
-import { getCareerPathway, getSkillGapAnalysis, type CareerPathway } from '../../services/intelligence.service';
+import { getCareerPathway, getSalaryBenchmark, getSkillGapAnalysis, type CareerPathway } from '../../services/intelligence.service';
 
 function formatCount(value?: number) {
   return typeof value === 'number' ? value.toLocaleString() : '0';
@@ -17,26 +17,42 @@ export default function Intelligence() {
   const [selectedJobId, setSelectedJobId] = useState('');
   const [gapAnalysis, setGapAnalysis] = useState<null | Awaited<ReturnType<typeof getSkillGapAnalysis>>>(null);
   const [pathway, setPathway] = useState<CareerPathway | null>(null);
+  const [salaryBenchmarks, setSalaryBenchmarks] = useState<Record<string, Awaited<ReturnType<typeof getSalaryBenchmark>>[0] | null>>({});
   const [loadingJobs, setLoadingJobs] = useState(true);
   const [loadingAnalysis, setLoadingAnalysis] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     let active = true;
-    Promise.all([getJobs(), getCareerPathway()])
-      .then(([jobsResponse, pathwayResponse]) => {
+
+    const loadIntelligence = async () => {
+      try {
+        const [jobsResponse, pathwayResponse, frontendSalary, backendSalary, fullstackSalary] = await Promise.all([
+          getJobs(),
+          getCareerPathway(),
+          getSalaryBenchmark('Frontend Developer'),
+          getSalaryBenchmark('Backend Developer'),
+          getSalaryBenchmark('Full Stack Developer'),
+        ]);
+
         if (!active) return;
         setJobs(jobsResponse.jobs ?? []);
         setPathway(pathwayResponse);
         setSelectedJobId((jobsResponse.jobs ?? [])[0]?.id ?? '');
-      })
-      .catch((fetchError) => {
+        setSalaryBenchmarks({
+          frontend: frontendSalary?.[0] ?? null,
+          backend: backendSalary?.[0] ?? null,
+          fullstack: fullstackSalary?.[0] ?? null,
+        });
+      } catch (fetchError) {
         console.error('Failed to load intelligence data', fetchError);
         if (active) setError('The intelligence dashboard could not load right now.');
-      })
-      .finally(() => {
+      } finally {
         if (active) setLoadingJobs(false);
-      });
+      }
+    };
+
+    loadIntelligence();
 
     return () => {
       active = false;
@@ -198,22 +214,27 @@ export default function Intelligence() {
               <CardEyebrow>Salary benchmarks</CardEyebrow>
               <CardTitle>Market rates by role</CardTitle>
               <CardMeta>Average salary ranges for common roles in the current job market.</CardMeta>
-              <div className="studio-metric-grid mt-md">
-                <div className="studio-metric">
-                  <CardEyebrow>Frontend Developer</CardEyebrow>
-                  <strong>$45K - $85K</strong>
-                  <CardMeta>Based on {formatCount(12)} active jobs</CardMeta>
-                </div>
-                <div className="studio-metric">
-                  <CardEyebrow>Backend Developer</CardEyebrow>
-                  <strong>$50K - $95K</strong>
-                  <CardMeta>Based on {formatCount(15)} active jobs</CardMeta>
-                </div>
-                <div className="studio-metric">
-                  <CardEyebrow>Full Stack Developer</CardEyebrow>
-                  <strong>$55K - $105K</strong>
-                  <CardMeta>Based on {formatCount(18)} active jobs</CardMeta>
-                </div>
+                <div className="studio-metric-grid mt-md">
+                {['frontend', 'backend', 'fullstack'].map((key) => {
+                  const role = key === 'frontend' ? 'Frontend Developer' : key === 'backend' ? 'Backend Developer' : 'Full Stack Developer';
+                  const benchmark = salaryBenchmarks[key];
+
+                  return (
+                    <div key={key} className="studio-metric">
+                      <CardEyebrow>{role}</CardEyebrow>
+                      <strong>
+                        {benchmark?.minSalary != null && benchmark?.maxSalary != null
+                          ? `${benchmark.minSalary.toLocaleString()} - ${benchmark.maxSalary.toLocaleString()}`
+                          : 'TBD'}
+                      </strong>
+                      <CardMeta>
+                        {benchmark?.jobCount != null
+                          ? `Based on ${formatCount(benchmark.jobCount)} active jobs`
+                          : 'Live salary data unavailable'}
+                      </CardMeta>
+                    </div>
+                  );
+                })}
               </div>
             </Card>
           </aside>

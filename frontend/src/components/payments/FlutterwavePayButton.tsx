@@ -40,7 +40,7 @@ export function FlutterwavePayButton({
 	const config = {
 		public_key: (import.meta.env.VITE_FLUTTERWAVE_PUBLIC_KEY as string) ?? '',
 		tx_ref: txRef.current,
-		amount,
+		amount: Math.max(0, amount),
 		currency: currency ?? 'RWF',
 		payment_options: 'card,mobilemoney,ussd',
 		customer: {
@@ -66,11 +66,16 @@ export function FlutterwavePayButton({
 				handleFlutterPayment({
 					callback: (response: FlutterWaveResponse) => {
 						closePaymentModal();
-						if (response.status === 'successful') {
-							onSuccess({
-								txRef: response.tx_ref,
-								transactionId: String(response.transaction_id),
-							});
+						const status = response.status?.toLowerCase?.();
+						if (status === 'successful' || status === 'success') {
+							const txRefValue = response.tx_ref || (response as any).txRef || txRef.current;
+							const transactionIdValue = String(response.transaction_id ?? (response as any).transactionId ?? '');
+							if (txRefValue && transactionIdValue) {
+								onSuccess({
+									txRef: txRefValue,
+									transactionId: transactionIdValue,
+								});
+							}
 						}
 					},
 					onclose: () => {

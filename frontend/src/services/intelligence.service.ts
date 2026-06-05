@@ -59,11 +59,11 @@ export async function getSalaryBenchmark(role?: string) {
 
 export type IndustryTrend = {
 	skillId: string;
-	skillName: string;
+	name: string;
+	tag?: string | null;
 	jobCount: number;
-	growthRate?: number;
-	relatedCourses: Array<{ id: string; title: string; slug: string }>;
-	relatedJobs: Array<{ id: string; title: string; slug: string; employer: { name: string } }>;
+	relatedCourses?: Array<{ id: string; title: string; slug: string }>;
+	relatedJobs?: Array<{ id: string; title: string; slug: string; employer: { name: string } }>;
 };
 
 export async function getIndustryTrends() {

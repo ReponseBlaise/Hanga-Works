@@ -128,17 +128,57 @@ export class IntelligenceService {
       take: 20,
     });
 
+    const skillIds = demand.map((d) => d.skillId);
+    if (skillIds.length === 0) return [];
+
     const skills = await this.prisma.skill.findMany({
-      where: { id: { in: demand.map(d => d.skillId) } },
+      where: { id: { in: skillIds } },
       select: { id: true, name: true, tag: true },
     });
-    const skillMap = new Map(skills.map(s => [s.id, s]));
+    const skillMap = new Map(skills.map((s) => [s.id, s]));
 
-    return demand.map(d => ({
+    const relatedCourses = await this.prisma.course.findMany({
+      where: {
+        published: true,
+        skills: { some: { skillId: { in: skillIds } } },
+      },
+      select: { id: true, title: true, slug: true, skills: { select: { skillId: true } } },
+      take: 40,
+    });
+
+    const relatedJobs = await this.prisma.job.findMany({
+      where: {
+        isActive: true,
+        skills: { some: { skillId: { in: skillIds } } },
+      },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        employer: { select: { name: true } },
+        skills: { select: { skillId: true } },
+      },
+      take: 40,
+    });
+
+    return demand.map((d) => ({
       skillId: d.skillId,
       name: skillMap.get(d.skillId)?.name ?? d.skillId,
       tag: skillMap.get(d.skillId)?.tag ?? null,
       jobCount: d._count.skillId,
+      relatedCourses: relatedCourses
+        .filter((course) => course.skills.some((skill) => skill.skillId === d.skillId))
+        .slice(0, 3)
+        .map((course) => ({ id: course.id, title: course.title, slug: course.slug })),
+      relatedJobs: relatedJobs
+        .filter((job) => job.skills.some((skill) => skill.skillId === d.skillId))
+        .slice(0, 3)
+        .map((job) => ({
+          id: job.id,
+          title: job.title,
+          slug: job.slug,
+          employer: { name: job.employer.name },
+        })),
     }));
   }
 

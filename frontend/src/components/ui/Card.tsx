@@ -13,14 +13,28 @@ export function Card({ as: Component = 'article', className = '', children, ...p
 	);
 }
 
-export function CardEyebrow({ children }: { children: ReactNode }) {
-	return <p className="card-eyebrow">{children}</p>;
+type CardTextProps = HTMLAttributes<HTMLElement> & { children: ReactNode };
+
+export function CardEyebrow({ children, className = '', ...props }: CardTextProps) {
+	return (
+		<p className={`card-eyebrow ${className}`.trim()} {...props}>
+			{children}
+		</p>
+	);
 }
 
-export function CardTitle({ children }: { children: ReactNode }) {
-	return <h3 className="card-title">{children}</h3>;
+export function CardTitle({ children, className = '', ...props }: CardTextProps) {
+	return (
+		<h3 className={`card-title ${className}`.trim()} {...props}>
+			{children}
+		</h3>
+	);
 }
 
-export function CardMeta({ children }: { children: ReactNode }) {
-	return <p className="card-meta">{children}</p>;
+export function CardMeta({ children, className = '', ...props }: CardTextProps) {
+	return (
+		<p className={`card-meta ${className}`.trim()} {...props}>
+			{children}
+		</p>
+	);
 }
