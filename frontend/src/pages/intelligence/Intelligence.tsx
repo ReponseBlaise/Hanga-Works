@@ -45,17 +45,13 @@ export default function Intelligence() {
 
   useEffect(() => {
     if (!selectedJobId) {
-      setTimeout(() => {
-        setGapAnalysis(null);
-        setLoadingAnalysis(false);
-      }, 0);
+      setGapAnalysis(null);
+      setLoadingAnalysis(false);
       return;
     }
 
     let active = true;
-    setTimeout(() => {
-      if (active) setLoadingAnalysis(true);
-    }, 0);
+    setLoadingAnalysis(true);
     getSkillGapAnalysis(selectedJobId)
       .then((analysis) => {
         if (active) setGapAnalysis(analysis);
@@ -71,7 +67,7 @@ export default function Intelligence() {
     return () => {
       active = false;
     };
-  }, [selectedJobId, gapAnalysis, loadingAnalysis]);
+  }, [selectedJobId]);
 
   const selectedJob = useMemo(() => jobs.find((job) => job.id === selectedJobId) ?? null, [jobs, selectedJobId]);
 

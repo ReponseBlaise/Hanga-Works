@@ -144,23 +144,11 @@ export default function JobList() {
     <SiteLayout>
       <section className="studio-jobs joblist-redesign" id="results">
           <header className="joblist-redesign__hero">
-            <div 
-              className="joblist-redesign__promo" 
-              style={{ 
-                backgroundImage: 'linear-gradient(to right, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.4) 100%), url(/career-banner.png)',
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                color: 'white',
-                borderRadius: 'var(--radius-lg)',
-                padding: '3rem 2rem',
-                display: 'flex',
-                alignItems: 'center'
-              }}
-            >
+            <div className="joblist-redesign__promo">
               <div style={{ maxWidth: '600px' }}>
-                <p className="eyebrow" style={{ color: 'rgba(255,255,255,0.85)' }}>Career Marketplace</p>
-                <h1 className="display" style={{ color: 'white', marginBottom: '1rem' }}>Find your next opportunity</h1>
-                <p className="lead" style={{ color: 'rgba(255,255,255,0.9)', marginBottom: '1.5rem' }}>Explore roles, save favorites, and apply when you are ready.</p>
+                <p className="eyebrow">Career Marketplace</p>
+                <h1 className="display">Find your next opportunity</h1>
+                <p className="lead">Explore roles, save favorites, and apply when you are ready.</p>
                 <Button to="/applications" variant="secondary">Track applications</Button>
               </div>
             </div>

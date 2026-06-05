@@ -298,14 +298,14 @@ export function CourseDetail() {
 							</div>
 
 							{(isAddingModule || editingModuleId) && (
-								<form onSubmit={handleSaveModule} style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px', padding: '12px', background: 'var(--surface-muted)', borderRadius: 'var(--radius-md)' }}>
-									<input type="text" required placeholder="Lesson Title" value={moduleForm.title} onChange={e => setModuleForm(f => ({ ...f, title: e.target.value }))} style={{ padding: '8px', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)' }} />
-									<input type="url" placeholder="Or Paste Video URL (Youtube etc)" value={moduleForm.videoUrl} onChange={e => setModuleForm(f => ({ ...f, videoUrl: e.target.value }))} style={{ padding: '8px', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)' }} />
-									<label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Upload File (Video or PDF. Overrides URL)</label>
-									<input type="file" accept="video/*,application/pdf" onChange={e => setModuleForm(f => ({ ...f, file: e.target.files?.[0] || null }))} style={{ padding: '8px', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)' }} />
-									<textarea placeholder="Lesson Content (optional)" value={moduleForm.content} onChange={e => setModuleForm(f => ({ ...f, content: e.target.value }))} style={{ padding: '8px', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)' }} />
-									<input type="number" required placeholder="Order (e.g. 1)" value={moduleForm.order} onChange={e => setModuleForm(f => ({ ...f, order: Number(e.target.value) }))} style={{ padding: '8px', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)' }} />
-									<div style={{ display: 'flex', gap: '8px' }}>
+								<form onSubmit={handleSaveModule} className="module-editor-form">
+									<input type="text" required placeholder="Lesson Title" value={moduleForm.title} onChange={e => setModuleForm(f => ({ ...f, title: e.target.value }))} />
+									<input type="url" placeholder="Or Paste Video URL (Youtube etc)" value={moduleForm.videoUrl} onChange={e => setModuleForm(f => ({ ...f, videoUrl: e.target.value }))} />
+									<label style={{ fontSize: '12px', color: 'var(--text-soft)' }}>Upload File (Video or PDF. Overrides URL)</label>
+									<input type="file" accept="video/*,application/pdf" onChange={e => setModuleForm(f => ({ ...f, file: e.target.files?.[0] || null }))} />
+									<textarea placeholder="Lesson Content (optional)" value={moduleForm.content} onChange={e => setModuleForm(f => ({ ...f, content: e.target.value }))} />
+									<input type="number" required placeholder="Order (e.g. 1)" value={moduleForm.order} onChange={e => setModuleForm(f => ({ ...f, order: Number(e.target.value) }))} />
+									<div className="studio-action-row">
 										<Button variant="primary" type="submit" disabled={savingModule}>{savingModule ? 'Saving...' : 'Save Lesson'}</Button>
 										{editingModuleId && <Button variant="ghost" type="button" onClick={() => setEditingModuleId(null)}>Cancel</Button>}
 									</div>
@@ -357,7 +357,7 @@ export function CourseDetail() {
 											title={resolvedActiveModule.title}
 											src={resolvedActiveModule.videoUrl}
 											width="100%"
-											height="500px"
+											style={{ height: 'clamp(240px, 50vw, 500px)', border: 0 }}
 										/>
 									) : (
 										<iframe
@@ -365,6 +365,7 @@ export function CourseDetail() {
 											src={getEmbedUrl(resolvedActiveModule.videoUrl)}
 											allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
 											allowFullScreen
+											style={{ width: '100%', height: 'clamp(240px, 50vw, 480px)', border: 0 }}
 										/>
 									)
 								) : (
