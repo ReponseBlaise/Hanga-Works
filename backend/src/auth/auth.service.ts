@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Role } from '@prisma/client';
+import { Role, AccountStatus } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -31,15 +31,17 @@ export class AuthService {
     
     let organizationId = undefined;
     const isEmployerOrInstitution = userRole === Role.EMPLOYER || userRole === Role.INSTITUTION;
-    const status = isEmployerOrInstitution ? 'PENDING' : 'ACTIVE';
+    const status = isEmployerOrInstitution ? ('PENDING' as any) : ('ACTIVE' as any);
 
     if (userRole === Role.EMPLOYER) {
-      const org = await this.prisma.organization.create({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const org = await (this.prisma.organization.create as any)({
         data: { name: `${dto.name} Company`, type: 'EMPLOYER', companyCertificate: certificateUrl }
       });
       organizationId = org.id;
     } else if (userRole === Role.INSTITUTION) {
-      const org = await this.prisma.organization.create({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const org = await (this.prisma.organization.create as any)({
         data: { name: `${dto.name} Institution`, type: 'INSTITUTION', trainingCertificate: certificateUrl }
       });
       organizationId = org.id;
@@ -150,7 +152,7 @@ export class AuthService {
     console.log('PASSWORD MATCH:', isMatch);
     if (!isMatch) throw new UnauthorizedException('Invalid credentials');
 
-    if (user.status === 'PENDING') {
+    if ((user.status as any) === 'PENDING') {
       throw new UnauthorizedException('Your account is pending admin approval.');
     }
 
