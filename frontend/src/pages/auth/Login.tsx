@@ -57,7 +57,8 @@ export default function Login() {
       maxWidth: '460px',
       background: 'var(--bg-elevated)',
       borderRadius: 'var(--radius-xl)',
-      boxShadow: 'var(--shadow)',
+      boxShadow: 'none',
+      backdropFilter: 'none',
       border: '1px solid var(--border)',
       padding: '40px',
     }}>
