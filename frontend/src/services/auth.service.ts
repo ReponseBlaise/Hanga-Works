@@ -14,17 +14,15 @@ export async function register(payload: {
 	role?: 'LEARNER' | 'EMPLOYER' | 'INSTITUTION' | 'MENTOR';
 	certificate?: File;
 }) {
-	// Create the account
 	const formData = new FormData();
 	formData.append('name', payload.name);
 	formData.append('email', payload.email);
-	if (payload.phone) formData.append('phone', payload.phone);
+	if (payload.phone?.trim()) formData.append('phone', payload.phone.trim());
 	formData.append('password', payload.password);
 	if (payload.role) formData.append('role', payload.role);
 	if (payload.certificate) formData.append('certificate', payload.certificate);
 
 	await api.post('/auth/register', formData);
-	// Immediately log in to get the token
 	return await login({ email: payload.email, password: payload.password });
 }
 
@@ -50,6 +48,7 @@ export async function profile() {
 export async function updateProfile(payload: {
 	name?: string;
 	bio?: string;
+	headline?: string;
 	avatarUrl?: string;
 	location?: string;
 	skills?: Array<{ skillName: string; level: string }>;

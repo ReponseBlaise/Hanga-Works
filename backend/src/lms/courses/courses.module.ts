@@ -6,11 +6,8 @@ import { CoursesService } from './courses.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RedisService } from '../../redis/redis.service';
 import { JwtStrategy } from '../../auth/strategies/jwt.strategy';
-import { CertificationsService } from '../../certifications/certifications.service';
-import { NotificationsService } from '../../notifications/notifications.service';
-import { PdfService } from '../../certifications/pdf.service';
-import { StorageService } from '../../storage/storage.service';
-import { NotificationsGateway } from '../../notifications/notifications.gateway';
+import { CertificationsModule } from '../../certifications/certifications.module';
+import { NotificationsModule } from '../../notifications/notifications.module';
 
 @Module({
   imports: [
@@ -19,9 +16,16 @@ import { NotificationsGateway } from '../../notifications/notifications.gateway'
       secret: process.env.JWT_SECRET ?? 'changeme',
       signOptions: { expiresIn: '1d' },
     }),
+    CertificationsModule,
+    NotificationsModule,
   ],
   controllers: [CoursesController],
-  providers: [CoursesService, PrismaService, RedisService, JwtStrategy, CertificationsService, NotificationsService, PdfService, StorageService, NotificationsGateway],
+  providers: [
+    CoursesService,
+    PrismaService,
+    RedisService,
+    JwtStrategy,
+  ],
   exports: [CoursesService],
 })
 export class CoursesModule {}

@@ -35,6 +35,7 @@ export class UsersService {
         name: true,
         role: true,
         bio: true,
+        headline: true,
         avatarUrl: true,
         location: true,
         createdAt: true,
@@ -58,6 +59,7 @@ export class UsersService {
         phone: true,
         role: true,
         bio: true,
+        headline: true,
         avatarUrl: true,
         location: true,
         emailVerified: true,
@@ -104,6 +106,7 @@ export class UsersService {
       select: {
         name: true,
         bio: true,
+        headline: true,
         avatarUrl: true,
         location: true,
         phone: true,

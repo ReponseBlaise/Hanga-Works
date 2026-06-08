@@ -65,3 +65,23 @@ export async function createInstitutionMentor(data: { name: string, email: strin
   const response = await api.post('/mentorship/create', data);
   return response.data?.data ?? response.data;
 }
+
+export async function acceptSession(id: string): Promise<MentorSession> {
+  const response = await api.patch(`/mentorship/sessions/${id}/accept`);
+  return response.data?.data ?? response.data;
+}
+
+export async function rejectSession(id: string): Promise<MentorSession> {
+  const response = await api.patch(`/mentorship/sessions/${id}/reject`);
+  return response.data?.data ?? response.data;
+}
+
+export async function completeSession(id: string): Promise<MentorSession> {
+  const response = await api.patch(`/mentorship/sessions/${id}/complete`);
+  return response.data?.data ?? response.data;
+}
+
+export async function submitReview(id: string, rating: number, feedback?: string) {
+  const response = await api.post(`/mentorship/sessions/${id}/review`, { rating, feedback });
+  return response.data?.data ?? response.data;
+}

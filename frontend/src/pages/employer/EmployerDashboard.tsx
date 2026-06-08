@@ -5,13 +5,24 @@ import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card
 import { Button } from '../../components/ui/Button';
 import { ProgressBar } from '../../components/shared/ProgressBar';
 import { useAuth } from '../../hooks/useAuth';
-import { getEmployerAnalytics, getEmployerJobs, type EmployerStats } from '../../services/employer.service';
+import { deleteJob, getEmployerAnalytics, getEmployerJobs, type EmployerStats } from '../../services/employer.service';
 
 export default function EmployerDashboard() {
   const { user, isAuthenticated } = useAuth();
   const [stats, setStats] = useState<EmployerStats | null>(null);
   const [jobs, setJobs] = useState<Awaited<ReturnType<typeof getEmployerJobs>>>([]);
   const [loading, setLoading] = useState(true);
+
+  async function handleDelete(jobId: string) {
+    if (!window.confirm('Are you sure you want to delete this job?')) return;
+    try {
+      await deleteJob(jobId);
+      setJobs((prev) => prev.filter(j => j.id !== jobId));
+    } catch (error) {
+      console.error('Failed to delete job', error);
+      alert('Failed to delete job.');
+    }
+  }
 
   useEffect(() => {
     let active = true;
@@ -156,6 +167,8 @@ export default function EmployerDashboard() {
                       <CardMeta>{job.salaryMin || job.salaryMax ? `Salary range: ${job.salaryMin ?? 0} - ${job.salaryMax ?? 0}` : 'Salary not specified'}</CardMeta>
                       <div className="studio-action-row mt-md">
                         <Button to={`/employer/jobs/${job.id}/applicants`} variant="secondary">Review applicants</Button>
+                        <Button to={`/employer/jobs/${job.id}/edit`} variant="ghost">Edit</Button>
+                        <Button variant="ghost" onClick={() => handleDelete(job.id)} style={{ color: 'var(--danger-text, red)' }}>Delete</Button>
                       </div>
                     </Card>
                   ))}

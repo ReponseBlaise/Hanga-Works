@@ -1,33 +1,32 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength, IsOptional, IsEnum } from 'class-validator';
-import { Role } from '@prisma/client';
+import { IsEmail, IsNotEmpty, IsString, MinLength, IsOptional, IsIn } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class RegisterDto {
-  @ApiProperty({ example: 'John Doe', description: 'Full name of the user' })
+  @ApiProperty({ example: 'John Doe' })
   @IsString()
   @IsNotEmpty()
   name: string;
 
-  @ApiProperty({ example: 'student@ur.ac.rw', description: 'Email address of the user' })
+  @ApiProperty({ example: 'student@ur.ac.rw' })
   @IsEmail()
   email: string;
 
-  @ApiProperty({ example: '+250781234567', description: 'Phone number (optional)', required: false })
+  @ApiProperty({ example: '+250781234567', required: false })
   @IsOptional()
   @IsString()
   phone?: string;
 
-  @ApiProperty({ example: 'leo@ABC2025!!', description: 'Password (min 6 characters)' })
+  @ApiProperty({ example: 'password123' })
   @IsString()
   @MinLength(6)
   password: string;
 
-  @ApiProperty({ example: 'LEARNER', enum: Role, required: false, description: 'Role of the user (LEARNER, EMPLOYER, INSTITUTION, MENTOR)' })
+  @ApiProperty({ example: 'LEARNER', required: false })
   @IsOptional()
-  @IsEnum(Role)
-  role?: Role;
+  @IsIn(['LEARNER', 'EMPLOYER', 'INSTITUTION', 'MENTOR'])
+  role?: string;
 
-  @ApiProperty({ type: 'string', format: 'binary', required: false, description: 'Certificate file for Employer/Institution' })
+  @ApiProperty({ type: 'string', format: 'binary', required: false })
   @IsOptional()
   certificate?: unknown;
 }

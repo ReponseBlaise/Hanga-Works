@@ -41,7 +41,7 @@ export default function Login() {
       })
       .catch((err) => {
         console.error(err);
-        setError(err?.response?.data?.message || err.message || 'Login failed');
+        setError(err?.response?.data?.message || err.message || 'Login failed. Check your email and password.');
       })
       .finally(() => setLoading(false));
   };
@@ -57,7 +57,8 @@ export default function Login() {
       maxWidth: '460px',
       background: 'var(--bg-elevated)',
       borderRadius: 'var(--radius-xl)',
-      boxShadow: 'var(--shadow)',
+      boxShadow: 'none',
+      backdropFilter: 'none',
       border: '1px solid var(--border)',
       padding: '40px',
     }}>

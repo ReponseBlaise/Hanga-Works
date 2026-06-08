@@ -4,7 +4,7 @@ import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta } from '../../components/ui/Card';
 import { useAuth } from '../../hooks/useAuth';
-import { getMySessions, createProfile, type MentorSession } from '../../services/mentorship.service';
+import { getMySessions, createProfile, acceptSession, rejectSession, completeSession, submitReview, type MentorSession } from '../../services/mentorship.service';
 
 export default function MentorDashboard() {
   const { user, isAuthenticated } = useAuth();
@@ -42,6 +42,40 @@ export default function MentorDashboard() {
   const recentSessions = useMemo(() => {
     return sessions.filter(s => s.status === 'COMPLETED').slice(0, 3);
   }, [sessions]);
+
+  const [reviewForm, setReviewForm] = useState<{ id: string, rating: number, feedback: string } | null>(null);
+  const [reviewedIds, setReviewedIds] = useState<Set<string>>(new Set());
+
+  const handleAccept = async (id: string) => {
+    try {
+      const updated = await acceptSession(id);
+      setSessions(prev => prev.map(s => s.id === id ? updated : s));
+    } catch (err) { console.error(err); }
+  };
+
+  const handleReject = async (id: string) => {
+    try {
+      const updated = await rejectSession(id);
+      setSessions(prev => prev.map(s => s.id === id ? updated : s));
+    } catch (err) { console.error(err); }
+  };
+
+  const handleComplete = async (id: string) => {
+    try {
+      const updated = await completeSession(id);
+      setSessions(prev => prev.map(s => s.id === id ? updated : s));
+    } catch (err) { console.error(err); }
+  };
+
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reviewForm) return;
+    try {
+      await submitReview(reviewForm.id, reviewForm.rating, reviewForm.feedback);
+      setReviewedIds(prev => new Set(prev).add(reviewForm.id));
+      setReviewForm(null);
+    } catch (err) { console.error(err); }
+  };
 
   const handleProfileSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -124,7 +158,19 @@ export default function MentorDashboard() {
                           <strong>{session.mentee?.name || 'Learner'}</strong>
                           <p>{new Date(session.scheduledAt).toLocaleString()} ({session.durationMinutes} mins)</p>
                         </div>
-                        <span className="dashboard-chip">{session.status}</span>
+                        {session.status === 'PENDING' ? (
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <Button variant="primary" onClick={() => handleAccept(session.id)}>Accept</Button>
+                            <Button variant="ghost" onClick={() => handleReject(session.id)}>Reject</Button>
+                          </div>
+                        ) : session.status === 'ACCEPTED' ? (
+                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <span className="dashboard-chip">ACCEPTED</span>
+                            <Button variant="secondary" onClick={() => handleComplete(session.id)}>Complete</Button>
+                          </div>
+                        ) : (
+                          <span className="dashboard-chip">{session.status}</span>
+                        )}
                       </div>
                     ))
                   )}
@@ -161,11 +207,33 @@ export default function MentorDashboard() {
                     <CardMeta>No completed sessions yet.</CardMeta>
                   ) : (
                     recentSessions.map((task) => (
-                      <div key={task.id} className="studio-inline-item">
+                      <div key={task.id} className="studio-inline-item" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
                         <div>
-                          <strong>{task.mentee?.name}</strong>
+                          <strong>{task.mentee?.name || 'Learner'}</strong>
                           <p>{new Date(task.scheduledAt).toLocaleDateString()}</p>
                         </div>
+                        {!reviewedIds.has(task.id) ? (
+                           reviewForm?.id === task.id ? (
+                             <form onSubmit={handleReviewSubmit} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                               <select className="form-control" value={reviewForm.rating} onChange={e => setReviewForm({...reviewForm, rating: Number(e.target.value)})}>
+                                 <option value={5}>5 - Excellent</option>
+                                 <option value={4}>4 - Good</option>
+                                 <option value={3}>3 - Okay</option>
+                                 <option value={2}>2 - Poor</option>
+                                 <option value={1}>1 - Terrible</option>
+                               </select>
+                               <textarea className="form-control" placeholder="Feedback..." value={reviewForm.feedback} onChange={e => setReviewForm({...reviewForm, feedback: e.target.value})} rows={2} />
+                               <div style={{ display: 'flex', gap: '8px' }}>
+                                 <Button type="submit" variant="primary">Submit Review</Button>
+                                 <Button type="button" variant="ghost" onClick={() => setReviewForm(null)}>Cancel</Button>
+                               </div>
+                             </form>
+                           ) : (
+                             <Button variant="ghost" onClick={() => setReviewForm({ id: task.id, rating: 5, feedback: '' })}>Leave Review</Button>
+                           )
+                        ) : (
+                           <span className="dashboard-chip">Reviewed</span>
+                        )}
                       </div>
                     ))
                   )}

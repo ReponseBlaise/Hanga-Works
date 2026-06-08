@@ -66,13 +66,13 @@ export default function Register() {
 
   return (
     <div
-      className="auth-card auth-card--centered"
       style={{
         width: '100%',
         maxWidth: '460px',
         background: 'var(--bg-elevated)',
         borderRadius: 'var(--radius-xl)',
-        boxShadow: 'var(--shadow)',
+        boxShadow: 'none',
+        backdropFilter: 'none',
         border: '1px solid var(--border)',
         padding: '40px',
       }}
