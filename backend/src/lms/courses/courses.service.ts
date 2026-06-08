@@ -357,32 +357,9 @@ export class CoursesService {
         throw new ForbiddenException('Sign in to access this lesson');
       }
       await this.getCourseForManage(courseId, user);
-    } else {
-      const canBypass =
-        user?.role === Role.ADMIN || user?.role === Role.INSTITUTION;
-      if (!canBypass) {
-        const enrolled = user
-          ? await this.prisma.enrollment.findUnique({
-              where: {
-                userId_courseId: { userId: user.userId, courseId },
-              },
-            })
-          : null;
-
-        if (!enrolled) {
-          const firstModule = await this.prisma.courseModule.findFirst({
-            where: { courseId },
-            orderBy: { order: 'asc' },
-            select: { id: true },
-          });
-          if (firstModule?.id !== moduleId) {
-            throw new ForbiddenException(
-              'Enroll in the course to access this lesson',
-            );
-          }
-        }
-      }
     }
+    // Published courses: all lessons are previewable without enrollment.
+    // Enrollment is required for progress tracking, tests, and certificates.
 
     const module = await this.getModuleOrThrow(courseId, moduleId);
 

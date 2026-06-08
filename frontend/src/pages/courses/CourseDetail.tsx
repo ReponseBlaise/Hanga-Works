@@ -9,6 +9,7 @@ import { getCourseById, getMyProgress, enrollInCourse, updateLessonProgress, cre
 import { FlutterwavePayButton } from '../../components/payments/FlutterwavePayButton';
 import { getMyCertificates, type LearnerCertificate } from '../../services/certificates.service';
 import { getJobs, type JobSummary } from '../../services/jobs.service';
+import { getPreviewModuleId, setPreviewModuleId } from '../../utils/coursePreview';
 
 function getEmbedUrl(url: string) {
 	if (!url) return url;
@@ -48,6 +49,8 @@ export function CourseDetail() {
 	const [savingModule, setSavingModule] = useState(false);
 	const [activeModuleId, setActiveModuleId] = useState('');
 	const prevIdRef = useRef<string | undefined>(undefined);
+	const checkpointTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const resumeAppliedRef = useRef(false);
 
 	// Derive enrollments/certificates — empty when not authenticated
 	const enrollments = useMemo(() => isAuthenticated ? rawEnrollments : [], [isAuthenticated, rawEnrollments]);
@@ -68,7 +71,8 @@ export function CourseDetail() {
 				if (!active) return;
 				setCourse(item ?? null);
 				setRelatedJobs(jobsResponse.jobs ?? []);
-				setActiveModuleId(item?.modules?.[0]?.id ?? '');
+				resumeAppliedRef.current = false;
+				setActiveModuleId('');
 				setCourseLoading(false);
 			})
 			.catch((fetchError) => {
@@ -106,11 +110,75 @@ export function CourseDetail() {
 	const currentEnrollment = useMemo(() => enrollments.find((item) => item.course.id === id) ?? null, [enrollments, id]);
 	const currentCertificate = useMemo(() => certificates.find((item) => item.courseId === id) ?? null, [certificates, id]);
 	const progressValue = currentEnrollment?.progress ?? 0;
+	const sortedModules = useMemo(
+		() => [...(course?.modules ?? [])].sort((a, b) => a.order - b.order),
+		[course?.modules],
+	);
 
 	const resolvedActiveModule = useMemo(() => {
-		const modules = course?.modules ?? [];
-		return modules.find((m) => m.id === activeModuleId) ?? modules[0] ?? null;
-	}, [course, activeModuleId]);
+		return sortedModules.find((m) => m.id === activeModuleId) ?? sortedModules[0] ?? null;
+	}, [sortedModules, activeModuleId]);
+
+	const activeModuleIndex = useMemo(
+		() => sortedModules.findIndex((m) => m.id === resolvedActiveModule?.id),
+		[sortedModules, resolvedActiveModule?.id],
+	);
+
+	// Resume last lesson (enrolled users) or local preview position (guests)
+	useEffect(() => {
+		if (!course?.id || sortedModules.length === 0 || resumeAppliedRef.current) return;
+
+		let targetId = '';
+		if (currentEnrollment?.lastModuleId && sortedModules.some((m) => m.id === currentEnrollment.lastModuleId)) {
+			targetId = currentEnrollment.lastModuleId;
+		} else if (!currentEnrollment) {
+			const previewId = getPreviewModuleId(course.id);
+			if (previewId && sortedModules.some((m) => m.id === previewId)) {
+				targetId = previewId;
+			}
+		}
+
+		resumeAppliedRef.current = true;
+		setActiveModuleId(targetId || sortedModules[0].id);
+	}, [course?.id, sortedModules, currentEnrollment?.lastModuleId, currentEnrollment?.id]);
+
+	useEffect(() => {
+		return () => {
+			if (checkpointTimerRef.current) clearTimeout(checkpointTimerRef.current);
+		};
+	}, []);
+
+	async function saveCheckpoint(moduleId: string, showMessage = false) {
+		if (!currentEnrollment || !course?.modules?.length) return;
+
+		try {
+			const updated = await updateLessonProgress(currentEnrollment.id, { lastModuleId: moduleId });
+			setRawEnrollments((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
+			if (showMessage) {
+				setTrackingMessage(`Progress saved at ${updated.progress ?? 0}%.`);
+			}
+		} catch (saveError) {
+			console.error(saveError);
+			if (showMessage) {
+				setTrackingMessage('Could not save your place. Try again in a moment.');
+			}
+		}
+	}
+
+	function selectModule(moduleId: string) {
+		setActiveModuleId(moduleId);
+		if (!course) return;
+
+		if (!currentEnrollment) {
+			setPreviewModuleId(course.id, moduleId);
+			return;
+		}
+
+		if (checkpointTimerRef.current) clearTimeout(checkpointTimerRef.current);
+		checkpointTimerRef.current = setTimeout(() => {
+			void saveCheckpoint(moduleId);
+		}, 500);
+	}
 
 	async function handlePaymentSuccess(data: { txRef: string; transactionId: string }) {
 		if (!course) return;
@@ -146,8 +214,15 @@ export function CourseDetail() {
 		setTrackingMessage('Creating your enrollment so the platform can track progress and issue a certificate when you complete the course.');
 		try {
 			const enrollment = await enrollInCourse(course.id);
-			setRawEnrollments((prev) => [enrollment, ...prev]);
-			setTrackingMessage('Enrollment created. You can now track progress from this page.');
+			const previewModuleId = getPreviewModuleId(course.id);
+			const enrolledWithCheckpoint = previewModuleId
+				? await updateLessonProgress(enrollment.id, { lastModuleId: previewModuleId })
+				: enrollment;
+			setRawEnrollments((prev) => [enrolledWithCheckpoint, ...prev]);
+			if (previewModuleId) {
+				setActiveModuleId(previewModuleId);
+			}
+			setTrackingMessage('Enrollment created. Your preview progress was saved to your account.');
 		} catch (enrollError) {
 			console.error(enrollError);
 			if (axios.isAxiosError(enrollError) && enrollError.response?.status === 409) {
@@ -167,7 +242,11 @@ export function CourseDetail() {
 		setSavingProgress(true);
 		setTrackingMessage('Saving your study progress.');
 		try {
-			const updated = await updateLessonProgress(currentEnrollment.id, progressValue);
+			const moduleId = resolvedActiveModule?.id;
+			const updated = await updateLessonProgress(currentEnrollment.id, {
+				progress: progressValue,
+				...(moduleId ? { lastModuleId: moduleId } : {}),
+			});
 			setRawEnrollments((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
 			setTrackingMessage(`Progress saved at ${updated.progress ?? progressValue}%. Take the final test to complete the course.`);
 		} catch (saveError) {
@@ -288,10 +367,25 @@ export function CourseDetail() {
 					</div>
 				</section>
 
+				{(currentEnrollment?.lastModule || (!currentEnrollment && getPreviewModuleId(course.id))) ? (
+					<div className="learning-redesign__resume-banner">
+						<p>
+							{currentEnrollment?.lastModule
+								? `Continue where you left off: Module ${currentEnrollment.lastModule.order} — ${currentEnrollment.lastModule.title}`
+								: 'Browsing in preview mode — your place is saved on this device until you enroll.'}
+						</p>
+						{resolvedActiveModule && currentEnrollment?.lastModule?.id !== resolvedActiveModule.id ? (
+							<Button type="button" variant="secondary" onClick={() => selectModule(currentEnrollment?.lastModuleId ?? sortedModules[0]?.id ?? '')}>
+								Jump to last lesson
+							</Button>
+						) : null}
+					</div>
+				) : null}
+
 				<section className="learning-redesign__summary">
 					<div>
 						<span>Progress</span>
-						<strong>{progressValue}%</strong>
+						<strong>{currentEnrollment ? `${progressValue}%` : 'Preview'}</strong>
 					</div>
 					<div>
 						<span>Modules</span>
@@ -344,15 +438,18 @@ export function CourseDetail() {
 							)}
 
 							<div className="studio-module-list">
-								{(course.modules ?? []).map((module) => (
+								{sortedModules.map((module) => {
+									const isCurrent = activeModuleId === module.id;
+									const isLastSaved = currentEnrollment?.lastModuleId === module.id;
+									return (
 									<div key={module.id} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
 										<button
 											type="button"
 											style={{ flex: 1, textAlign: 'left' }}
-											className={`studio-module-item ${activeModuleId === module.id ? 'is-active' : ''}`.trim()}
-											onClick={() => setActiveModuleId(module.id)}
+											className={`studio-module-item ${isCurrent ? 'is-active' : ''} ${isLastSaved ? 'is-resume' : ''}`.trim()}
+											onClick={() => selectModule(module.id)}
 										>
-											<span>Module {module.order}</span>
+											<span>Module {module.order}{isLastSaved ? ' · last viewed' : ''}</span>
 											<strong>{module.title}</strong>
 										</button>
 										{isManager && (
@@ -366,7 +463,8 @@ export function CourseDetail() {
 											</div>
 										)}
 									</div>
-								))}
+									);
+								})}
 							</div>
 						</Card>
 
@@ -380,7 +478,17 @@ export function CourseDetail() {
 
 					<div className="learning-redesign__content">
 						<Card className="studio-block">
-							<CardEyebrow>Lesson stage</CardEyebrow>
+							<CardEyebrow>
+								Lesson {resolvedActiveModule ? `${activeModuleIndex + 1} of ${sortedModules.length}` : ''}
+								{!currentEnrollment ? ' · preview' : ''}
+							</CardEyebrow>
+							{!currentEnrollment ? (
+								<p className="learning-preview-note">
+									{course.isPremium
+										? 'Preview all lessons below. Purchase and enroll to save progress on your account and unlock the certificate.'
+										: 'You can watch and read every lesson without enrolling. Enroll when you are ready to save progress on your account and earn a certificate.'}
+								</p>
+							) : null}
 							<div className="studio-video-frame">
 								{resolvedActiveModule?.videoUrl ? (
 									resolvedActiveModule.videoUrl.endsWith('.pdf') ? (
@@ -403,10 +511,35 @@ export function CourseDetail() {
 									<div className="studio-video-fallback">
 										<strong>{resolvedActiveModule?.title ?? 'No module selected'}</strong>
 										<p>Video/Document content is not available for this module yet.</p>
-										{resolvedActiveModule?.content && <p style={{ marginTop: '16px', color: 'var(--text)' }}>{resolvedActiveModule.content}</p>}
 									</div>
 								)}
 							</div>
+							{resolvedActiveModule?.content ? (
+								<div
+									className="learning-lesson-content"
+									dangerouslySetInnerHTML={{ __html: resolvedActiveModule.content }}
+								/>
+							) : null}
+							{sortedModules.length > 1 ? (
+								<div className="studio-action-row mt-md">
+									<Button
+										type="button"
+										variant="ghost"
+										disabled={activeModuleIndex <= 0}
+										onClick={() => selectModule(sortedModules[activeModuleIndex - 1].id)}
+									>
+										Previous lesson
+									</Button>
+									<Button
+										type="button"
+										variant="ghost"
+										disabled={activeModuleIndex < 0 || activeModuleIndex >= sortedModules.length - 1}
+										onClick={() => selectModule(sortedModules[activeModuleIndex + 1].id)}
+									>
+										Next lesson
+									</Button>
+								</div>
+							) : null}
 							{!isManager && (
 								<>
 									{/* Premium course: show price banner + pay button when not enrolled */}
@@ -470,10 +603,10 @@ export function CourseDetail() {
 									<div className="studio-progress-stack">
 										<CardMeta>
 											{currentEnrollment
-												? `Enrollment status: ${currentEnrollment.status.toLowerCase()}`
+												? `Enrollment status: ${currentEnrollment.status.toLowerCase()}. Your place is saved automatically as you open each lesson.`
 												: course.isPremium
-												? 'Purchase this course to start tracking your progress and unlock a certificate.'
-												: 'Enroll to start tracking your progress and unlock a certificate.'}
+												? 'Preview lessons below. Purchase to save progress on your account and unlock the certificate.'
+												: 'Preview all lessons below. Enroll anytime to save progress on your account and unlock a certificate.'}
 										</CardMeta>
 										{trackingMessage && course.isPremium && !currentEnrollment ? null : trackingMessage ? <p className="muted">{trackingMessage}</p> : null}
 										{currentCertificate ? (

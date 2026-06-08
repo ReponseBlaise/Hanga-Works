@@ -4,7 +4,7 @@ import { MdSchool, MdGroups, MdCheckCircle, MdMenuBook } from 'react-icons/md';
 import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
-import { getCourses, getManageableCourses, getMyProgress, type BackendCourse } from '../../services/courses.service';
+import { getCourses, getManageableCourses, getMyProgress, type BackendCourse, type CourseEnrollment } from '../../services/courses.service';
 import { useAuth } from '../../hooks/useAuth';
 
 export function CourseList() {
@@ -12,6 +12,7 @@ export function CourseList() {
 	const [search, setSearch] = useState('');
 	const [courses, setCourses] = useState<BackendCourse[]>([]);
 	const [enrolledCourseIds, setEnrolledCourseIds] = useState<Set<string>>(new Set());
+	const [progressByCourse, setProgressByCourse] = useState<Map<string, CourseEnrollment>>(new Map());
 	const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 	const [publishFilter, setPublishFilter] = useState<'ALL' | 'PUBLISHED' | 'DRAFT'>('ALL');
 	const [loading, setLoading] = useState(true);
@@ -45,7 +46,9 @@ export function CourseList() {
 		getMyProgress()
 			.then((items) => {
 				if (!active) return;
-				setEnrolledCourseIds(new Set((items ?? []).map((item) => item.course.id)));
+				const list = items ?? [];
+				setEnrolledCourseIds(new Set(list.map((item) => item.course.id)));
+				setProgressByCourse(new Map(list.map((item) => [item.course.id, item])));
 			})
 			.catch((error) => {
 				console.error('Failed to load learner enrollments for course badges', error);
@@ -198,6 +201,16 @@ export function CourseList() {
 						<div className={viewMode === 'grid' ? 'studio-catalog-grid' : 'studio-catalog-list'}>
 							{filteredCourses.map((course) => {
 								const isEnrolled = visibleEnrolledIds.has(course.id);
+								const progress = progressByCourse.get(course.id);
+								const resumeLabel = progress?.lastModule
+									? `Continue · ${progress.lastModule.title}`
+									: progress
+									? `Continue · ${progress.progress}%`
+									: isEnrolled
+									? 'Resume'
+									: course.isPremium
+									? 'Pay & enroll'
+									: 'Enroll now';
 								return (
 									<Card key={course.id} className="studio-catalog-card">
 										<div className="studio-catalog-card__head">
@@ -224,9 +237,9 @@ export function CourseList() {
 											))}
 										</div>
 										<div className="studio-action-row">
-											<Button to={`/courses/${course.id}`} variant="secondary">Preview</Button>
+											<Button to={`/courses/${course.id}`} variant="secondary">Watch free</Button>
 											<Button to={`/courses/${course.id}`} variant="primary">
-												{isEnrolled ? 'Resume' : course.isPremium ? `Pay & Enroll` : 'Enroll now'}
+												{resumeLabel}
 											</Button>
 										</div>
 									</Card>

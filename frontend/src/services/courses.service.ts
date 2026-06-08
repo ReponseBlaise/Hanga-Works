@@ -84,13 +84,21 @@ export type CourseEnrollment = {
 	id: string;
 	progress: number;
 	status: 'ENROLLED' | 'IN_PROGRESS' | 'COMPLETED' | 'DROPPED';
+	lastModuleId?: string | null;
 	startedAt: string;
 	completedAt?: string | null;
+	updatedAt?: string;
 	course: {
 		id: string;
 		title: string;
 		slug: string;
+		thumbnailUrl?: string | null;
 	};
+	lastModule?: {
+		id: string;
+		title: string;
+		order: number;
+	} | null;
 };
 
 export async function getCourses() {
@@ -190,8 +198,11 @@ function normalizeEnrollment(payload: unknown): CourseEnrollment {
 	return raw as CourseEnrollment;
 }
 
-export async function updateLessonProgress(enrollmentId: string, progress?: number) {
-	const res = await api.patch(`/progress/${enrollmentId}`, { progress });
+export async function updateLessonProgress(
+	enrollmentId: string,
+	payload: { progress?: number; lastModuleId?: string },
+) {
+	const res = await api.patch(`/progress/${enrollmentId}`, payload);
 	const data = res.data?.data ?? res.data;
 	return normalizeEnrollment(data?.enrollment ?? data);
 }

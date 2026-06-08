@@ -71,7 +71,16 @@ export function Dashboard() {
       provider: 'Hanga Works',
       enrollments: 1,
       modules: 0,
+      progress: enrollment.progress,
+      lastModuleTitle: enrollment.lastModule?.title,
     }));
+  }, [enrollments]);
+
+  const continueEnrollment = useMemo(() => {
+    if (enrollments.length === 0) return null;
+    return [...enrollments].sort(
+      (a, b) => Date.parse(b.updatedAt ?? b.startedAt) - Date.parse(a.updatedAt ?? a.startedAt),
+    )[0];
   }, [enrollments]);
 
   const recommendedJobs = useMemo(() => {
@@ -84,7 +93,15 @@ export function Dashboard() {
       .slice(0, 3);
   }, [jobs]);
 
-  const continueLearningCourse = recentCourses[0] ?? null;
+  const continueLearningCourse = continueEnrollment
+    ? {
+        id: continueEnrollment.course.id,
+        title: continueEnrollment.course.title,
+        provider: 'Hanga Works',
+        progress: continueEnrollment.progress,
+        lastModuleTitle: continueEnrollment.lastModule?.title,
+      }
+    : null;
 
   const upcomingDeadlines = useMemo<DashboardTask[]>(() => {
     const tasks: DashboardTask[] = [];
@@ -92,8 +109,10 @@ export function Dashboard() {
     if (continueLearningCourse) {
       tasks.push({
         title: `Continue ${continueLearningCourse.title}`,
-        detail: `Keep up your learning momentum.`,
-        meta: 'Today',
+        detail: continueLearningCourse.lastModuleTitle
+          ? `Pick up at: ${continueLearningCourse.lastModuleTitle}`
+          : 'Keep up your learning momentum.',
+        meta: continueLearningCourse.progress ? `${continueLearningCourse.progress}%` : 'Today',
         href: `/courses/${continueLearningCourse.id}`,
       });
     }

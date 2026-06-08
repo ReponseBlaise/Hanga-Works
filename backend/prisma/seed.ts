@@ -17,13 +17,26 @@ async function hash(password: string): Promise<string> {
   return bcrypt.hash(password, 10);
 }
 
+async function deleteManySafe(label: string, action: () => Promise<unknown>) {
+  try {
+    await action();
+  } catch (error: unknown) {
+    const code = (error as { code?: string })?.code;
+    if (code === 'P2021') {
+      console.warn(`⚠️  Skipping ${label}: table not in database. Run: npx prisma migrate deploy`);
+      return;
+    }
+    throw error;
+  }
+}
+
 async function main() {
   console.log('🌱 Seeding Hanga-Works database...');
 
-  await prisma.testAttempt.deleteMany();
-  await prisma.testOption.deleteMany();
-  await prisma.testQuestion.deleteMany();
-  await prisma.courseTest.deleteMany();
+  await deleteManySafe('test attempts', () => prisma.testAttempt.deleteMany());
+  await deleteManySafe('test options', () => prisma.testOption.deleteMany());
+  await deleteManySafe('test questions', () => prisma.testQuestion.deleteMany());
+  await deleteManySafe('course tests', () => prisma.courseTest.deleteMany());
   await prisma.sessionReview.deleteMany();
   await prisma.mentorSession.deleteMany();
   await prisma.mentorProfile.deleteMany();

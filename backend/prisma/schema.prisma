@@ -118,34 +118,38 @@ model Course {
 }
 
 model CourseModule {
-  id        String   @id @default(uuid())
-  courseId  String
-  title     String
-  content   String?
-  videoUrl  String?
-  order     Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  id                   String       @id @default(uuid())
+  courseId             String
+  title                String
+  content              String?
+  videoUrl             String?
+  order                Int
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  course               Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  enrollmentCheckpoints Enrollment[] @relation("EnrollmentLastModule")
 
   @@index([courseId])
 }
 
 model Enrollment {
-  id          String           @id @default(uuid())
-  userId      String
-  courseId    String
-  progress    Int              @default(0)
-  status      EnrollmentStatus @default(ENROLLED)
-  startedAt   DateTime         @default(now())
-  completedAt DateTime?
-  updatedAt   DateTime         @updatedAt
-  course      Course           @relation(fields: [courseId], references: [id])
-  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String           @id @default(uuid())
+  userId       String
+  courseId     String
+  progress     Int              @default(0)
+  status       EnrollmentStatus @default(ENROLLED)
+  lastModuleId String?
+  startedAt    DateTime         @default(now())
+  completedAt  DateTime?
+  updatedAt    DateTime         @updatedAt
+  course       Course           @relation(fields: [courseId], references: [id])
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastModule   CourseModule?    @relation("EnrollmentLastModule", fields: [lastModuleId], references: [id], onDelete: SetNull)
 
   @@unique([userId, courseId])
   @@index([userId])
   @@index([status])
+  @@index([lastModuleId])
 }
 
 model Certification {
@@ -166,25 +170,27 @@ model Certification {
 }
 
 model Job {
-  id           String        @id @default(uuid())
-  title        String
-  slug         String        @unique
-  description  String
-  location     String?
-  jobType      JobType       @default(FULL_TIME)
-  salaryMin    Int?
-  salaryMax    Int?
-  isActive     Boolean       @default(true)
-  employerId   String
-  postedAt     DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  expiresAt    DateTime?
-  applications Application[]
-  employer     Organization  @relation(fields: [employerId], references: [id])
-  skills       JobSkill[]
+  id              String           @id @default(uuid())
+  title           String
+  slug            String           @unique
+  description     String
+  location        String?
+  jobType         JobType          @default(FULL_TIME)
+  experienceLevel ProficiencyLevel @default(BEGINNER)
+  salaryMin       Int?
+  salaryMax       Int?
+  isActive        Boolean          @default(true)
+  employerId      String
+  postedAt        DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  expiresAt       DateTime?
+  applications    Application[]
+  employer        Organization     @relation(fields: [employerId], references: [id])
+  skills          JobSkill[]
 
   @@index([isActive])
   @@index([employerId])
+  @@index([experienceLevel])
 }
 
 model JobSkill {
