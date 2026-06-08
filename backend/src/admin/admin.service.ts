@@ -34,11 +34,11 @@ export class AdminService {
       select: { id: true, email: true, status: true },
     });
 
-    if (user.status === 'PENDING' && status !== 'PENDING') {
+    if ((user.status as any) === 'PENDING' && (status as any) !== 'PENDING') {
       try {
         await this.notifications.sendRegistrationFeedbackEmail(
           updatedUser.email,
-          status === 'ACTIVE' ? 'APPROVED' : status
+          (status as any) === 'ACTIVE' ? 'APPROVED' : status
         );
       } catch (err) {
         console.error('Failed to send registration feedback email', err);
