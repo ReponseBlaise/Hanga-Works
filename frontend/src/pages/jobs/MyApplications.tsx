@@ -24,10 +24,8 @@ export default function MyApplications() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      setTimeout(() => {
-        setApplications([]);
-        setLoading(false);
-      }, 0);
+      setApplications([]);
+      setLoading(false);
       return;
     }
 
@@ -47,7 +45,7 @@ export default function MyApplications() {
     return () => {
       active = false;
     };
-  }, [isAuthenticated, applications.length, loading]);
+  }, [isAuthenticated]);
 
   const grouped = useMemo(() => {
     return stages.reduce<Record<JobApplicationStage, JobApplication[]>>((acc, stage) => {
@@ -59,7 +57,7 @@ export default function MyApplications() {
   return (
     <SiteLayout>
       <section className="studio-applicants" id="applications">
-        <header className="studio-applicants__head">
+        <header style={{ paddingBottom: 0 }}>
           <div>
             <p className="eyebrow">Applications</p>
             <h1 className="display-large">Track every application from applied to hired.</h1>

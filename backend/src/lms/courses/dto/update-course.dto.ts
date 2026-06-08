@@ -2,7 +2,9 @@ import {
   IsString,
   IsOptional,
   IsBoolean,
+  IsNumber,
   IsUrl,
+  Min,
   MinLength,
 } from 'class-validator';
 
@@ -31,4 +33,17 @@ export class UpdateCourseDto {
   @IsOptional()
   @IsString()
   institutionId?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isPremium?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  price?: number;
+
+  @IsOptional()
+  @IsString()
+  currency?: string;
 }

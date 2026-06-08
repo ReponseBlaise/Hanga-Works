@@ -32,15 +32,28 @@ JWT_SECRET="your_secret_key"
 Sync your Prisma schema with your PostgreSQL database:
 ```bash
 npx prisma generate
+npx prisma migrate deploy
+```
+
+For local development when you change `schema.prisma`, create a new migration with:
+```bash
 npx prisma migrate dev
 ```
 
 ### 4. Seeding the Database
-You can populate the database with dummy data (Employers, Learners, Jobs, Courses, and Mentorship sessions) for testing purposes:
+**Apply migrations before seeding.** If you see `The table public.TestAttempt does not exist`, your database is behind the latest migration (`20260605111644_init`).
+
 ```bash
+npx prisma migrate deploy
 npx prisma db seed
 ```
-*Note: This will safely wipe the old data and insert a fresh set of mock data.*
+
+Or run both in one step:
+```bash
+npm run db:setup
+```
+
+*Note: Seeding wipes existing data and inserts fresh mock data (users, courses with modules, jobs, tests, etc.).*
 
 ### 5. Start the Development Server
 Start the NestJS server in watch mode:

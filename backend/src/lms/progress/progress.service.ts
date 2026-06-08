@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   ForbiddenException,
@@ -20,6 +21,25 @@ export class ProgressService {
     private readonly notifications: NotificationsService,
   ) {}
 
+  private async resolveProgressFromModule(
+    courseId: string,
+    lastModuleId: string,
+    fallback = 0,
+  ): Promise<number> {
+    const module = await this.prisma.courseModule.findFirst({
+      where: { id: lastModuleId, courseId },
+      select: { order: true },
+    });
+    if (!module) {
+      throw new BadRequestException('Invalid lesson for this course');
+    }
+
+    const total = await this.prisma.courseModule.count({ where: { courseId } });
+    if (total === 0) return fallback;
+
+    return Math.min(100, Math.max(fallback, Math.round((module.order / total) * 100)));
+  }
+
   async updateProgress(enrollmentId: string, userId: string, dto: UpdateProgressDto) {
     const enrollment = await this.prisma.enrollment.findUnique({
       where: { id: enrollmentId },
@@ -28,15 +48,29 @@ export class ProgressService {
     if (!enrollment) throw new NotFoundException(`Enrollment ${enrollmentId} not found`);
     if (enrollment.userId !== userId) throw new ForbiddenException('Access denied');
 
+    if (dto.progress == null && !dto.lastModuleId) {
+      throw new BadRequestException('Provide progress or lastModuleId');
+    }
+
+    let progress = dto.progress ?? enrollment.progress;
+    if (dto.lastModuleId) {
+      progress = await this.resolveProgressFromModule(
+        enrollment.courseId,
+        dto.lastModuleId,
+        progress,
+      );
+    }
+
     const status: EnrollmentStatus =
-      dto.progress === 100
+      progress === 100
         ? EnrollmentStatus.COMPLETED
         : dto.status ?? EnrollmentStatus.IN_PROGRESS;
 
     const updated = await this.prisma.enrollment.update({
       where: { id: enrollmentId },
       data: {
-        progress: dto.progress,
+        progress,
+        lastModuleId: dto.lastModuleId ?? enrollment.lastModuleId,
         status,
         completedAt: status === EnrollmentStatus.COMPLETED ? new Date() : null,
         updatedAt: new Date(),
@@ -138,9 +172,12 @@ export class ProgressService {
         id: true,
         progress: true,
         status: true,
+        lastModuleId: true,
         startedAt: true,
         completedAt: true,
-        course: { select: { id: true, title: true, slug: true } },
+        updatedAt: true,
+        course: { select: { id: true, title: true, slug: true, thumbnailUrl: true } },
+        lastModule: { select: { id: true, title: true, order: true } },
       },
       orderBy: { updatedAt: 'desc' },
     });

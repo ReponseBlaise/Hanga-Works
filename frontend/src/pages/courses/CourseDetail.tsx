@@ -5,9 +5,11 @@ import { useAuth } from '../../hooks/useAuth';
 import { SiteLayout } from '../../components/layout/SiteLayout';
 import { Button } from '../../components/ui/Button';
 import { Card, CardEyebrow, CardMeta, CardTitle } from '../../components/ui/Card';
-import { getCourseById, getMyProgress, enrollInCourse, updateLessonProgress, createCourseModule, updateCourseModule, deleteCourseModule, uploadModuleMedia, type BackendCourse, type CourseEnrollment } from '../../services/courses.service';
+import { getCourseById, getMyProgress, enrollInCourse, updateLessonProgress, createCourseModule, updateCourseModule, deleteCourseModule, uploadModuleMedia, verifyPayment, type BackendCourse, type CourseEnrollment } from '../../services/courses.service';
+import { FlutterwavePayButton } from '../../components/payments/FlutterwavePayButton';
 import { getMyCertificates, type LearnerCertificate } from '../../services/certificates.service';
 import { getJobs, type JobSummary } from '../../services/jobs.service';
+import { getPreviewModuleId, setPreviewModuleId } from '../../utils/coursePreview';
 
 function getEmbedUrl(url: string) {
 	if (!url) return url;
@@ -37,6 +39,7 @@ export function CourseDetail() {
 	const [rawEnrollments, setRawEnrollments] = useState<CourseEnrollment[]>([]);
 	const [rawCertificates, setRawCertificates] = useState<LearnerCertificate[]>([]);
 	const [trackingMessage, setTrackingMessage] = useState('');
+	const [paymentVerifying, setPaymentVerifying] = useState(false);
 	const [savingProgress, setSavingProgress] = useState(false);
 	const [relatedJobs, setRelatedJobs] = useState<JobSummary[]>([]);
 	const isManager = user?.role === 'INSTITUTION' || user?.role === 'ADMIN' || user?.role === 'MENTOR';
@@ -46,6 +49,8 @@ export function CourseDetail() {
 	const [savingModule, setSavingModule] = useState(false);
 	const [activeModuleId, setActiveModuleId] = useState('');
 	const prevIdRef = useRef<string | undefined>(undefined);
+	const checkpointTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const resumeAppliedRef = useRef(false);
 
 	// Derive enrollments/certificates — empty when not authenticated
 	const enrollments = useMemo(() => isAuthenticated ? rawEnrollments : [], [isAuthenticated, rawEnrollments]);
@@ -66,7 +71,8 @@ export function CourseDetail() {
 				if (!active) return;
 				setCourse(item ?? null);
 				setRelatedJobs(jobsResponse.jobs ?? []);
-				setActiveModuleId(item?.modules?.[0]?.id ?? '');
+				resumeAppliedRef.current = false;
+				setActiveModuleId('');
 				setCourseLoading(false);
 			})
 			.catch((fetchError) => {
@@ -104,11 +110,94 @@ export function CourseDetail() {
 	const currentEnrollment = useMemo(() => enrollments.find((item) => item.course.id === id) ?? null, [enrollments, id]);
 	const currentCertificate = useMemo(() => certificates.find((item) => item.courseId === id) ?? null, [certificates, id]);
 	const progressValue = currentEnrollment?.progress ?? 0;
+	const sortedModules = useMemo(
+		() => [...(course?.modules ?? [])].sort((a, b) => a.order - b.order),
+		[course?.modules],
+	);
 
 	const resolvedActiveModule = useMemo(() => {
-		const modules = course?.modules ?? [];
-		return modules.find((m) => m.id === activeModuleId) ?? modules[0] ?? null;
-	}, [course, activeModuleId]);
+		return sortedModules.find((m) => m.id === activeModuleId) ?? sortedModules[0] ?? null;
+	}, [sortedModules, activeModuleId]);
+
+	const activeModuleIndex = useMemo(
+		() => sortedModules.findIndex((m) => m.id === resolvedActiveModule?.id),
+		[sortedModules, resolvedActiveModule?.id],
+	);
+
+	// Resume last lesson (enrolled users) or local preview position (guests)
+	useEffect(() => {
+		if (!course?.id || sortedModules.length === 0 || resumeAppliedRef.current) return;
+
+		let targetId = '';
+		if (currentEnrollment?.lastModuleId && sortedModules.some((m) => m.id === currentEnrollment.lastModuleId)) {
+			targetId = currentEnrollment.lastModuleId;
+		} else if (!currentEnrollment) {
+			const previewId = getPreviewModuleId(course.id);
+			if (previewId && sortedModules.some((m) => m.id === previewId)) {
+				targetId = previewId;
+			}
+		}
+
+		resumeAppliedRef.current = true;
+		setActiveModuleId(targetId || sortedModules[0].id);
+	}, [course?.id, sortedModules, currentEnrollment?.lastModuleId, currentEnrollment?.id]);
+
+	useEffect(() => {
+		return () => {
+			if (checkpointTimerRef.current) clearTimeout(checkpointTimerRef.current);
+		};
+	}, []);
+
+	async function saveCheckpoint(moduleId: string, showMessage = false) {
+		if (!currentEnrollment || !course?.modules?.length) return;
+
+		try {
+			const updated = await updateLessonProgress(currentEnrollment.id, { lastModuleId: moduleId });
+			setRawEnrollments((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
+			if (showMessage) {
+				setTrackingMessage(`Progress saved at ${updated.progress ?? 0}%.`);
+			}
+		} catch (saveError) {
+			console.error(saveError);
+			if (showMessage) {
+				setTrackingMessage('Could not save your place. Try again in a moment.');
+			}
+		}
+	}
+
+	function selectModule(moduleId: string) {
+		setActiveModuleId(moduleId);
+		if (!course) return;
+
+		if (!currentEnrollment) {
+			setPreviewModuleId(course.id, moduleId);
+			return;
+		}
+
+		if (checkpointTimerRef.current) clearTimeout(checkpointTimerRef.current);
+		checkpointTimerRef.current = setTimeout(() => {
+			void saveCheckpoint(moduleId);
+		}, 500);
+	}
+
+	async function handlePaymentSuccess(data: { txRef: string; transactionId: string }) {
+		if (!course) return;
+		setPaymentVerifying(true);
+		setTrackingMessage('Verifying payment with server…');
+		try {
+			const result = await verifyPayment({ txRef: data.txRef, transactionId: data.transactionId, courseId: course.id });
+			setRawEnrollments((prev) => {
+				const exists = prev.find((e) => e.course.id === course.id);
+				return exists ? prev : [result.enrollment, ...prev];
+			});
+			setTrackingMessage('Payment verified! You are now enrolled. Start learning below.');
+		} catch (err) {
+			console.error('Payment verification failed', err);
+			setTrackingMessage('Payment was received but verification failed. Contact support with your transaction reference: ' + data.txRef);
+		} finally {
+			setPaymentVerifying(false);
+		}
+	}
 
 	async function handleEnroll() {
 		if (!course) return;
@@ -125,8 +214,15 @@ export function CourseDetail() {
 		setTrackingMessage('Creating your enrollment so the platform can track progress and issue a certificate when you complete the course.');
 		try {
 			const enrollment = await enrollInCourse(course.id);
-			setRawEnrollments((prev) => [enrollment, ...prev]);
-			setTrackingMessage('Enrollment created. You can now track progress from this page.');
+			const previewModuleId = getPreviewModuleId(course.id);
+			const enrolledWithCheckpoint = previewModuleId
+				? await updateLessonProgress(enrollment.id, { lastModuleId: previewModuleId })
+				: enrollment;
+			setRawEnrollments((prev) => [enrolledWithCheckpoint, ...prev]);
+			if (previewModuleId) {
+				setActiveModuleId(previewModuleId);
+			}
+			setTrackingMessage('Enrollment created. Your preview progress was saved to your account.');
 		} catch (enrollError) {
 			console.error(enrollError);
 			if (axios.isAxiosError(enrollError) && enrollError.response?.status === 409) {
@@ -146,7 +242,11 @@ export function CourseDetail() {
 		setSavingProgress(true);
 		setTrackingMessage('Saving your study progress.');
 		try {
-			const updated = await updateLessonProgress(currentEnrollment.id, progressValue);
+			const moduleId = resolvedActiveModule?.id;
+			const updated = await updateLessonProgress(currentEnrollment.id, {
+				progress: progressValue,
+				...(moduleId ? { lastModuleId: moduleId } : {}),
+			});
 			setRawEnrollments((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
 			setTrackingMessage(`Progress saved at ${updated.progress ?? progressValue}%. Take the final test to complete the course.`);
 		} catch (saveError) {
@@ -247,7 +347,17 @@ export function CourseDetail() {
 			<div className="studio-course-detail learning-redesign">
 				<section className="studio-course-head">
 					<Link to="/courses" className="studio-inline-link">Back to catalog</Link>
-					<p className="eyebrow">{course.institution?.name ?? 'Hanga Works'} · {course.published ? 'Published' : 'Draft'}</p>
+					<div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+						<p className="eyebrow" style={{ margin: 0 }}>{course.institution?.name ?? 'Hanga Works'} · {course.published ? 'Published' : 'Draft'}</p>
+						{course.isPremium && (
+							<span className="dashboard-chip" style={{ background: 'rgba(244,123,32,0.12)', color: 'var(--brand-orange)', borderColor: 'rgba(244,123,32,0.28)' }}>
+								Premium · {course.currency ?? 'RWF'} {(course.price ?? 0).toLocaleString()}
+							</span>
+						)}
+						{!course.isPremium && (
+							<span className="dashboard-chip" style={{ background: 'rgba(22,163,74,0.1)', color: '#16a34a', borderColor: 'rgba(22,163,74,0.22)' }}>Free</span>
+						)}
+					</div>
 					<h1 className="display">{course.title}</h1>
 					<p className="lead">{course.description}</p>
 					<div className="studio-chip-row">
@@ -257,10 +367,25 @@ export function CourseDetail() {
 					</div>
 				</section>
 
+				{(currentEnrollment?.lastModule || (!currentEnrollment && getPreviewModuleId(course.id))) ? (
+					<div className="learning-redesign__resume-banner">
+						<p>
+							{currentEnrollment?.lastModule
+								? `Continue where you left off: Module ${currentEnrollment.lastModule.order} — ${currentEnrollment.lastModule.title}`
+								: 'Browsing in preview mode — your place is saved on this device until you enroll.'}
+						</p>
+						{resolvedActiveModule && currentEnrollment?.lastModule?.id !== resolvedActiveModule.id ? (
+							<Button type="button" variant="secondary" onClick={() => selectModule(currentEnrollment?.lastModuleId ?? sortedModules[0]?.id ?? '')}>
+								Jump to last lesson
+							</Button>
+						) : null}
+					</div>
+				) : null}
+
 				<section className="learning-redesign__summary">
 					<div>
 						<span>Progress</span>
-						<strong>{progressValue}%</strong>
+						<strong>{currentEnrollment ? `${progressValue}%` : 'Preview'}</strong>
 					</div>
 					<div>
 						<span>Modules</span>
@@ -298,14 +423,14 @@ export function CourseDetail() {
 							</div>
 
 							{(isAddingModule || editingModuleId) && (
-								<form onSubmit={handleSaveModule} style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px', padding: '12px', background: 'var(--surface-muted)', borderRadius: 'var(--radius-md)' }}>
-									<input type="text" required placeholder="Lesson Title" value={moduleForm.title} onChange={e => setModuleForm(f => ({ ...f, title: e.target.value }))} style={{ padding: '8px', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)' }} />
-									<input type="url" placeholder="Or Paste Video URL (Youtube etc)" value={moduleForm.videoUrl} onChange={e => setModuleForm(f => ({ ...f, videoUrl: e.target.value }))} style={{ padding: '8px', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)' }} />
-									<label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Upload File (Video or PDF. Overrides URL)</label>
-									<input type="file" accept="video/*,application/pdf" onChange={e => setModuleForm(f => ({ ...f, file: e.target.files?.[0] || null }))} style={{ padding: '8px', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)' }} />
-									<textarea placeholder="Lesson Content (optional)" value={moduleForm.content} onChange={e => setModuleForm(f => ({ ...f, content: e.target.value }))} style={{ padding: '8px', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)' }} />
-									<input type="number" required placeholder="Order (e.g. 1)" value={moduleForm.order} onChange={e => setModuleForm(f => ({ ...f, order: Number(e.target.value) }))} style={{ padding: '8px', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)' }} />
-									<div style={{ display: 'flex', gap: '8px' }}>
+								<form onSubmit={handleSaveModule} className="module-editor-form">
+									<input type="text" required placeholder="Lesson Title" value={moduleForm.title} onChange={e => setModuleForm(f => ({ ...f, title: e.target.value }))} />
+									<input type="url" placeholder="Or Paste Video URL (Youtube etc)" value={moduleForm.videoUrl} onChange={e => setModuleForm(f => ({ ...f, videoUrl: e.target.value }))} />
+									<label style={{ fontSize: '12px', color: 'var(--text-soft)' }}>Upload File (Video or PDF. Overrides URL)</label>
+									<input type="file" accept="video/*,application/pdf" onChange={e => setModuleForm(f => ({ ...f, file: e.target.files?.[0] || null }))} />
+									<textarea placeholder="Lesson Content (optional)" value={moduleForm.content} onChange={e => setModuleForm(f => ({ ...f, content: e.target.value }))} />
+									<input type="number" required placeholder="Order (e.g. 1)" value={moduleForm.order} onChange={e => setModuleForm(f => ({ ...f, order: Number(e.target.value) }))} />
+									<div className="studio-action-row">
 										<Button variant="primary" type="submit" disabled={savingModule}>{savingModule ? 'Saving...' : 'Save Lesson'}</Button>
 										{editingModuleId && <Button variant="ghost" type="button" onClick={() => setEditingModuleId(null)}>Cancel</Button>}
 									</div>
@@ -313,15 +438,18 @@ export function CourseDetail() {
 							)}
 
 							<div className="studio-module-list">
-								{(course.modules ?? []).map((module) => (
+								{sortedModules.map((module) => {
+									const isCurrent = activeModuleId === module.id;
+									const isLastSaved = currentEnrollment?.lastModuleId === module.id;
+									return (
 									<div key={module.id} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
 										<button
 											type="button"
 											style={{ flex: 1, textAlign: 'left' }}
-											className={`studio-module-item ${activeModuleId === module.id ? 'is-active' : ''}`.trim()}
-											onClick={() => setActiveModuleId(module.id)}
+											className={`studio-module-item ${isCurrent ? 'is-active' : ''} ${isLastSaved ? 'is-resume' : ''}`.trim()}
+											onClick={() => selectModule(module.id)}
 										>
-											<span>Module {module.order}</span>
+											<span>Module {module.order}{isLastSaved ? ' · last viewed' : ''}</span>
 											<strong>{module.title}</strong>
 										</button>
 										{isManager && (
@@ -335,7 +463,8 @@ export function CourseDetail() {
 											</div>
 										)}
 									</div>
-								))}
+									);
+								})}
 							</div>
 						</Card>
 
@@ -349,7 +478,17 @@ export function CourseDetail() {
 
 					<div className="learning-redesign__content">
 						<Card className="studio-block">
-							<CardEyebrow>Lesson stage</CardEyebrow>
+							<CardEyebrow>
+								Lesson {resolvedActiveModule ? `${activeModuleIndex + 1} of ${sortedModules.length}` : ''}
+								{!currentEnrollment ? ' · preview' : ''}
+							</CardEyebrow>
+							{!currentEnrollment ? (
+								<p className="learning-preview-note">
+									{course.isPremium
+										? 'Preview all lessons below. Purchase and enroll to save progress on your account and unlock the certificate.'
+										: 'You can watch and read every lesson without enrolling. Enroll when you are ready to save progress on your account and earn a certificate.'}
+								</p>
+							) : null}
 							<div className="studio-video-frame">
 								{resolvedActiveModule?.videoUrl ? (
 									resolvedActiveModule.videoUrl.endsWith('.pdf') ? (
@@ -357,7 +496,7 @@ export function CourseDetail() {
 											title={resolvedActiveModule.title}
 											src={resolvedActiveModule.videoUrl}
 											width="100%"
-											height="500px"
+											style={{ height: 'clamp(240px, 50vw, 500px)', border: 0 }}
 										/>
 									) : (
 										<iframe
@@ -365,47 +504,111 @@ export function CourseDetail() {
 											src={getEmbedUrl(resolvedActiveModule.videoUrl)}
 											allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
 											allowFullScreen
+											style={{ width: '100%', height: 'clamp(240px, 50vw, 480px)', border: 0 }}
 										/>
 									)
 								) : (
 									<div className="studio-video-fallback">
 										<strong>{resolvedActiveModule?.title ?? 'No module selected'}</strong>
 										<p>Video/Document content is not available for this module yet.</p>
-										{resolvedActiveModule?.content && <p style={{ marginTop: '16px', color: 'var(--text)' }}>{resolvedActiveModule.content}</p>}
 									</div>
 								)}
 							</div>
+							{resolvedActiveModule?.content ? (
+								<div
+									className="learning-lesson-content"
+									dangerouslySetInnerHTML={{ __html: resolvedActiveModule.content }}
+								/>
+							) : null}
+							{sortedModules.length > 1 ? (
+								<div className="studio-action-row mt-md">
+									<Button
+										type="button"
+										variant="ghost"
+										disabled={activeModuleIndex <= 0}
+										onClick={() => selectModule(sortedModules[activeModuleIndex - 1].id)}
+									>
+										Previous lesson
+									</Button>
+									<Button
+										type="button"
+										variant="ghost"
+										disabled={activeModuleIndex < 0 || activeModuleIndex >= sortedModules.length - 1}
+										onClick={() => selectModule(sortedModules[activeModuleIndex + 1].id)}
+									>
+										Next lesson
+									</Button>
+								</div>
+							) : null}
 							{!isManager && (
 								<>
-									<div className="studio-action-row mt-md">
-										<Button variant="secondary" type="button" onClick={handleEnroll}>
-											{currentEnrollment ? 'Already enrolled' : 'Enroll in course'}
-										</Button>
-										<Button
-											type="button"
-											variant="primary"
-											disabled={!currentEnrollment || savingProgress}
-											onClick={() => handleSaveProgress()}
-										>
-											Save progress
-										</Button>
-										{currentEnrollment ? (
-											<Button to={`/courses/${course.id}/test`} variant="primary">
-												Take Final Test
+									{/* Premium course: show price banner + pay button when not enrolled */}
+									{course.isPremium && !currentEnrollment && (
+										<div className="studio-progress-stack mt-md" style={{ padding: '16px', background: 'rgba(244,123,32,0.07)', border: '1px solid rgba(244,123,32,0.24)', borderRadius: 'var(--radius-md)' }}>
+											<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+												<div>
+													<p className="eyebrow" style={{ color: 'var(--brand-orange)' }}>Premium course</p>
+													<strong style={{ fontSize: '1.5rem', letterSpacing: '-0.03em' }}>
+														{course.currency ?? 'RWF'} {(course.price ?? 0).toLocaleString()}
+													</strong>
+												</div>
+												{isAuthenticated && user ? (
+													<FlutterwavePayButton
+														courseId={course.id}
+														courseTitle={course.title}
+														amount={course.price ?? 0}
+														currency={course.currency ?? 'RWF'}
+														user={{ email: user.email, name: user.name, phone: user.phone }}
+														onSuccess={handlePaymentSuccess}
+														onClose={() => setTrackingMessage('Payment cancelled. You can try again anytime.')}
+														disabled={paymentVerifying}
+														label={paymentVerifying ? 'Verifying…' : `Pay ${course.currency ?? 'RWF'} ${(course.price ?? 0).toLocaleString()} & Enroll`}
+													/>
+												) : (
+													<Button variant="primary" onClick={() => navigate('/login', { state: { from: `/courses/${course.id}` } })}>
+														Sign in to purchase
+													</Button>
+												)}
+											</div>
+											{trackingMessage ? <p className="muted" style={{ marginTop: '8px' }}>{trackingMessage}</p> : null}
+										</div>
+									)}
+
+									{/* Free course OR already enrolled in premium: show normal controls */}
+									{(!course.isPremium || currentEnrollment) && (
+										<div className="studio-action-row mt-md">
+											<Button variant="secondary" type="button" onClick={handleEnroll}>
+												{currentEnrollment ? 'Already enrolled' : 'Enroll in course'}
 											</Button>
-										) : (
-											<Button variant="primary" disabled>
-												Take Final Test
+											<Button
+												type="button"
+												variant="primary"
+												disabled={!currentEnrollment || savingProgress}
+												onClick={() => handleSaveProgress()}
+											>
+												Save progress
 											</Button>
-										)}
-									</div>
+											{currentEnrollment ? (
+												<Button to={`/courses/${course.id}/test`} variant="primary">
+													Take Final Test
+												</Button>
+											) : (
+												<Button variant="primary" disabled>
+													Take Final Test
+												</Button>
+											)}
+										</div>
+									)}
+
 									<div className="studio-progress-stack">
 										<CardMeta>
 											{currentEnrollment
-												? `Enrollment status: ${currentEnrollment.status.toLowerCase()}`
-												: 'Enroll to start tracking your progress and unlock a certificate.'}
+												? `Enrollment status: ${currentEnrollment.status.toLowerCase()}. Your place is saved automatically as you open each lesson.`
+												: course.isPremium
+												? 'Preview lessons below. Purchase to save progress on your account and unlock the certificate.'
+												: 'Preview all lessons below. Enroll anytime to save progress on your account and unlock a certificate.'}
 										</CardMeta>
-										{trackingMessage ? <p className="muted">{trackingMessage}</p> : null}
+										{trackingMessage && course.isPremium && !currentEnrollment ? null : trackingMessage ? <p className="muted">{trackingMessage}</p> : null}
 										{currentCertificate ? (
 											<div className="studio-action-row">
 												<CardMeta>Certificate issued {new Date(currentCertificate.issuedAt).toLocaleDateString()}</CardMeta>

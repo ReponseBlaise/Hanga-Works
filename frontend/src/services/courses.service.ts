@@ -24,6 +24,9 @@ export type BackendCourse = {
 	description: string;
 	thumbnailUrl?: string | null;
 	published: boolean;
+	isPremium: boolean;
+	price?: number | null;
+	currency?: string | null;
 	createdAt: string;
 	updatedAt: string;
 	institution?: {
@@ -46,6 +49,26 @@ export type CreateCoursePayload = {
 	published?: boolean;
 	thumbnailUrl?: string;
 	institutionId?: string;
+	isPremium?: boolean;
+	price?: number;
+	currency?: string;
+};
+
+export type PaymentRecord = {
+	id: string;
+	txRef: string;
+	transactionId?: string | null;
+	amount: number;
+	currency: string;
+	status: 'PENDING' | 'COMPLETED' | 'FAILED';
+	provider: string;
+	createdAt: string;
+	course: {
+		id: string;
+		title: string;
+		slug: string;
+		thumbnailUrl?: string | null;
+	};
 };
 
 export type CreateModulePayload = {
@@ -61,13 +84,21 @@ export type CourseEnrollment = {
 	id: string;
 	progress: number;
 	status: 'ENROLLED' | 'IN_PROGRESS' | 'COMPLETED' | 'DROPPED';
+	lastModuleId?: string | null;
 	startedAt: string;
 	completedAt?: string | null;
+	updatedAt?: string;
 	course: {
 		id: string;
 		title: string;
 		slug: string;
+		thumbnailUrl?: string | null;
 	};
+	lastModule?: {
+		id: string;
+		title: string;
+		order: number;
+	} | null;
 };
 
 export async function getCourses() {
@@ -167,8 +198,11 @@ function normalizeEnrollment(payload: unknown): CourseEnrollment {
 	return raw as CourseEnrollment;
 }
 
-export async function updateLessonProgress(enrollmentId: string, progress?: number) {
-	const res = await api.patch(`/progress/${enrollmentId}`, { progress });
+export async function updateLessonProgress(
+	enrollmentId: string,
+	payload: { progress?: number; lastModuleId?: string },
+) {
+	const res = await api.patch(`/progress/${enrollmentId}`, payload);
 	const data = res.data?.data ?? res.data;
 	return normalizeEnrollment(data?.enrollment ?? data);
 }
@@ -183,6 +217,21 @@ export async function getMyProgress() {
 		return data.progress as CourseEnrollment[];
 	}
 	return (data?.enrollments ?? []) as CourseEnrollment[];
+}
+
+export async function verifyPayment(payload: {
+	txRef: string;
+	transactionId: string;
+	courseId: string;
+}): Promise<{ success: boolean; payment: PaymentRecord; enrollment: CourseEnrollment; message: string }> {
+	const res = await api.post('/payments/verify', payload);
+	return res.data?.data ?? res.data;
+}
+
+export async function getMyPayments(): Promise<PaymentRecord[]> {
+	const res = await api.get('/payments');
+	const data = res.data?.data ?? res.data;
+	return Array.isArray(data) ? data : [];
 }
 
 export async function submitQuiz(

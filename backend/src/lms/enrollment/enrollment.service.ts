@@ -1,6 +1,7 @@
 import {
   Injectable,
   ConflictException,
+  ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -15,6 +16,12 @@ export class EnrollmentService {
       where: { id: dto.courseId },
     });
     if (!course) throw new NotFoundException(`Course ${dto.courseId} not found`);
+
+    if (course.isPremium) {
+      throw new ForbiddenException(
+        'This is a premium course. Please complete payment to enroll.',
+      );
+    }
 
     const existing = await this.prisma.enrollment.findUnique({
       where: { userId_courseId: { userId, courseId: dto.courseId } },

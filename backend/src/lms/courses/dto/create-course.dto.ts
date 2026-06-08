@@ -3,7 +3,9 @@ import {
   IsNotEmpty,
   IsOptional,
   IsBoolean,
+  IsNumber,
   IsUrl,
+  Min,
   MinLength,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
@@ -41,4 +43,20 @@ export class CreateCourseDto {
   @Transform(({ value }) => (value === '' ? undefined : value))
   @IsString()
   institutionId?: string;
+
+  @ApiProperty({ required: false, default: false })
+  @IsOptional()
+  @IsBoolean()
+  isPremium?: boolean;
+
+  @ApiProperty({ required: false, example: 5000 })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  price?: number;
+
+  @ApiProperty({ required: false, example: 'RWF' })
+  @IsOptional()
+  @IsString()
+  currency?: string;
 }
