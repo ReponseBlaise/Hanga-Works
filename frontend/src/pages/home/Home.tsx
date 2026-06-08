@@ -24,6 +24,7 @@ import {
   MdCheckCircle,
   MdStar,
   MdBarChart,
+  MdNaturePeople,
 } from "react-icons/md";
 import type { IconType } from "react-icons";
 
@@ -43,8 +44,7 @@ interface EcosystemCard {
   desc: string;
   items: string[];
   color: string;
-  bg: string;
-  Icon: IconType;
+  image: string;
 }
 
 interface Step {
@@ -124,12 +124,12 @@ const HeroSection: FC<Auth> = ({ isAuthenticated }) => {
         </p>
         <div className="hw-hero-btns">
           {
-                !isAuthenticated && (
-                  <Button to={isAuthenticated ? '/jobs' : '/register'} variant="primary" className="button--lg button--pill">
-                    {isAuthenticated ? 'Explore opportunities' : 'Create your profile'}
-                  </Button>
-                )
-              }
+            !isAuthenticated && (
+              <Button to={isAuthenticated ? '/jobs' : '/register'} variant="primary" className="button--lg button--pill">
+                {isAuthenticated ? 'Explore opportunities' : 'Create your profile'}
+              </Button>
+            )
+          }
           <Button to={"/jobs"} className="hw-btn-lg hw-btn-lg-outline">
             Explore Opportunities
           </Button>
@@ -230,9 +230,27 @@ const PartnersBar: FC = () => {
 };
 const EcosystemSection: FC = () => {
   const cards: EcosystemCard[] = [
-    { title: "Talent Development", desc: "Dynamic learning pathways that track skills in real-time, providing digital credentials that the market trusts.", items: ["Learning Pathways", "Skill Tracking", "Certifications"], color: "#3b82f6", bg: "rgba(59,130,246,0.06)", Icon: MdSchool },
-    { title: "Workforce Intelligence", desc: "Granular insights into labor market trends, skill gaps, and competency distribution across entire industries.", items: ["Competency Analytics", "Talent Insights", "Market Intelligence"], color: "var(--secondary)", bg: "rgba(0,81,213,0.06)", Icon: MdBarChart },
-    { title: "Employment Pipeline", desc: "Precision matching engines that connect verified talent directly into optimized recruitment workflows.", items: ["AI Matching", "Recruitment Workflows", "Placement Tracking"], color: "#059669", bg: "rgba(5,150,105,0.06)", Icon: MdWork },
+    {
+      title: "Talent Development",
+      desc: "Dynamic learning pathways that track skills in real-time...",
+      items: ["Learning Pathways", "Skill Tracking", "Certifications"],
+      color: "#3b82f6",
+      image: "public/talent_development_img.png",   // ← your image path
+    },
+    {
+      title: "Workforce Intelligence",
+      desc: "Granular insights into labor market trends...",
+      items: ["Competency Analytics", "Talent Insights", "Market Intelligence"],
+      color: "var(--secondary)",
+      image: "public/workforce_intelligence_img.png",
+    },
+    {
+      title: "Employment Pipeline",
+      desc: "Precision matching engines that connect verified talent...",
+      items: ["AI Matching", "Recruitment Workflows", "Placement Tracking"],
+      color: "#059669",
+      image: "public/employment_pipeline_img.png",
+    },
   ];
 
   return (
@@ -250,13 +268,12 @@ const EcosystemSection: FC = () => {
           {cards.map((c, i) => (
             <FadeIn key={c.title} delay={i * 0.12}>
               <div className="hw-eco-card">
-                <div style={{ height: 160, background: c.bg, borderRadius: 14, marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <div style={{ textAlign: "center" }}>
-                    <div style={{ width: 56, height: 56, background: c.color, borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px" }}>
-                      <c.Icon size={28} color="#fff" />
-                    </div>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: "var(--on-surface-variant)" }}>Powered by HANGA AI</span>
-                  </div>
+                <div style={{ height: 160, borderRadius: 14, marginBottom: 20, overflow: "hidden" }}>
+                  <img
+                    src={c.image}
+                    alt={c.title}
+                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                  />
                 </div>
                 <h3 className="hw-display" style={{ fontWeight: 800, fontSize: 20, color: "var(--primary)", marginBottom: 8 }}>{c.title}</h3>
                 <p style={{ fontSize: 14, lineHeight: 1.7, color: "var(--on-surface-variant)", marginBottom: 16 }}>{c.desc}</p>
@@ -275,10 +292,10 @@ const EcosystemSection: FC = () => {
 };
 const HowItWorksSection: FC = () => {
   const steps: Step[] = [
-    { step: "01", title: "Create Profile",     desc: "Build your digital portfolio with existing credentials and experience.",            Icon: MdPerson      },
-    { step: "02", title: "Learning Pathways",  desc: "Follow structured roadmaps to gain the specific skills industry demands.",          Icon: MdSchool      },
-    { step: "03", title: "Earn Verification",  desc: "Complete assessments to get your skills officially verified by partners.",          Icon: MdVerified    },
-    { step: "04", title: "Get Matched",        desc: "Connect with high-value roles that fit your verified competency profile.",          Icon: MdWorkHistory },
+    { step: "01", title: "Create Profile", desc: "Build your digital portfolio with existing credentials and experience.", Icon: MdPerson },
+    { step: "02", title: "Learning Pathways", desc: "Follow structured roadmaps to gain the specific skills industry demands.", Icon: MdSchool },
+    { step: "03", title: "Earn Verification", desc: "Complete assessments to get your skills officially verified by partners.", Icon: MdVerified },
+    { step: "04", title: "Get Matched", desc: "Connect with high-value roles that fit your verified competency profile.", Icon: MdWorkHistory },
   ];
 
   return (
@@ -356,9 +373,9 @@ const SkillsFirstSection: FC = () => {
 const StatsSection: FC = () => {
   const stats: [string, string][] = [
     ["50,000+", "Professionals"],
-    ["2,000+",  "Global Partners"],
-    ["95%",     "Match Accuracy"],
-    ["100k+",   "Skills Verified"],
+    ["2,000+", "Global Partners"],
+    ["95%", "Match Accuracy"],
+    ["100k+", "Skills Verified"],
   ];
 
   return (
@@ -380,9 +397,9 @@ const StatsSection: FC = () => {
 ───────────────────────────────────────────── */
 const TestimonialsSection: FC = () => {
   const items: Testimonial[] = [
-    { name: "Jean Bosco",       role: "Verified Senior Developer", quote: "The verified badges gave me the confidence to apply for international roles I previously felt underqualified for. Within 3 weeks, I was matched with my current lead developer role." },
-    { name: "Sarah Jenkins",    role: "HR Director, GlobalTech",   quote: "Our recruitment cycle dropped from 40 days to 9 days. Every candidate we interview has the exact technical competency required for the project." },
-    { name: "Dr. Samuel Okafor",role: "University Dean",           quote: "Bridging the gap between academia and industry is our priority. HANGA WORKS gives our students a clear path to align their learning with real-world market demands." },
+    { name: "Jean Bosco", role: "Verified Senior Developer", quote: "The verified badges gave me the confidence to apply for international roles I previously felt underqualified for. Within 3 weeks, I was matched with my current lead developer role." },
+    { name: "Sarah Jenkins", role: "HR Director, GlobalTech", quote: "Our recruitment cycle dropped from 40 days to 9 days. Every candidate we interview has the exact technical competency required for the project." },
+    { name: "Dr. Samuel Okafor", role: "University Dean", quote: "Bridging the gap between academia and industry is our priority. HANGA WORKS gives our students a clear path to align their learning with real-world market demands." },
   ];
 
   return (
@@ -419,9 +436,9 @@ const TestimonialsSection: FC = () => {
 
 const AfricaNetworkSection: FC = () => {
   const nodes: NetworkNode[] = [
-    { Icon: MdHub,            label: "Learners"    },
-    { Icon: MdApartment,      label: "Employers"   },
-    { Icon: MdAccountBalance, label: "Government"  },
+    { Icon: MdHub, label: "Learners" },
+    { Icon: MdApartment, label: "Employers" },
+    { Icon: MdAccountBalance, label: "Government" },
   ];
 
   return (
