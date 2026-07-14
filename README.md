@@ -1,4 +1,4 @@
-# Hanga Works
+# Hanga-Works
 
 Hanga Works is a skills, employment, and workforce intelligence platform. The workspace contains a NestJS backend and a Vite + React frontend for learner, employer, mentor, and administrator flows.
 
