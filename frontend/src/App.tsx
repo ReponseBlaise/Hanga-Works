@@ -83,9 +83,9 @@ export default function App() {
             <Route path="/verify-email" element={<VerifyEmail />} />
           </Route>
           <Route path="/courses" element={<CourseList />} />
-          <Route path="/courses/new" element={<InstitutionOrAdminRoute><CourseCreate /></InstitutionOrAdminRoute>} />
+          <Route path="/courses/new" element={<CourseManagerRoute><CourseCreate /></CourseManagerRoute>} />
           <Route path="/courses/:id" element={<CourseDetail />} />
-          <Route path="/courses/:id/test/edit" element={<InstitutionOrAdminRoute><CourseTestEditor /></InstitutionOrAdminRoute>} />
+          <Route path="/courses/:id/test/edit" element={<CourseManagerRoute><CourseTestEditor /></CourseManagerRoute>} />
           <Route path="/courses/:id/test" element={<ProtectedRoute><CourseTestAttempt /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/jobs" element={<JobList />} />
@@ -170,6 +170,14 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
     const role = user?.role ?? '';
     const upper = role.toUpperCase();
     if (upper === 'INSTITUTION' || upper === 'ADMIN') return children;
+    return <Navigate to="/courses" replace />;
+  }
+
+  function CourseManagerRoute({ children }: { children: JSX.Element }) {
+    const { user, isReady } = useAuth();
+    if (!isReady) return null;
+    const role = (user?.role ?? '').toUpperCase();
+    if (role === 'INSTITUTION' || role === 'ADMIN' || role === 'MENTOR') return children;
     return <Navigate to="/courses" replace />;
   }
 

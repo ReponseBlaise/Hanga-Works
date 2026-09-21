@@ -16,7 +16,7 @@ export function CourseList() {
 	const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 	const [publishFilter, setPublishFilter] = useState<'ALL' | 'PUBLISHED' | 'DRAFT'>('ALL');
 	const [loading, setLoading] = useState(true);
-	const canCreateCourse = ['ADMIN', 'INSTITUTION'].includes((user?.role ?? '').toUpperCase());
+	const canCreateCourse = ['ADMIN', 'INSTITUTION', 'MENTOR'].includes((user?.role ?? '').toUpperCase());
 
 	useEffect(() => {
 		let active = true;
